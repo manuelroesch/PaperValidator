@@ -1,1 +1,0 @@
-web: target/universal/stage/bin/sv-play -Dhttp.port=${PORT}
