@@ -98,7 +98,7 @@ ADD PRIMARY KEY (id);
 
 ALTER TABLE answer
 ADD CONSTRAINT answer_ibfk_1 FOREIGN KEY (question_id) REFERENCES question (id),
-ADD CONSTRAINT answer_ibfk_2 FOREIGN KEY (user_id) REFERENCES "user" (id);
+ADD CONSTRAINT answer_ibfk_2 FOREIGN KEY (user_id) REFERENCES users (id);
 
 ALTER TABLE question
 ADD CONSTRAINT question_ibfk_1 FOREIGN KEY (batch_id) REFERENCES batch (id),
