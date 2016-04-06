@@ -1,0 +1,19 @@
+@(target: String, assignmentId: String, code: Long)
+
+@main("PPLibBallot - Answer Stored") {
+
+	<div id="instructions">
+		Thank you for participating in our survey!
+
+		<form action="https://@(target + ".mturk.com/mturk/externalSubmit")">
+			<input type="hidden" name="assignmentId" value="@assignmentId"/>
+			<input type="hidden" name="code" value="@code" />
+			<p>
+				There is only one thing remaining to do: Please click the button below to hand in your answer on MTurk and to request your payment.</p>
+			<input type="submit" value="Finish"/>
+		</form>
+
+		(Please do NOT reload this page, otherwise your data is lost and you'd need to start anew).
+	</div>
+
+}

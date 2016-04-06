@@ -1,15 +1,51 @@
+@import play.api.Play
 @(title: String)(content: Html)
 
 <!DOCTYPE html>
 
 <html>
-    <head>
-        <title>@title</title>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-        <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
-    </head>
-    <body>
-        @content
-    </body>
+	<head>
+		<title>@title</title>
+		<link rel="stylesheet" media="screen" href="@{
+			Play.current.configuration.getString("assetPrefix").getOrElse("") + routes.Assets.at("stylesheets/main.css").url
+		}">
+		<link rel="stylesheet" media="screen" href="@{
+			Play.current.configuration.getString("assetPrefix").getOrElse("") + routes.Assets.at("stylesheets/bootstrap.min.css").url
+		}">
+		<link rel="stylesheet" media="screen" href="@{
+			Play.current.configuration.getString("assetPrefix").getOrElse("") + routes.Assets.at("stylesheets/bootstrap-slider.css").url
+		}">
+		<link rel="shortcut icon" type="image/png" href="@{
+			Play.current.configuration.getString("assetPrefix").getOrElse("") + routes.Assets.at("images/favicon.png").url
+		}">
+		<script src="@{
+			Play.current.configuration.getString("assetPrefix").getOrElse("") + routes.Assets.at("javascripts/jquery-2.1.4.min.js").url
+		}" type="text/javascript"></script>
+		<script src="@{
+			Play.current.configuration.getString("assetPrefix").getOrElse("") + routes.Assets.at("javascripts/angular.min.js").url
+		}" type="text/javascript"></script>
+		<script src="@{
+			Play.current.configuration.getString("assetPrefix").getOrElse("") + routes.Assets.at("javascripts/controllers.js").url
+		}" type="text/javascript"></script>
+		<script src="@{
+			Play.current.configuration.getString("assetPrefix").getOrElse("") + routes.Assets.at("javascripts/bootstrap.min.js").url
+		}" type="text/javascript"></script>
+		<script src="@{
+			Play.current.configuration.getString("assetPrefix").getOrElse("") + routes.Assets.at("javascripts/bootstrap-slider.js").url
+		}" type="text/javascript"></script>
+	</head>
+	<body ng-app="ballotApp">
+		<div class="container" id="headerarea">
+			<img src="@{
+				Play.current.configuration.getString("assetPrefix").getOrElse("") + routes.Assets.at("images/uzh_logo.svg").url
+			}" height="100px">
+		</div>
+
+		<hr />
+
+		<div class="container">
+		@content
+		</div>
+
+	</body>
 </html>

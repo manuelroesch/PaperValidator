@@ -1,0 +1,15 @@
+@import play.Configuration
+@main("Welcome to PPLibBallot") {
+
+	<h1>Welcome
+		<h3>Please login with your TurkerId</h3>
+	</h1>
+
+	<div>
+		<form action="@(Configuration.root().getString("assetPrefix", ""))/login" method="get">
+			<input type="text" class="form-control" placeholder="Your TurkerID" name="TurkerID" style="width:350px ;" required>
+			<input type="submit" value="Login" class="btn btn-success">
+		</form>
+	</div>
+
+}
