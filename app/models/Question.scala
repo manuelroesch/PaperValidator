@@ -45,7 +45,7 @@ object QuestionDAO {
 	def findByAssetId(assetId: Long): List[Question] = {
 		try {
 			DB.withConnection { implicit c =>
-				SQL("SELECT q.* FROM question q INNER JOIN question2assets q2a WHERE q2a.asset_id = {assetId}").on(
+				SQL("SELECT q.* FROM question q INNER JOIN question2assets q2a ON (q2a.asset_id = {assetId})").on(
 					'assetId -> assetId
 				).as(questionParser *)
 			}

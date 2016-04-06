@@ -108,14 +108,11 @@ class Application extends Controller {
 				s - TURKER_ID_KEY
 			} else s
 		})
-
 		if (!logAccessAndCheckIfExceedsAccessCount(request, turkerId.orNull)) {
 			val questionId = QuestionDAO.findIdByUUID(uuid)
-
 			turkerId.map { user =>
 				// get the answers of the turker in the batch group
 				val userFound = UserDAO.findByTurkerId(user)
-
 				if (userFound.isDefined && isUserAllowedToAnswer(questionId, userFound.get.id.get, secret)) {
 					val question = QuestionDAO.findById(questionId).get
 					val formattedHTML: String = new QuestionHTMLFormatter(question.html).format

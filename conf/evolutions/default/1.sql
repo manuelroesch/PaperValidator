@@ -9,7 +9,7 @@ CREATE TABLE answer (
   time timestamp(0) NOT NULL,
   answer_json text NOT NULL,
   expected_output_code bigint NOT NULL,
-  accepted smallint NOT NULL DEFAULT '0'
+  accepted boolean NOT NULL DEFAULT '0'
 ) ;
 
 CREATE TABLE assets (
@@ -31,7 +31,7 @@ CREATE TABLE log (
   accesstime timestamp(0) NOT NULL,
   url varchar(1024) NOT NULL DEFAULT '',
   ip varchar(254) NOT NULL DEFAULT '',
-  "user" int DEFAULT NULL
+  users int DEFAULT NULL
 ) ;
 
 CREATE TABLE permutations (
@@ -41,7 +41,7 @@ CREATE TABLE permutations (
   method_index varchar(255) NOT NULL,
   snippet_filename varchar(255) NOT NULL,
   pdf_path varchar(255) NOT NULL,
-  method_on_top smallint NOT NULL,
+  method_on_top boolean NOT NULL,
   state bigint NOT NULL DEFAULT '0',
   excluded_step int DEFAULT '0',
   relative_height_top double precision NOT NULL,
@@ -65,7 +65,7 @@ CREATE TABLE question2assets (
   asset_id bigint NOT NULL
 ) ;
 
-CREATE TABLE "user" (
+CREATE TABLE users (
   id serial NOT NULL,
   turker_id varchar(255) NOT NULL,
   first_seen_date_time timestamp(0) NOT NULL
@@ -93,12 +93,12 @@ ADD PRIMARY KEY (id);
 ALTER TABLE question2assets
 ADD PRIMARY KEY (id);
 
-ALTER TABLE "user"
+ALTER TABLE users
 ADD PRIMARY KEY (id);
 
 ALTER TABLE answer
 ADD CONSTRAINT answer_ibfk_1 FOREIGN KEY (question_id) REFERENCES question (id),
-ADD CONSTRAINT answer_ibfk_2 FOREIGN KEY (user_id) REFERENCES "user" (id);
+ADD CONSTRAINT answer_ibfk_2 FOREIGN KEY (user_id) REFERENCES users (id);
 
 ALTER TABLE question
 ADD CONSTRAINT question_ibfk_1 FOREIGN KEY (batch_id) REFERENCES batch (id),
