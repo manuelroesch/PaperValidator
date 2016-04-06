@@ -93,7 +93,7 @@ ADD PRIMARY KEY (id);
 ALTER TABLE question2assets
 ADD PRIMARY KEY (id);
 
-ALTER TABLE "user"
+ALTER TABLE users
 ADD PRIMARY KEY (id);
 
 ALTER TABLE answer
