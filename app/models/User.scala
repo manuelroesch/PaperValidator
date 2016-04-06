@@ -23,7 +23,7 @@ object UserDAO {
 
 	def findById(id: Long): Option[User] =
 		DB.withConnection { implicit c =>
-			SQL("SELECT * FROM user WHERE id = {id}").on(
+			SQL("SELECT * FROM \"user\" WHERE id = {id}").on(
 				'id -> id
 			).as(userParser.singleOpt)
 		}
@@ -32,14 +32,14 @@ object UserDAO {
 		if (turkerId == null) None
 		else
 			DB.withConnection { implicit c =>
-				SQL("SELECT * FROM user WHERE turker_id = {turkerId}").on(
+				SQL("SELECT * FROM \"user\" WHERE turker_id = {turkerId}").on(
 					'turkerId -> turkerId
 				).as(userParser.singleOpt)
 			}
 
 	def create(turkerId: String, firstSeenDateTime: DateTime): Option[Long] =
 		DB.withConnection { implicit c =>
-			SQL("INSERT INTO user(turker_id, first_seen_date_time) VALUES ({turkerId}, {firstSeenDateTime})").on(
+			SQL("INSERT INTO \"user\"(turker_id, first_seen_date_time) VALUES ({turkerId}, {firstSeenDateTime})").on(
 				'turkerId -> turkerId,
 				'firstSeenDateTime -> firstSeenDateTime
 			).executeInsert()
