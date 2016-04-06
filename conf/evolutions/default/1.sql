@@ -41,7 +41,7 @@ CREATE TABLE permutations (
   method_index varchar(255) NOT NULL,
   snippet_filename varchar(255) NOT NULL,
   pdf_path varchar(255) NOT NULL,
-  method_on_top smallint NOT NULL,
+  method_on_top boolean NOT NULL,
   state bigint NOT NULL DEFAULT '0',
   excluded_step int DEFAULT '0',
   relative_height_top double precision NOT NULL,
