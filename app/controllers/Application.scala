@@ -11,4 +11,9 @@ class Application extends Controller {
     Ok(views.html.index("Your new application is ready."))
   }
 
+  def db = Action {
+    Log.createEntry("test", "test2", 123)
+    Ok(views.html.index("DB ready."))
+  }
+
 }
