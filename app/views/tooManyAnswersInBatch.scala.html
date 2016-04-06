@@ -1,0 +1,20 @@
+@import play.Configuration
+@(isPreview: Boolean = false)
+
+@main("PPLibBallot - Unauthorized") {
+
+	<div id="instructions">
+		<h1>You have already answered a HIT in this batch</h1>
+	</div>
+	<p>
+		There are plenty of HIT's available from us in other batches that you could work on.
+		@if(!isPreview) {
+			You could get this message in preview mode already (where you have clicked on "accept") by logging in <a href="@(Configuration.root().getString("assetPrefix", ""))/logout">
+		here</a>
+		and hereby allowing your browser to send us your Turker ID with each HIT-request. In that case you won't face this problem again.
+	}
+	</p>
+	<p>
+		Also, you can see a the batch-number of a HIT by looking at the HIT-title: The number written in {} lets you know what batch a HIT belongs to. You are eligible to work on 1 HIT per batch.</p>
+
+}

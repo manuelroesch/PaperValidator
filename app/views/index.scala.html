@@ -1,7 +1,10 @@
-@(message: String)
+@import play.Configuration
+@(turkerId: String)
 
-@main("Welcome to Play") {
-
-    @play20.welcome(message)
-
+@main("Welcome to PPLibBallot") {
+	<h1>Welcome to PPLibBallot</h1>
+	<h3>Your username is: @turkerId</h3>
+	<form action="@(Configuration.root().getString("assetPrefix", ""))/logout" method="get">
+		<input type="submit" value="Logout" class="btn btn-danger">
+	</form>
 }
