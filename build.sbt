@@ -1,4 +1,4 @@
-name := "PlayME"
+name := "sv-play"
 
 version := "1.0"
 
