@@ -31,7 +31,7 @@ CREATE TABLE log (
   accesstime timestamp(0) NOT NULL,
   url varchar(1024) NOT NULL DEFAULT '',
   ip varchar(254) NOT NULL DEFAULT '',
-  "user" int DEFAULT NULL
+  users int DEFAULT NULL
 ) ;
 
 CREATE TABLE permutations (

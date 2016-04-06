@@ -12,7 +12,7 @@ import play.api.db.DB
 object Log {
 	def createEntry(url: String, ip: String, userId: Long): Unit = {
 		DB.withConnection { implicit c =>
-			SQL("INSERT INTO log (accesstime, url, ip, user) VALUES (NOW(), {url}, {ip}, {userId})").on(
+			SQL("INSERT INTO log (accesstime, url, ip, users) VALUES (NOW(), {url}, {ip}, {userId})").on(
 				'url -> url,
 				'ip -> ip,
 				'userId -> userId
