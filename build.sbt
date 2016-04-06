@@ -11,7 +11,8 @@ libraryDependencies ++= Seq(
   "org.postgresql" % "postgresql" % "9.4-1201-jdbc41",
   "org.scalikejdbc" %% "scalikejdbc"       % "2.2.2",
   "com.h2database"  %  "h2"                % "1.4.184",
-  "org.scalikejdbc" %% "scalikejdbc-config"  % "2.2.2")
+  "org.scalikejdbc" %% "scalikejdbc-config"  % "2.2.2",
+  "com.typesafe.play" %% "anorm" % "2.4.0")
 
 libraryDependencies ++= Seq( jdbc , cache , ws   , specs2 % Test , evolutions )
 
