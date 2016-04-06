@@ -108,18 +108,14 @@ class Application extends Controller {
 				s - TURKER_ID_KEY
 			} else s
 		})
-		println("here1");
 		if (!logAccessAndCheckIfExceedsAccessCount(request, turkerId.orNull)) {
 			val questionId = QuestionDAO.findIdByUUID(uuid)
-			println("here2");
 			turkerId.map { user =>
 				// get the answers of the turker in the batch group
 				val userFound = UserDAO.findByTurkerId(user)
-				println("here3");
 				if (userFound.isDefined && isUserAllowedToAnswer(questionId, userFound.get.id.get, secret)) {
 					val question = QuestionDAO.findById(questionId).get
 					val formattedHTML: String = new QuestionHTMLFormatter(question.html).format
-					println("here4");
 					Ok(views.html.question(user, formattedHTML, questionId, secret)).withSession(replaceSession.getOrElse(request.session))
 				} else if (userFound.isDefined) {
 					if (checkUserDidntExceedMaxAnswersPerBatch(userFound.get.id.get, QuestionDAO.findById(questionId).get))

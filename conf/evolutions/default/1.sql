@@ -65,7 +65,7 @@ CREATE TABLE question2assets (
   asset_id bigint NOT NULL
 ) ;
 
-CREATE TABLE "user" (
+CREATE TABLE users (
   id serial NOT NULL,
   turker_id varchar(255) NOT NULL,
   first_seen_date_time timestamp(0) NOT NULL
