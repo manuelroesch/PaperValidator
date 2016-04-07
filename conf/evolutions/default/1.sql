@@ -9,7 +9,7 @@ CREATE TABLE answer (
   time timestamp(0) NOT NULL,
   answer_json text NOT NULL,
   expected_output_code bigint NOT NULL,
-  accepted smallint NOT NULL DEFAULT '0'
+  accepted boolean NOT NULL DEFAULT '0'
 ) ;
 
 CREATE TABLE assets (
