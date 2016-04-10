@@ -17,6 +17,7 @@ object PreprocessPDF {
 
 	val conf = ConfigFactory.load()
 
+	val TMP_DIR = conf.getString("highlighter.tmpDir")
 	val INPUT_DIR = conf.getString("highlighter.pdfSourceDir")
 	val OUTPUT_DIR = conf.getString("highlighter.snippetDir")
 	val CONVERT_CMD = conf.getString("highlighter.convertCmd")

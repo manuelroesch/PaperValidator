@@ -22,16 +22,15 @@ libraryDependencies ++= Seq(
   "com.novocode" % "junit-interface" % "0.8" % "test->default",
   "org.apache.httpcomponents" % "httpclient" % "4.5",
   "com.typesafe" % "config" % "1.2.1",
-  "org.codehaus.plexus" % "plexus-utils" % "3.0.22"
+  "org.codehaus.plexus" % "plexus-utils" % "3.0.22",
+  "pdeboer" %% "pplib" % "0.1-SNAPSHOT"
 )
 
 libraryDependencies ++= Seq( jdbc , cache , ws   , specs2 % Test , evolutions )
 
-resolvers += Resolver.file("Local repo", file(System.getProperty("user.home") + "/.ivy2/local"))(Resolver.ivyStylePatterns)
+resolvers += Resolver.file("Local repo", file("custom_lib"))(Resolver.ivyStylePatterns)
 
 resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
-
-unmanagedBase := baseDirectory.value / "custom_lib"
 
 unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )
 
