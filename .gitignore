@@ -2,7 +2,7 @@ logs
 project/project
 project/target
 target
-tmp
+tmp/output/upload
 .history
 dist
 /.idea
@@ -13,5 +13,3 @@ dist
 /.project
 /RUNNING_PID
 /.settings
-
-    
