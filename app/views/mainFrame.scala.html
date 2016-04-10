@@ -1,0 +1,100 @@
+@(title: String)(content: Html)
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>@title</title>
+		<link rel="stylesheet" media="screen" href="@{
+			routes.Assets.at("stylesheets/main.css").url
+		}">
+		<link rel="stylesheet" media="screen" href="@{
+			routes.Assets.at("stylesheets/bootstrap.min.css").url
+		}">
+		<link rel="stylesheet" media="screen" href="@{
+			routes.Assets.at("stylesheets/bootstrap-slider.css").url
+		}">
+		<link rel="shortcut icon" type="image/png" href="@{
+			routes.Assets.at("images/favicon.png").url
+		}">
+		<script src="@{
+			routes.Assets.at("javascripts/jquery-2.1.4.min.js").url
+		}" type="text/javascript"></script>
+		<script src="@{
+			routes.Assets.at("javascripts/angular.min.js").url
+		}" type="text/javascript"></script>
+		<script src="@{
+			routes.Assets.at("javascripts/controllers.js").url
+		}" type="text/javascript"></script>
+		<script src="@{
+			routes.Assets.at("javascripts/bootstrap.min.js").url
+		}" type="text/javascript"></script>
+		<script src="@{
+			routes.Assets.at("javascripts/bootstrap-slider.js").url
+		}" type="text/javascript"></script>
+		<style type="text/css">
+			a, a:hover, a:active, a:focus, a:visited {
+				color: #716459;
+			}
+			.header {
+				margin-bottom: 20px;
+			}
+			.header .logo {
+				width: 160px;
+				margin-right:20px;
+			}
+			.header .btn-primary {
+				width: 150px;
+				margin-left:10px;
+			}
+
+			.header .input-group, .btn-primary {
+				margin-top:30px;
+			}
+
+			.footer .powered {
+				font-size: 8px;
+			}
+
+			.footer img {
+				height: 50px;
+			}
+			.footer {
+				margin-top: 50px;
+			}
+		</style>
+	</head>
+	<body ng-app="ballotApp">
+		<div class="container">
+			<div class="row header">
+				<div class="col-sm-2">
+					<img src="@{
+						routes.Assets.at("images/papval_logo.jpg").url
+					}" alt="Logo" class="logo">
+				</div>
+				<div class="col-sm-6">
+					<div class="input-group">
+						<input type="text" class="form-control" placeholder="Search for...">
+						<span class="input-group-btn">
+							<button class="btn btn-default" type="button"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+						</span>
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<a href="@{routes.Application.upload}"><button class="btn btn-primary">Upload Paper</button></a>
+					<a href="@{routes.Application.conference}"><button class="btn btn-primary">Create Conference</button></a>
+				</div>
+			</div>
+			@content
+			<div class="row footer">
+				<div class="col-sm-12 text-center">
+					<a href="#">FAQ/Help</a> | <a href="#">About This</a> | <a href="#">Impressum</a>
+				</div>
+				<div class="col-sm-12 text-center">
+					<span class="powered">powered by</span><br>
+					<img src="@{routes.Assets.at("images/uzh_logo.svg").url}">
+				</div>
+			</div>
+
+		</div>
+	</body>
+</html>

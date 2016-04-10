@@ -32,7 +32,8 @@ class Application extends Controller {
 		request.session.get(TURKER_ID_KEY).map { user =>
 			Ok(views.html.index(user))
 		}.getOrElse {
-			Ok(views.html.login())
+			Ok(views.html.index(""))
+			//Ok(views.html.login())
 		}
 	}
 
@@ -227,42 +228,45 @@ class Application extends Controller {
 	}
 
 	def upload = Action {
-		PreprocessPDF.start()
-		/*DBSettings.initialize()
-		val dao = new BallotDAO
-		val ballotPortalAdapter = HComp(BallotPortalAdapter.PORTAL_KEY)
-		val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
-		Logger.info("init template")
-		val template: File = new File("tmp/permutations.csv")
-		if (template.exists()) {
-			val templatePermutations = Source.fromFile(template).getLines().drop(1).map(l => {
-				val perm: Permutation = Permutation.fromCSVLine(l)
-				dao.createPermutation(perm)
-			})
-			Thread.sleep(1000)
-			templatePermutations.foreach(permutationId => {
-				val q = algorithm250.buildQuestion(dao.getPermutationById(permutationId).get, isTemplate = false)
-				Logger.info("now")
-				ballotPortalAdapter.sendQuery(HTMLQuery(q._2, 1, "Statistical Methods and Prerequisites", ""), q._1)
-				Thread.sleep(1000)
-			})
-			Thread.sleep(1000)
-			assert(!templatePermutations.contains(1L), "Our template didn't get ID 1. Please adapt DB. Current template IDs: " + templatePermutations.mkString(","))
-		}
-		Logger.info("done")*/
 		Ok(views.html.upload())
 	}
 
 	def uploaded = Action(parse.multipartFormData) { request =>
-		request.body.file("paper").map { picture =>
-			import java.io.File
-			val filename = picture.filename
-			val contentType = picture.contentType
-			picture.ref.moveTo(new File(s"tmp/$filename"))
-			Ok("File uploaded")
+		request.body.file("paper").map { paper =>
+			val filename = paper.filename
+			val contentType = paper.contentType
+			paper.ref.moveTo(new File(s"public/tmp/upload/$filename"))
+			PreprocessPDF.start()
+			DBSettings.initialize()
+			val dao = new BallotDAO
+			val ballotPortalAdapter = HComp(BallotPortalAdapter.PORTAL_KEY)
+			val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
+			Logger.info("init template")
+			val template: File = new File("public/tmp/permutations.csv")
+			if (template.exists()) {
+				val templatePermutations = Source.fromFile(template).getLines().drop(1).map(l => {
+					val perm: Permutation = Permutation.fromCSVLine(l)
+					dao.createPermutation(perm)
+				})
+				Thread.sleep(1000)
+				templatePermutations.foreach(permutationId => {
+					val q = algorithm250.buildQuestion(dao.getPermutationById(permutationId).get, isTemplate = false)
+					Logger.info("now")
+					ballotPortalAdapter.sendQuery(HTMLQuery(q._2, 1, "Statistical Methods and Prerequisites", ""), q._1)
+					Thread.sleep(1000)
+				})
+				Thread.sleep(1000)
+				assert(!templatePermutations.contains(1L), "Our template didn't get ID 1. Please adapt DB. Current template IDs: " + templatePermutations.mkString(","))
+			}
+			Logger.info("done")
+			Ok("Ok")
 		}.getOrElse {
-			Ok(views.html.upload())
+			Ok("Error")
 		}
+	}
+
+	def conference = Action {
+			Ok(views.html.conference())
 	}
 
 }

@@ -9,6 +9,7 @@ GET        /showMTQuestion                  controllers.Application.showMTQuesti
 GET        /storeAnswer                     controllers.Application.storeAnswer
 GET        /upload                          controllers.Application.upload
 POST       /uploaded                        controllers.Application.uploaded
+GET        /conference                      controllers.Application.conference
 
 # Login
 GET        /login                           controllers.Login.login

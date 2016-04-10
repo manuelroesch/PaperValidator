@@ -1,6 +1,17 @@
 @import play.Configuration
 @(turkerId: String)
 
+@mainFrame("Welcome to PaperValidator") {
+	<div class="row">
+		<div class="col-md-3"></div>
+		<div class="col-md-6">
+			<div class="embed-responsive embed-responsive-16by9" style="margin:30px 0px">
+				<iframe class="embed-responsive-item" src="https://www.youtube-nocookie.com/embed/_7b7er3MZ1c" frameborder="0" allowfullscreen></iframe>
+			</div>
+		</div>
+	</div>
+}
+@*
 @main("Welcome to PPLibBallot") {
 	<h1>Welcome to PPLibBallot</h1>
 	<h3>Your username is: @turkerId</h3>
@@ -8,3 +19,4 @@
 		<input type="submit" value="Logout" class="btn btn-danger">
 	</form>
 }
+*@

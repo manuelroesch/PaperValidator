@@ -1,9 +1,85 @@
-@main("Upload File") {
-	@helper.form(action = routes.Application.uploaded, 'enctype -> "multipart/form-data") {
-		<input type="file" name="paper">
-		<p>
-			<input type="submit">
-		</p>
+@mainFrame("Upload File") {
+	<div class="row">
+		<div class="col-sm-12 text-center">
+			<form onsubmit="return submitForm()">
+				<div class="file_button_container">
+					<input type="file" name="paper" id="fileSelect">
+				</div><br>
+				<a href="#" onclick="selectFile()">Click here or drag and drop to upload PDF/ZIP.</a><br>
+				<div id="upload-progress">
+					<input id="upload-start" class="btn btn-primary" type="submit" value="Submit" style="margin-bottom:50px"><br>
+					<div id="upload-upload">
+						<img src="@{routes.Assets.at("images/loader2.gif").url}"><br><br>
+						Upload... Please wait... This may take a couple of minutes.
+					</div><br>
+					<div id="upload-success">
+						Upload successful. <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<script>
+		function selectFile() {
+			$("#fileSelect").get(0).click();
+		}
 
-	}
+		function submitForm() {
+			showUploadProgress("upload");
+			var data = new FormData();
+			var fileData = $('input[name="paper"]')[0].files[0];
+			data.append("paper", fileData);
+			$.ajax({
+				url: '@{routes.Application.uploaded}',
+				type: 'POST',
+				data: data,
+				cache: false,
+				contentType: false,
+				processData: false,
+				success: function(data){
+					console.log(data);
+					if(data == "Ok") {
+						showUploadProgress("success");
+					} else {
+						alert("Error, sorry! " + data);
+						showUploadProgress("start");
+					}
+				}
+			});
+			return false;
+		}
+
+		function showUploadProgress(progress) {
+			$("#upload-start").css({"display":"none"});
+			$("#upload-upload").css({"display":"none"});
+			$("#upload-success").css({"display":"none"});
+			$("#upload-"+progress).css({"display":"inline-block"});
+		}
+	</script>
+	<style>
+		.file_button_container,
+		.file_button_container #fileSelect {
+			height: 135px;
+			width: 130px;
+			cursor:pointer ;
+		}
+
+		.file_button_container {
+			display:inline-block;
+			margin-top : 50px;
+			background: transparent url('@{routes.Assets.at("images/pdf.png").url}') left top no-repeat;
+		}
+
+		.file_button_container #fileSelect {
+			opacity: 0;
+		}
+
+		#upload-upload, #upload-success {
+			display:none;
+		}
+
+		#upload-upload img {
+			width: 35px;
+		}
+	</style>
 }
