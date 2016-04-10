@@ -21,14 +21,14 @@ libraryDependencies ++= Seq(
   "org.mockito" % "mockito-core" % "1.10.19" % "test",
   "com.novocode" % "junit-interface" % "0.8" % "test->default",
   "org.apache.httpcomponents" % "httpclient" % "4.5",
-  "com.typesafe" % "config" % "1.2.1",
-  "pdeboer" %% "pplib" % "0.1-SNAPSHOT"
+  "com.typesafe" % "config" % "1.2.1"
 )
 
 libraryDependencies ++= Seq( jdbc , cache , ws   , specs2 % Test , evolutions )
 
 resolvers += Resolver.file("Local repo", file(System.getProperty("user.home") + "/.ivy2/local"))(Resolver.ivyStylePatterns)
 
-unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )  
-
 resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
+
+unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )
+
