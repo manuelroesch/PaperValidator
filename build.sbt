@@ -30,7 +30,7 @@ resolvers += Resolver.file("Local repo", file(System.getProperty("user.home") + 
 
 resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 
-unmanagedBase <<= baseDirectory { base => base / "lib" }
+unmanagedBase := baseDirectory.value / "custom_lib"
 
 unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )
 
