@@ -40,7 +40,7 @@ object ConsoleIntegrationTest  {
 
 			if (true) {
 				Logger.info("init template")
-				val template: File = new File("tmp/permutations.csv")
+				val template: File = new File("public/tmp/permutations.csv")
 				if (template.exists()) {
 					val templatePermutations = Source.fromFile(template).getLines().drop(1).map(l => {
 						val perm: Permutation = Permutation.fromCSVLine(l)
