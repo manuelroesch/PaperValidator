@@ -21,7 +21,8 @@ libraryDependencies ++= Seq(
   "org.mockito" % "mockito-core" % "1.10.19" % "test",
   "com.novocode" % "junit-interface" % "0.8" % "test->default",
   "org.apache.httpcomponents" % "httpclient" % "4.5",
-  "com.typesafe" % "config" % "1.2.1"
+  "com.typesafe" % "config" % "1.2.1",
+  "org.codehaus.plexus" % "plexus-utils" % "3.0.22"
 )
 
 libraryDependencies ++= Seq( jdbc , cache , ws   , specs2 % Test , evolutions )
