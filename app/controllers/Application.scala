@@ -232,25 +232,25 @@ class Application extends Controller {
 	}
 
 	def uploaded = Action(parse.multipartFormData) { request =>
-		var tmpDirs : File = new File("tmp/");
+		var tmpDirs : File = new File("/tmp/");
 		if (!tmpDirs.exists()) tmpDirs.mkdir();
-		tmpDirs = new File("tmp/error/");
+		tmpDirs = new File("/tmp/error/");
 		if (!tmpDirs.exists()) tmpDirs.mkdir();
-		tmpDirs = new File("tmp/output/");
+		tmpDirs = new File("/tmp/output/");
 		if (!tmpDirs.exists()) tmpDirs.mkdir();
-		tmpDirs = new File("tmp/upload/");
+		tmpDirs = new File("/tmp/upload/");
 		if (!tmpDirs.exists()) tmpDirs.mkdir();
 		request.body.file("paper").map { paper =>
 			val filename = paper.filename
 			val contentType = paper.contentType
-			paper.ref.moveTo(new File(s"tmp/upload/$filename"))
+			paper.ref.moveTo(new File(s"/tmp/upload/$filename"))
 			PreprocessPDF.start()
 			DBSettings.initialize()
 			val dao = new BallotDAO
 			val ballotPortalAdapter = HComp(BallotPortalAdapter.PORTAL_KEY)
 			val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
 			Logger.info("init template")
-			val template: File = new File("tmp/permutations.csv")
+			val template: File = new File("/tmp/permutations.csv")
 			if (template.exists()) {
 				val templatePermutations = Source.fromFile(template).getLines().drop(1).map(l => {
 					val perm: Permutation = Permutation.fromCSVLine(l)
