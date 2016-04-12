@@ -26,6 +26,7 @@ object DBSettings extends LazyLogger {
 			isInitialized = true
 			logger.debug("Database initialized")
 		}
+		logger.debug("Database already initialized")
 	}
 
 	def loadPermutations(init: String, path: String): Unit = {
