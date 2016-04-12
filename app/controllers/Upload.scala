@@ -33,10 +33,11 @@ class Upload extends Controller {
     createDirs
     request.body.file("paper").map { paper =>
       val filename = paper.filename
-      val contentType = paper.contentType
-      paper.ref.moveTo(new File(PreprocessPDF.INPUT_DIR+"/"+filename))
+      //val contentType = paper.contentType
+      paper.ref.moveTo(new File(PreprocessPDF.INPUT_DIR + "/" + filename))
       PreprocessPDF.start()
-      permutation2DB
+      DBSettings.initialize()
+      permutation2DB(true)
       Logger.info("done")
       Ok("Ok")
     }.getOrElse {
@@ -44,12 +45,11 @@ class Upload extends Controller {
     }
   }
 
-  def permutation2DB: Unit = {
-    DBSettings.initialize()
+  def permutation2DB(isTemplate: Boolean): Unit = {
     val dao = new BallotDAO
     val ballotPortalAdapter = HComp(BallotPortalAdapter.PORTAL_KEY)
     val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
-    if(!QuestionDAO.findById(1L).isDefined) {
+    if (QuestionDAO.findById(1L).isEmpty) {
       Logger.info("init template")
       val template: File = new File("public/template/perm.csv")
       if (template.exists()) {
@@ -87,8 +87,9 @@ class Upload extends Controller {
     }
   }
 
+
   def createDirs: Unit = {
-    var tmpDirs : File = new File(PreprocessPDF.TMP_DIR);
+    var tmpDirs: File = new File(PreprocessPDF.TMP_DIR);
     if (!tmpDirs.exists()) tmpDirs.mkdir();
     tmpDirs = new File(PreprocessPDF.PNG_ERROR_OUTPUT_PATH);
     if (!tmpDirs.exists()) tmpDirs.mkdir();
@@ -107,24 +108,23 @@ class Upload extends Controller {
 
     val allPapers = new PDFLoader(new File(PreprocessPDF.INPUT_DIR)).papers
     //val snippets = allPapers.par.flatMap(paper => {
-    val writer = new BufferedWriter(new FileWriter(new File("tmp/out.csv" )))
-    for(paper <- allPapers) {
+    val writer = new BufferedWriter(new FileWriter(new File("tmp/out.csv")))
+    for (paper <- allPapers) {
       val searcher = new StatTermSearcher(paper)
       val statTermsInPaper = new StatTermPruning(List(new PruneTermsWithinOtherTerms)).prune(searcher.occurrences)
       val combinationsOfMethodsAndAssumptions = new StatTermPermuter(statTermsInPaper).permutations
       combinationsOfMethodsAndAssumptions.sortBy(_.distanceBetweenMinMaxIndex).zipWithIndex.par.map(p => {
-        writer.write(p._1.toString+"\n")
+        writer.write(p._1.toString + "\n")
       })
 
       //val snippets = combinationsOfMethodsAndAssumptions.sortBy(_.distanceBetweenMinMaxIndex).zipWithIndex.par.map(p => {
-        //val statTermLocationsInSnippet = Some(StatTermLocationsInPNG(true))
-        //statTermLocationsInSnippet.map(s => Snippet(new File("tmp/test.png"), p._1, s))
+      //val statTermLocationsInSnippet = Some(StatTermLocationsInPNG(true))
+      //statTermLocationsInSnippet.map(s => Snippet(new File("tmp/test.png"), p._1, s))
       //})
 
       Logger.info(s"finished processing paper $paper")
       //snippets.filter(_.isDefined).map(_.get)
-    }//.toList
-    writer.close()
+    } //.toList
     Logger.info("done")
     //new CSVExporter("tmp/out.csv", snippets).persist()
     Ok("Ok")
