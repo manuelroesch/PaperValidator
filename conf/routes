@@ -7,9 +7,12 @@ GET        /                                controllers.Application.index
 GET        /showQuestion                    controllers.Application.showQuestion(q: String, s:String)
 GET        /showMTQuestion                  controllers.Application.showMTQuestion(q:String, s:String, assignmentId:String, hitId:String, turkSubmitTo:String ?="", workerId:String?="", target:String)
 GET        /storeAnswer                     controllers.Application.storeAnswer
-GET        /upload                          controllers.Application.upload
-POST       /uploaded                        controllers.Application.uploaded
-GET        /conference                      controllers.Application.conference
+GET        /upload                          controllers.Upload.upload
+POST       /uploaded                        controllers.Upload.uploaded
+GET        /conference                      controllers.Conference.conference
+POST       /write-statterms                 controllers.Conference.writeMet2AssFile
+GET        /test                            controllers.Upload.statTest
+GET        /show-paper                      controllers.ShowPaper.show
 
 # Login
 GET        /login                           controllers.Login.login

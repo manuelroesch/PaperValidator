@@ -1,3 +1,213 @@
 @mainFrame("Conference Editor") {
-	test
+	<div class="row text-center">
+		<div class="conference-editor">
+			<h1>Conference: SampleConference</h1>
+			<form id="conference-form" onsubmit="return submitConferenceForm();">
+				<div class="conference-method">
+					<h2 data-name="MANOVA">
+						Multivariate Analysis of Variance
+					</h2>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="linearity of dependent variable">
+							Linearity of Dependent Variables
+						</div>
+					</div>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="normal">
+							Normality of Residuals
+						</div>
+					</div>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="homogenity of variance-covariance">
+							Homogen Var-Covar-Matrices
+						</div>
+					</div>
+				</div>
+				<div class="conference-method">
+					<h2 data-name="ANOVA">
+						Analysis of Variance
+					</h2>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="normal">
+							Normality of Residuals
+						</div>
+					</div>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="homoscedasticity">
+							Homoscedasticity
+						</div>
+					</div>
+				</div>
+				<div class="conference-method">
+					<h2 data-name="ANCOVA">
+						Analysis of Covariance
+					</h2>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="normal">
+							Normality of Residuals
+						</div>
+					</div>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="homoscedasticity">
+							Homoscedasticity
+						</div>
+					</div>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="homogeneity of regression slopes">
+							Homogenity of Regression Slopes
+						</div>
+					</div>
+				</div>
+				<div class="conference-method">
+					<h2 data-name="linear regression">
+						Linear Regression
+					</h2>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="normal">
+							Normality of Residuals
+						</div>
+					</div>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="homoscedasticity">
+							Homoscedasticity
+						</div>
+					</div>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="multicollinearity">
+							Multicollinearity
+						</div>
+					</div>
+				</div>
+				<div class="conference-method">
+					<h2 data-name="multiple regression">
+						Multiple Regression
+					</h2>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="normal">
+							Normality of Residuals
+						</div>
+					</div>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="homoscedasticity">
+							Homoscedasticity
+						</div>
+					</div>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="multicollinearity">
+							Multicollinearity
+						</div>
+					</div>
+				</div>
+				<div class="conference-method">
+					<h2 data-name="t-test">
+						t-Test
+					</h2>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="normal">
+							Normality of Residuals
+						</div>
+					</div>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="homoscedasticity">
+							Homoscedasticity
+						</div>
+					</div>
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="linearity">
+							Linearity
+						</div>
+					</div>
+				</div>
+				<div class="row text-center">
+					<button type="submit" class="btn btn-primary" id="save-button">Save</button>
+					<img id="loader" src="@{routes.Assets.at("images/loader2.gif").url}">
+				</div>
+			</form>
+		</div>
+	</div>
+	<style>
+		.conference-editor {
+			display: inline-block;
+		}
+
+		#conference-form {
+			text-align: left ;
+		}
+
+		.conference-assumption-name {
+			display: inline-block;
+			font-weight: bold;
+			padding-left: 5px;
+			padding-right: 20px;
+			width: 333px;
+			border-bottom: 1px dotted #71665B;
+		}
+
+		.conference-assumption {
+			margin-top:5px;
+		}
+
+		.conference-editor .btn {
+			width: 100px;
+		}
+
+		.btn-ignore {
+		background-color: #ccc;
+		}
+
+		#loader {
+			display:none;
+			width: 35px;
+			margin-top: 30px;
+		}
+	</style>
+	<script>
+		var btnGroup = $.parseHTML('<div class="btn-group ignore" role="group"> \
+						<button type="button" name="danger" class="btn btn-default">Require</button> \
+						<button type="button" name="warning" class="btn btn-default">Flag</button> \
+						<button type="button" name="ignore" class="btn btn-ignore">Ignore</button> \
+					</div>');
+		$("#conference-form .conference-assumption").append(btnGroup)
+		$("#conference-form .btn-group").click(function(event){
+			$(this).find("button").attr('class','btn btn-default')
+			var oldClassName = $(event.target).attr('class');
+			var buttonName = $(event.target).attr('name');
+			var newClassName = oldClassName.replace("default", buttonName)
+			$(event.target).attr('class',newClassName);
+			$(this).attr('class', 'btn-group '+buttonName);
+		});
+
+		function submitConferenceForm() {
+			$('#save-button').css({display:"none"});
+			$('#loader').css({display:"inline-block"});
+			console.log("submitConferenceForm");
+			var methods = {};
+			$(".conference-method").each(function() {
+				var assumptions = {};
+				$(this).find(".conference-assumption").each(function(index, element){
+					var assumptionVal = $(element).find(".btn-group").attr('class').replace("btn-group","").replace(" ","");
+					if(assumptionVal=="") assumptionVal="ignore";
+					assumptions[$(element).find(".conference-assumption-name").attr("data-name")] = assumptionVal;
+				});
+				methods[$(this).find("h2").attr("data-name")] = assumptions;
+			});
+			$.ajax({
+				url: '@{routes.Conference.writeMet2AssFile}',
+				type: 'POST',
+				data: JSON.stringify(methods),
+				contentType: 'application/json',
+				complete: function(data){
+					$('#loader').css({display:"none"});
+					$('#save-button').css({display:"inline-block"});
+					if(data.responseText == "Ok") {
+						console.log("success");
+					} else {
+						alert("Error, sorry!");
+					}
+				}
+			});
+			return false;
+		}
+
+	</script>
 }

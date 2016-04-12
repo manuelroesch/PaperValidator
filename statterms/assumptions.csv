@@ -1,12 +1,11 @@
-Independen,randomly
-Homogeneity of variance,same variance,equal variance,sphericity,homoscedasticity,Constant variance
+independen,randomly
+homoscedasticity,homogeneity of variance,same variance,equal variance,sphericity,Constant variance
 homogeneity of regression slopes
-Normal,gaussian,bell,normal error,Multivariate normality
+normal,gaussian,bell,normal error,multivariate normality
 interval,ratio
-Homoscedasticity
-outliers
-ordinal
+homoscedasticity
 multicollinearity
 linearity
-linearity of independent variable,linearity of log odds
+linearity of dependent variable
 categorical,dichotomous
+homogenity of variance-covariance,homogenity of variance-covariance,homogenity of var-covar

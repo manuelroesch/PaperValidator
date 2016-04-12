@@ -1,5 +1,6 @@
 package helper.pdfpreprocessing.stats
 
+import com.typesafe.config.ConfigFactory
 import helper.pdfpreprocessing.entities.{StatisticalMethod, StatisticalAssumption}
 
 import scala.collection.mutable
@@ -26,7 +27,7 @@ object StatTermloader {
 		val methodNamesAndSynonyms = getTermCSV("statterms/methods.csv")
 
 		var methodMap = new mutable.HashMap[String, List[StatisticalAssumption]]()
-		Source.fromFile("statterms/met2ass.csv", "UTF-8").getLines().foreach(l => {
+		Source.fromFile(ConfigFactory.load().getString("highlighter.statFile"), "UTF-8").getLines().foreach(l => {
 			val cols = l.split(",").map(_.trim)
 
 			val assumption = assumptionsInCSV.find(_.name == cols(1)).getOrElse(throw new Exception(cols(1)))
