@@ -1,22 +1,14 @@
 package controllers
 
-import java.io.File
+
 import java.security.SecureRandom
 
-import ch.uzh.ifi.pdeboer.pplib.hcomp.{HTMLQuery, HComp}
-import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.{Algorithm250, BallotPortalAdapter}
-import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.dao.BallotDAO
-import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.integrationtest.console.ConsoleIntegrationTest
-import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.persistence.{Permutation, DBSettings}
 import helper.QuestionHTMLFormatter
-import helper.pdfpreprocessing.PreprocessPDF
 import models._
 import org.joda.time.DateTime
 import play.Configuration
-import play.api.Logger
 import play.api.mvc._
 
-import scala.io.Source
 import scala.util.parsing.json.JSONObject
 
 object Application {
@@ -225,58 +217,6 @@ class Application extends Controller {
 		val maxSnippetsPerCrowdWorker: Int = 200
 
 		Log.ipLogEntriesSince(request.remoteAddress, DateTime.now().minusWeeks(4)) > requestsPerSnippetAnswer * maxSnippetsPerCrowdWorker
-	}
-
-	def upload = Action {
-		Ok(views.html.upload())
-	}
-
-	def uploaded = Action(parse.multipartFormData) { request =>
-
-
-		var tmpDirs : File = new File(PreprocessPDF.TMP_DIR);
-		if (!tmpDirs.exists()) tmpDirs.mkdir();
-		tmpDirs = new File(PreprocessPDF.PNG_ERROR_OUTPUT_PATH);
-		if (!tmpDirs.exists()) tmpDirs.mkdir();
-		tmpDirs = new File(PreprocessPDF.OUTPUT_DIR);
-		if (!tmpDirs.exists()) tmpDirs.mkdir();
-		tmpDirs = new File(PreprocessPDF.INPUT_DIR);
-		if (!tmpDirs.exists()) tmpDirs.mkdir();
-		request.body.file("paper").map { paper =>
-			val filename = paper.filename
-			val contentType = paper.contentType
-			paper.ref.moveTo(new File(PreprocessPDF.INPUT_DIR+"/"+filename))
-			PreprocessPDF.start()
-			DBSettings.initialize()
-			val dao = new BallotDAO
-			val ballotPortalAdapter = HComp(BallotPortalAdapter.PORTAL_KEY)
-			val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
-			Logger.info("init template")
-			val template: File = new File(PreprocessPDF.PERMUTATIONS_CSV_FILENAME)
-			if (template.exists()) {
-				val templatePermutations = Source.fromFile(template).getLines().drop(1).map(l => {
-					val perm: Permutation = Permutation.fromCSVLine(l)
-					dao.createPermutation(perm)
-				})
-				Thread.sleep(1000)
-				templatePermutations.foreach(permutationId => {
-					val q = algorithm250.buildQuestion(dao.getPermutationById(permutationId).get, isTemplate = false)
-					Logger.info("now")
-					ballotPortalAdapter.sendQuery(HTMLQuery(q._2, 1, "Statistical Methods and Prerequisites", ""), q._1)
-					Thread.sleep(1000)
-				})
-				Thread.sleep(1000)
-				assert(!templatePermutations.contains(1L), "Our template didn't get ID 1. Please adapt DB. Current template IDs: " + templatePermutations.mkString(","))
-			}
-			Logger.info("done")
-			Ok("Ok")
-		}.getOrElse {
-			Ok("Error")
-		}
-	}
-
-	def conference = Action {
-			Ok(views.html.conference())
 	}
 
 }

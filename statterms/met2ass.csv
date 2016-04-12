@@ -1,40 +1,17 @@
-ANOVA,Independen
-ANOVA,Normal
-ANOVA,Homogeneity of variance
-Pearson,interval
-Pearson,Homoscedasticity
-Pearson,outliers
-Spearman,ordinal
-Linear regression,Homogeneity of variance
-Linear regression,Normal
-Linear regression,multicollinearity
-Linear regression,linearity
-Linear regression,Independen
-Multiple regression,Homogeneity of variance
-Multiple regression,Normal
-Multiple regression,multicollinearity
-Multiple regression,linearity
-Logistic regression,Independen
-Logistic regression,linearity of independent variable
-t test,Normal
-t test,Independen
-t test,Homogeneity of variance
-t test,linearity
-U test,Independen
-U test,ordinal
-Kappa,Independen
-Kruskal Wallis test,Independen
-ANCOVA,Normal
-ANCOVA,Homogeneity of variance
-ANCOVA,Independen
-ANCOVA,linearity
+linear regression,normal
+linear regression,homoscedasticity
+linear regression,multicollinearity
+MANOVA,linearity of dependent variable
+MANOVA,normal
+MANOVA,homogenity of variance-covariance
+multiple regression,normal
+multiple regression,homoscedasticity
+multiple regression,multicollinearity
+ANOVA,normal
+ANOVA,homoscedasticity
+t-test,normal
+t-test,homoscedasticity
+t-test,linearity
+ANCOVA,normal
+ANCOVA,homoscedasticity
 ANCOVA,homogeneity of regression slopes
-ANCOVA,Homoscedasticity
-Wilcoxon Signed Ranks test,ordinal
-Wilcoxon Signed Ranks test,Independen
-Dum test,Independen
-Dum test,Normal
-Dum test,Homogeneity of variance
-MANOVA,linearity
-MANOVA,Normal
-Mantel Haenszel,categorical

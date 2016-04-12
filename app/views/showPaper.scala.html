@@ -1,0 +1,9 @@
+@(answers: List[Answer])
+
+@mainFrame("Show Paper") {
+	<div class="row">
+        @for(answer <- answers) {
+            @answer.answerJson<br>
+        }
+	</div>
+}

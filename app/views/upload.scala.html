@@ -30,7 +30,7 @@
 			var fileData = $('input[name="paper"]')[0].files[0];
 			data.append("paper", fileData);
 			$.ajax({
-				url: '@{routes.Application.uploaded}',
+				url: '@{routes.Upload.uploaded}',
 				type: 'POST',
 				data: data,
 				cache: false,

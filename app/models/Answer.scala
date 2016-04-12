@@ -88,4 +88,10 @@ object AnswerDAO {
 		findAllByQuestionId(questionId).exists(answer => answer.accepted == true)
 	}
 
+	def getAll(): List[Answer] = {
+		DB.withConnection { implicit c =>
+			SQL("SELECT * FROM answer").as(answerParser *)
+		}
+	}
+
 }

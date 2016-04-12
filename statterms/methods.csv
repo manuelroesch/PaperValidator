@@ -1,16 +1,6 @@
+MANOVA,multivariant analysis of variance
 ANOVA,analysis of variance
-Pearson,Pearson's correlation,Pearson's r,Pearson product moment correlation
-Spearman,Spearman's correlation,Spearman's rank order correlation
-Correlation,R square,R squared,R 2 adjusted
-Linear regression,Ordinary least squares regression
-Multiple regression,Multiple Linear Regression
-Logistic regression
-t test,t-test
-U test,Mann Whitney
-Kappa,Kendall Tau,Bland Altman,Youden J
-Kruskal Wallis test
-ANCOVA,Analysis of covariance
-Wilcoxon Signed Ranks test, Wilcoxon Signed-Ranks test, Wilcoxon test, Wilcoxon-test, Wilcoxon Signed Rank, Wilcoxon Signed-Rank,
-Dum test,Dum's test
-MANOVA,multivariate analysis of variance
-Mantel Haenszel
+ANCOVA,analysis of covariance
+linear regression
+multiple regression
+t-test,t test
