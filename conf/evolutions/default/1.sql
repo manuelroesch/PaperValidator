@@ -3,7 +3,7 @@
 # --- !Ups
 
 CREATE TABLE `answer` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) NOT NULL,
   `question_id` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL,
   `time` datetime NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE `answer` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `assets` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) NOT NULL,
   `hash_code` varchar(255) NOT NULL,
   `byte_array` longblob NOT NULL,
   `content_type` varchar(255) NOT NULL,
@@ -21,13 +21,13 @@ CREATE TABLE `assets` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `batch` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) NOT NULL,
   `allowed_answers_per_turker` int(11) NOT NULL,
   `uuid` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `log` (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id` int(11) UNSIGNED NOT NULL,
   `accesstime` datetime NOT NULL,
   `url` varchar(1024) NOT NULL DEFAULT '',
   `ip` varchar(254) NOT NULL DEFAULT '',
@@ -35,7 +35,7 @@ CREATE TABLE `log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `permutations` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) NOT NULL,
   `create_time` datetime NOT NULL,
   `group_name` varchar(255) NOT NULL,
   `method_index` varchar(255) NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE `permutations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `play_evolutions` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL,
   `hash` varchar(255) NOT NULL,
   `applied_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `apply_script` mediumtext,
@@ -60,7 +60,7 @@ CREATE TABLE `play_evolutions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `question` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) NOT NULL,
   `batch_id` bigint(20) NOT NULL,
   `html` longtext NOT NULL,
   `create_time` datetime NOT NULL,
@@ -70,64 +70,93 @@ CREATE TABLE `question` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `question2assets` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) NOT NULL,
   `question_id` bigint(20) NOT NULL,
   `asset_id` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE `user` (
+  `id` bigint(20) NOT NULL,
+  `turker_id` varchar(255) NOT NULL,
+  `first_seen_date_time` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 CREATE TABLE `users` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) NOT NULL,
   `turker_id` varchar(255) NOT NULL,
   `first_seen_date_time` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
 ALTER TABLE `answer`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `question_id` (`question_id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `time` (`time`);
+ADD PRIMARY KEY (`id`),
+ADD KEY `question_id` (`question_id`),
+ADD KEY `user_id` (`user_id`),
+ADD KEY `time` (`time`);
 
 ALTER TABLE `assets`
-  ADD PRIMARY KEY (`id`);
+ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `batch`
-  ADD PRIMARY KEY (`id`);
+ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `log`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `accesstime` (`accesstime`);
+ADD PRIMARY KEY (`id`),
+ADD KEY `accesstime` (`accesstime`);
 
 ALTER TABLE `permutations`
-  ADD PRIMARY KEY (`id`);
+ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `play_evolutions`
-  ADD PRIMARY KEY (`id`);
+ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `question`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `batch_id` (`batch_id`),
-  ADD KEY `permutation` (`permutation`);
+ADD PRIMARY KEY (`id`),
+ADD KEY `batch_id` (`batch_id`),
+ADD KEY `permutation` (`permutation`);
 
 ALTER TABLE `question2assets`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `question_id` (`question_id`),
-  ADD KEY `asset_id` (`asset_id`);
+ADD PRIMARY KEY (`id`),
+ADD KEY `question_id` (`question_id`),
+ADD KEY `asset_id` (`asset_id`);
+
+ALTER TABLE `user`
+ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`);
+ADD PRIMARY KEY (`id`);
+
 
 ALTER TABLE `answer`
-  ADD CONSTRAINT `answer_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`),
-  ADD CONSTRAINT `answer_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+ALTER TABLE `assets`
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+ALTER TABLE `batch`
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+ALTER TABLE `log`
+MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+ALTER TABLE `permutations`
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+ALTER TABLE `question`
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+ALTER TABLE `question2assets`
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+ALTER TABLE `user`
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `users`
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+ALTER TABLE `answer`
+ADD CONSTRAINT `answer_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`),
+ADD CONSTRAINT `answer_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 ALTER TABLE `question`
-  ADD CONSTRAINT `question_ibfk_1` FOREIGN KEY (`batch_id`) REFERENCES `batch` (`id`),
-  ADD CONSTRAINT `question_ibfk_2` FOREIGN KEY (`permutation`) REFERENCES `permutations` (`id`);
+ADD CONSTRAINT `question_ibfk_1` FOREIGN KEY (`batch_id`) REFERENCES `batch` (`id`),
+ADD CONSTRAINT `question_ibfk_2` FOREIGN KEY (`permutation`) REFERENCES `permutations` (`id`);
 
 ALTER TABLE `question2assets`
-  ADD CONSTRAINT `question2assets_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`),
-  ADD CONSTRAINT `question2assets_ibfk_2` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`);
+ADD CONSTRAINT `question2assets_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`),
+ADD CONSTRAINT `question2assets_ibfk_2` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`);
 
 # --- !Downs
 
