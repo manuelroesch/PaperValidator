@@ -49,16 +49,6 @@ CREATE TABLE `permutations` (
   `distanceMinIndexMax` bigint(20) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `play_evolutions` (
-  `id` int(11) NOT NULL,
-  `hash` varchar(255) NOT NULL,
-  `applied_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `apply_script` mediumtext,
-  `revert_script` mediumtext,
-  `state` varchar(255) DEFAULT NULL,
-  `last_problem` mediumtext
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
 CREATE TABLE `question` (
   `id` bigint(20) NOT NULL,
   `batch_id` bigint(20) NOT NULL,
@@ -105,9 +95,6 @@ ADD PRIMARY KEY (`id`),
 ADD KEY `accesstime` (`accesstime`);
 
 ALTER TABLE `permutations`
-ADD PRIMARY KEY (`id`);
-
-ALTER TABLE `play_evolutions`
 ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `question`
