@@ -147,5 +147,3 @@ ADD CONSTRAINT `question2assets_ibfk_2` FOREIGN KEY (`asset_id`) REFERENCES `ass
 
 # --- !Downs
 
-
-
