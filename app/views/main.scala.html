@@ -6,6 +6,7 @@
 <html>
 	<head>
 		<title>@title</title>
+		<base href="@Play.current.configuration.getString("application.baseURL")">
 		<link rel="stylesheet" media="screen" href="@{
 			Play.current.configuration.getString("assetPrefix").getOrElse("") + routes.Assets.at("stylesheets/main.css").url
 		}">
