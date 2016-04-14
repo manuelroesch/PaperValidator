@@ -33,7 +33,7 @@
 			var fileData = $('input[name="paper"]')[0].files[0];
 			data.append("paper", fileData);
 			$.ajax({
-				url: '@{routes.Upload.uploaded}',
+				url: '@{urlPrefix + routes.Upload.uploaded.url}',
 				type: 'POST',
 				data: data,
 				cache: false,
@@ -70,7 +70,7 @@
 		.file_button_container {
 			display:inline-block;
 			margin-top : 50px;
-			background: transparent url('@{routes.Assets.at("images/pdf.png").url}') left top no-repeat;
+			background: transparent url('@{urlPrefix + routes.Assets.at("images/pdf.png").url}') left top no-repeat;
 		}
 
 		.file_button_container #fileSelect {
