@@ -18,6 +18,7 @@ import helper.pdfpreprocessing.util.FileUtils
 import models.QuestionDAO
 import play.api.Logger
 import play.api.mvc.{Action, Controller}
+import scalikejdbc.config.DBs
 
 import scala.io.Source
 
@@ -45,6 +46,7 @@ class Upload extends Controller {
   }
 
   def permutation2DB(isTemplate: Boolean): Unit = {
+    DBs.setupAll()
     DBSettings.initialize()
     val dao = new BallotDAO
     val ballotPortalAdapter = HComp(BallotPortalAdapter.PORTAL_KEY)
