@@ -49,7 +49,7 @@ class Upload extends Controller {
     val dao = new BallotDAO
     val ballotPortalAdapter = HComp(BallotPortalAdapter.PORTAL_KEY)
     val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
-    if (QuestionDAO.findById(1L).isEmpty || true) {
+    if (QuestionDAO.findById(1L).isEmpty) {
       Logger.info("init template")
       val template: File = new File("public/template/perm.csv")
       if (template.exists()) {
