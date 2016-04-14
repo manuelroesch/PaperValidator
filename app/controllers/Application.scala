@@ -21,9 +21,9 @@ class Application @Inject() (configuration: play.api.Configuration) extends Cont
 	val TEMPLATE_ID = 1L
 	val TURKER_ID_KEY: String = "TurkerId"
 
-	def index = Action { request =>
+	def index(user: String) = Action { request =>
 		request.session.get(TURKER_ID_KEY).map { user =>
-			Ok(views.html.index())
+			Ok(views.html.index(user))
 		}.getOrElse {
 			//Ok(views.html.index(""))
 			Ok(views.html.login())
