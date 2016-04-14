@@ -183,7 +183,7 @@ class BallotPortalAdapter(val decorated: HCompPortalAdapter with AnswerRejection
 object BallotPortalAdapter {
 	val CONFIG_ACCESS_ID_KEY = "decoratedPortalKey"
 	val CONFIG_BASE_URL = "baseURL"
-	val PORTAL_KEY = "ballot"
+	val PORTAL_KEY = "statval"
 }
 
 class BallotPortalBuilder extends HCompPortalBuilder {

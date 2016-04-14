@@ -46,7 +46,6 @@ class Upload extends Controller {
   }
 
   def permutation2DB(isTemplate: Boolean): Unit = {
-    DBs.setupAll()
     DBSettings.initialize()
     val dao = new BallotDAO
     val ballotPortalAdapter = HComp(BallotPortalAdapter.PORTAL_KEY)
