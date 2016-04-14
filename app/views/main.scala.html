@@ -7,7 +7,7 @@
 	<head>
 		<title>@title</title>
 		<link rel="stylesheet" media="screen" href="@{
-			Play.current.configuration.getString("assetPrefix").getOrElse("") + routes.Assets.at("stylesheets/main.css").fullUrl
+			Play.current.configuration.getString("assetPrefix").getOrElse("") + routes.Assets.at("stylesheets/main.css").url
 		}">
 		<link rel="stylesheet" media="screen" href="@{
 			Play.current.configuration.getString("assetPrefix").getOrElse("") + routes.Assets.at("stylesheets/bootstrap.min.css").url
