@@ -3,7 +3,7 @@
 # ~~~~
 
 # Main Controller
-GET        /                                controllers.Application.index(user:String)
+GET        /                                controllers.Application.index
 GET        /showQuestion                    controllers.Application.showQuestion(q: String, s:String)
 GET        /showMTQuestion                  controllers.Application.showMTQuestion(q:String, s:String, assignmentId:String, hitId:String, turkSubmitTo:String ?="", workerId:String?="", target:String)
 GET        /storeAnswer                     controllers.Application.storeAnswer
