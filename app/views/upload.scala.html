@@ -1,3 +1,6 @@
+@import play.Configuration
+
+@urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Upload File") {
 	<div class="row">
 		<div class="col-sm-12 text-center">
@@ -9,7 +12,7 @@
 				<div id="upload-progress">
 					<input id="upload-start" class="btn btn-primary" type="submit" value="Submit" style="margin-bottom:50px"><br>
 					<div id="upload-upload">
-						<img src="@{routes.Assets.at("images/loader2.gif").url}"><br><br>
+						<img src="@{urlPrefix + routes.Assets.at("images/loader2.gif").url}"><br><br>
 						Upload... Please wait... This may take a couple of minutes.
 					</div><br>
 					<div id="upload-success">
