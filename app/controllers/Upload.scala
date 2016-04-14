@@ -37,45 +37,7 @@ class Upload extends Controller {
       paper.ref.moveTo(new File(PreprocessPDF.INPUT_DIR + "/" + filename))
       PreprocessPDF.start()
       DBSettings.initialize()
-      val dao = new BallotDAO
-      val ballotPortalAdapter = HComp(BallotPortalAdapter.PORTAL_KEY)
-      val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
-      if (QuestionDAO.findById(1L).isEmpty) {
-        Logger.info("init template")
-        val template: File = new File("public/template/perm.csv")
-        if (template.exists()) {
-          val templatePermutations = Source.fromFile(template).getLines().drop(1).map(l => {
-            val perm: Permutation = Permutation.fromCSVLine(l)
-            dao.createPermutation(perm)
-          })
-          Thread.sleep(1000)
-          templatePermutations.foreach(permutationId => {
-            val q = algorithm250.buildQuestion(dao.getPermutationById(permutationId).get, isTemplate = true)
-            Logger.info("WriteTemplate")
-            ballotPortalAdapter.sendQuery(HTMLQuery(q._2, 1, "Statistical Methods and Prerequisites", ""), q._1)
-            Thread.sleep(1000)
-          })
-          Thread.sleep(1000)
-          assert(!templatePermutations.contains(1L), "Our template didn't get ID 1. Please adapt DB. Current template IDs: " + templatePermutations.mkString(","))
-        }
-      } else {
-        Logger.info("Loading new permutations")
-        dao.loadPermutationsCSV(PreprocessPDF.PERMUTATIONS_CSV_FILENAME)
-        Logger.info("Removing state information of previous runs")
-        new File("state").listFiles().foreach(f => f.delete())
-        val groups = dao.getAllPermutations().filter(_.id != ConsoleIntegrationTest.DEFAULT_TEMPLATE_ID).groupBy(gr => {
-          gr.groupName.split("/").apply(0)
-        }).map(g => (g._1, g._2.sortBy(_.distanceMinIndexMax))).toList
-        groups.mpar.foreach(group => {
-          group._2.foreach(permutation => {
-            if (dao.getPermutationById(permutation.id).map(_.state).getOrElse(-1) == 0) {
-              algorithm250.executePermutation(permutation)
-            }
-          })
-        })
-        Report.writeCSVReport(dao)
-        Report.writeCSVReportAllAnswers(dao)
-      }
+      permutation2DB(true)
       Logger.info("done")
       Ok("Ok")
     }.getOrElse {
