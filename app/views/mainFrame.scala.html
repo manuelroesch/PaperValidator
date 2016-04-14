@@ -1,36 +1,21 @@
+@import play.Configuration
+
 @(title: String)(content: Html)
+@urlPrefix = {@Configuration.root().getString("assetPrefix")}
 <!DOCTYPE html>
 
 <html>
 	<head>
 		<title>@title</title>
-		<link rel="stylesheet" media="screen" href="@{
-			routes.Assets.at("stylesheets/main.css").url
-		}">
-		<link rel="stylesheet" media="screen" href="@{
-			routes.Assets.at("stylesheets/bootstrap.min.css").url
-		}">
-		<link rel="stylesheet" media="screen" href="@{
-			routes.Assets.at("stylesheets/bootstrap-slider.css").url
-		}">
-		<link rel="shortcut icon" type="image/png" href="@{
-			routes.Assets.at("images/favicon.png").url
-		}">
-		<script src="@{
-			routes.Assets.at("javascripts/jquery-2.1.4.min.js").url
-		}" type="text/javascript"></script>
-		<script src="@{
-			routes.Assets.at("javascripts/angular.min.js").url
-		}" type="text/javascript"></script>
-		<script src="@{
-			routes.Assets.at("javascripts/controllers.js").url
-		}" type="text/javascript"></script>
-		<script src="@{
-			routes.Assets.at("javascripts/bootstrap.min.js").url
-		}" type="text/javascript"></script>
-		<script src="@{
-			routes.Assets.at("javascripts/bootstrap-slider.js").url
-		}" type="text/javascript"></script>
+		<link rel="stylesheet" media="screen" href="@{urlPrefix + routes.Assets.at("stylesheets/main.css").url}">
+		<link rel="stylesheet" media="screen" href="@{urlPrefix + routes.Assets.at("stylesheets/bootstrap.min.css").url}">
+		<link rel="stylesheet" media="screen" href="@{urlPrefix + routes.Assets.at("stylesheets/bootstrap-slider.css").url}">
+		<link rel="shortcut icon" type="image/png" href="@{urlPrefix + routes.Assets.at("images/favicon.png").url}">
+		<script src="@{urlPrefix + routes.Assets.at("javascripts/jquery-2.1.4.min.js").url}" type="text/javascript"></script>
+		<script src="@{urlPrefix + routes.Assets.at("javascripts/angular.min.js").url}" type="text/javascript"></script>
+		<script src="@{urlPrefix + routes.Assets.at("javascripts/controllers.js").url}" type="text/javascript"></script>
+		<script src="@{urlPrefix + routes.Assets.at("javascripts/bootstrap.min.js").url}" type="text/javascript"></script>
+		<script src="@{urlPrefix + routes.Assets.at("javascripts/bootstrap-slider.js").url}" type="text/javascript"></script>
 		<style type="text/css">
 			a, a:hover, a:active, a:focus, a:visited {
 				color: #716459;
@@ -67,8 +52,7 @@
 		<div class="container">
 			<div class="row header">
 				<div class="col-sm-2">
-					<img src="@{
-						routes.Assets.at("images/papval_logo.jpg").url
+					<img src="@{urlPrefix + routes.Assets.at("images/papval_logo.jpg").url
 					}" alt="Logo" class="logo">
 				</div>
 				<div class="col-sm-6">
@@ -80,8 +64,8 @@
 					</div>
 				</div>
 				<div class="col-sm-4">
-					<a href="@{routes.Upload.upload}"><button class="btn btn-primary">Upload Paper</button></a>
-					<a href="@{routes.Conference.conference}"><button class="btn btn-primary">Create Conference</button></a>
+					<a href="@{urlPrefix + routes.Upload.upload.url}"><button class="btn btn-primary">Upload Paper</button></a>
+					<a href="@{urlPrefix + routes.Conference.conference.url}"><button class="btn btn-primary">Create Conference</button></a>
 				</div>
 			</div>
 			@content
@@ -91,7 +75,7 @@
 				</div>
 				<div class="col-sm-12 text-center">
 					<span class="powered">powered by</span><br>
-					<img src="@{routes.Assets.at("images/uzh_logo.svg").url}">
+					<img src="@{urlPrefix + routes.Assets.at("images/uzh_logo.svg").url}">
 				</div>
 			</div>
 

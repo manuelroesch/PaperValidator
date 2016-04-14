@@ -1,3 +1,6 @@
+@import play.Configuration
+
+@urlPrefix = {@Configuration.root().getString("assetPrefix")}
 @mainFrame("Conference Editor") {
 	<div class="row text-center">
 		<div class="conference-editor">
@@ -120,7 +123,7 @@
 				</div>
 				<div class="row text-center">
 					<button type="submit" class="btn btn-primary" id="save-button">Save</button>
-					<img id="loader" src="@{routes.Assets.at("images/loader2.gif").url}">
+					<img id="loader" src="@{urlPrefix + routes.Assets.at("images/loader2.gif").url}">
 				</div>
 			</form>
 		</div>
@@ -192,7 +195,7 @@
 				methods[$(this).find("h2").attr("data-name")] = assumptions;
 			});
 			$.ajax({
-				url: '@{routes.Conference.writeMet2AssFile}',
+				url: '@{urlPrefix + routes.Conference.writeMet2AssFile.url}',
 				type: 'POST',
 				data: JSON.stringify(methods),
 				contentType: 'application/json',

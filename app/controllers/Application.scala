@@ -2,6 +2,7 @@ package controllers
 
 
 import java.security.SecureRandom
+import javax.inject.Inject
 
 import helper.QuestionHTMLFormatter
 import models._
@@ -16,7 +17,7 @@ object Application {
 	val TURKER_ID_KEY: String = "TurkerId"
 }
 
-class Application extends Controller {
+class Application @Inject() (configuration: play.api.Configuration) extends Controller {
 	val TEMPLATE_ID = 1L
 	val TURKER_ID_KEY: String = "TurkerId"
 
@@ -125,10 +126,10 @@ class Application extends Controller {
 					else
 						Unauthorized(views.html.tooManyAnswersInBatch()).withSession(replaceSession.getOrElse(request.session))
 				} else {
-					Ok(views.html.login()).withSession("redirect" -> (Configuration.root().getString("assetPrefix") + "/showQuestion?q=" + uuid + "&s=" + secret))
+					Ok(views.html.login()).withSession("redirect" -> (configuration.getString("assetPrefix") + "/showQuestion?q=" + uuid + "&s=" + secret))
 				}
 			}.getOrElse {
-				Ok(views.html.login()).withSession("redirect" -> (Configuration.root().getString("assetPrefix") + "/showQuestion?q=" + uuid + "&s=" + secret))
+				Ok(views.html.login()).withSession("redirect" -> (configuration.getString("assetPrefix") + "/showQuestion?q=" + uuid + "&s=" + secret))
 			}
 		} else Unauthorized("We have received too many requests from your IP address")
 	}
