@@ -31,6 +31,9 @@ class Upload extends Controller {
   }
 
   def uploaded = Action(parse.multipartFormData) { request =>
+    DBSettings.initialize()
+    val dao = new BallotDAO
+    val ballotPortalAdapter = HComp(BallotPortalAdapter.PORTAL_KEY)
     createDirs
     request.body.file("paper").map { paper =>
       val filename = paper.filename
