@@ -1,3 +1,6 @@
+@import play.Configuration
+
+@urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Upload File") {
 	<div class="row">
 		<div class="col-sm-12 text-center">
@@ -9,7 +12,7 @@
 				<div id="upload-progress">
 					<input id="upload-start" class="btn btn-primary" type="submit" value="Submit" style="margin-bottom:50px"><br>
 					<div id="upload-upload">
-						<img src="@{routes.Assets.at("images/loader2.gif").url}"><br><br>
+						<img src="@{urlPrefix + routes.Assets.at("images/loader2.gif").url}"><br><br>
 						Upload... Please wait... This may take a couple of minutes.
 					</div><br>
 					<div id="upload-success">
@@ -30,7 +33,7 @@
 			var fileData = $('input[name="paper"]')[0].files[0];
 			data.append("paper", fileData);
 			$.ajax({
-				url: '@{routes.Upload.uploaded}',
+				url: '@{urlPrefix + routes.Upload.uploaded.url}',
 				type: 'POST',
 				data: data,
 				cache: false,
@@ -67,7 +70,7 @@
 		.file_button_container {
 			display:inline-block;
 			margin-top : 50px;
-			background: transparent url('@{routes.Assets.at("images/pdf.png").url}') left top no-repeat;
+			background: transparent url('@{urlPrefix + routes.Assets.at("images/pdf.png").url}') left top no-repeat;
 		}
 
 		.file_button_container #fileSelect {
