@@ -4,6 +4,7 @@
 <html>
 	<head>
 		<title>@title</title>
+		<base href="@play.Configuration.reference().getString("application.baseUrl")">
 		<link rel="stylesheet" media="screen" href="@{
 			routes.Assets.at("stylesheets/main.css").url
 		}">
