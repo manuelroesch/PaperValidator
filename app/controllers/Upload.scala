@@ -46,14 +46,10 @@ class Upload extends Controller {
 
   def permutation2DB(isTemplate: Boolean): Unit = {
     DBSettings.initialize()
-    Thread.sleep(1000)
     val dao = new BallotDAO
-    Thread.sleep(1000)
     val ballotPortalAdapter = HComp(BallotPortalAdapter.PORTAL_KEY)
-    Thread.sleep(1000)
     val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
-    Thread.sleep(1000)
-    if (QuestionDAO.findById(1L).isEmpty) {
+    if (QuestionDAO.findById(1L).isEmpty || true) {
       Logger.info("init template")
       val template: File = new File("public/template/perm.csv")
       if (template.exists()) {
