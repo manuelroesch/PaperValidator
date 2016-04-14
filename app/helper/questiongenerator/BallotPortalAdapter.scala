@@ -8,6 +8,7 @@ import ch.uzh.ifi.pdeboer.pplib.hcomp._
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.dao.{BallotDAO, DAO}
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.report.AnswerParser
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.snippet.SnippetHTMLValidator
+import helper.questiongenerator.HCompNew
 import org.joda.time.DateTime
 
 import scala.xml._
@@ -188,18 +189,18 @@ object BallotPortalAdapter {
 
 class BallotPortalBuilder extends HCompPortalBuilder {
 
-	val DECORATED_PORTAL_KEY = "decoratedPortalKey"
+	val DECORATED_PORTAL_KEY_BALLOT = "decoratedPortalKey"
 	val BASE_URL = "BaseURL"
 
 	override def build: HCompPortalAdapter = new BallotPortalAdapter(
-		HComp(params(DECORATED_PORTAL_KEY))
+		HCompNew(params(DECORATED_PORTAL_KEY_BALLOT))
 			.asInstanceOf[HCompPortalAdapter with AnswerRejection],
 		baseURL = params(BASE_URL))
 
-	override def expectedParameters: List[String] = List(DECORATED_PORTAL_KEY, BASE_URL)
+	override def expectedParameters: List[String] = List(DECORATED_PORTAL_KEY_BALLOT, BASE_URL)
 
 	override def parameterToConfigPath: Map[String, String] = Map(
-		DECORATED_PORTAL_KEY -> BallotPortalAdapter.CONFIG_ACCESS_ID_KEY,
+		DECORATED_PORTAL_KEY_BALLOT -> BallotPortalAdapter.CONFIG_ACCESS_ID_KEY,
 		BASE_URL -> BallotPortalAdapter.CONFIG_BASE_URL
 	)
 

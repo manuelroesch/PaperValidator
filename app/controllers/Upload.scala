@@ -2,19 +2,18 @@ package controllers
 
 import java.io.{FileWriter, BufferedWriter, File}
 
-import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.integrationtest.console.ConsoleIntegrationTest
-import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.report.Report
-import ch.uzh.ifi.pdeboer.pplib.hcomp.{HTMLQuery, HComp}
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.{Algorithm250, BallotPortalAdapter}
+import ch.uzh.ifi.pdeboer.pplib.hcomp.{HTMLQuery, HComp}
+import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.report.Report
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.dao.BallotDAO
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.persistence.{Permutation, DBSettings}
 import ch.uzh.ifi.pdeboer.pplib.util.CollectionUtils._
+import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.integrationtest.console.ConsoleIntegrationTest
 import helper.pdfpreprocessing.PreprocessPDF
-import helper.pdfpreprocessing.csv.{CSVExporter, Snippet}
 import helper.pdfpreprocessing.pdf.PDFLoader
-import helper.pdfpreprocessing.png.StatTermLocationsInPNG
 import helper.pdfpreprocessing.stats.{StatTermPermuter, PruneTermsWithinOtherTerms, StatTermPruning, StatTermSearcher}
 import helper.pdfpreprocessing.util.FileUtils
+import helper.questiongenerator.HCompNew
 import models.QuestionDAO
 import play.api.Logger
 import play.api.mvc.{Action, Controller}
@@ -30,14 +29,13 @@ class Upload extends Controller {
   }
 
   def uploaded = Action(parse.multipartFormData) { request =>
-    createDirs
+    createDirs()
     request.body.file("paper").map { paper =>
       val filename = paper.filename
       //val contentType = paper.contentType
       paper.ref.moveTo(new File(PreprocessPDF.INPUT_DIR + "/" + filename))
       PreprocessPDF.start()
-      DBSettings.initialize()
-      permutation2DB(true)
+      permutation2DB()
       Logger.info("done")
       Ok("Ok")
     }.getOrElse {
@@ -45,9 +43,13 @@ class Upload extends Controller {
     }
   }
 
-  def permutation2DB(isTemplate: Boolean): Unit = {
+  def permutation2DB(): Unit = {
+    DBSettings.initialize()
     val dao = new BallotDAO
-    val ballotPortalAdapter = HComp(BallotPortalAdapter.PORTAL_KEY)
+    val hComp = HCompNew
+    hComp.autoloadConfiguredPortals()
+    Logger.info(HComp.allDefinedPortals.toString())
+    val ballotPortalAdapter = hComp(BallotPortalAdapter.PORTAL_KEY)
     val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
     if (QuestionDAO.findById(1L).isEmpty) {
       Logger.info("init template")
@@ -88,19 +90,21 @@ class Upload extends Controller {
   }
 
 
-  def createDirs: Unit = {
-    var tmpDirs: File = new File(PreprocessPDF.TMP_DIR);
-    if (!tmpDirs.exists()) tmpDirs.mkdir();
-    tmpDirs = new File(PreprocessPDF.PNG_ERROR_OUTPUT_PATH);
-    if (!tmpDirs.exists()) tmpDirs.mkdir();
-    tmpDirs = new File(PreprocessPDF.OUTPUT_DIR);
-    if (!tmpDirs.exists()) tmpDirs.mkdir();
-    tmpDirs = new File(PreprocessPDF.INPUT_DIR);
-    if (!tmpDirs.exists()) tmpDirs.mkdir();
+  def createDirs(): Unit = {
+    var tmpDirs: File = new File("state")
+    if (!tmpDirs.exists()) tmpDirs.mkdir()
+    tmpDirs = new File(PreprocessPDF.TMP_DIR)
+    if (!tmpDirs.exists()) tmpDirs.mkdir()
+    tmpDirs = new File(PreprocessPDF.PNG_ERROR_OUTPUT_PATH)
+    if (!tmpDirs.exists()) tmpDirs.mkdir()
+    tmpDirs = new File(PreprocessPDF.OUTPUT_DIR)
+    if (!tmpDirs.exists()) tmpDirs.mkdir()
+    tmpDirs = new File(PreprocessPDF.INPUT_DIR)
+    if (!tmpDirs.exists()) tmpDirs.mkdir()
   }
 
   def statTest = Action {
-    createDirs
+    createDirs()
     Logger.debug("starting highlighting")
 
 
@@ -116,17 +120,10 @@ class Upload extends Controller {
       combinationsOfMethodsAndAssumptions.sortBy(_.distanceBetweenMinMaxIndex).zipWithIndex.par.map(p => {
         writer.write(p._1.toString + "\n")
       })
-
-      //val snippets = combinationsOfMethodsAndAssumptions.sortBy(_.distanceBetweenMinMaxIndex).zipWithIndex.par.map(p => {
-      //val statTermLocationsInSnippet = Some(StatTermLocationsInPNG(true))
-      //statTermLocationsInSnippet.map(s => Snippet(new File("tmp/test.png"), p._1, s))
-      //})
-
       Logger.info(s"finished processing paper $paper")
-      //snippets.filter(_.isDefined).map(_.get)
-    } //.toList
+
+    }
     Logger.info("done")
-    //new CSVExporter("tmp/out.csv", snippets).persist()
     Ok("Ok")
   }
 }
