@@ -23,7 +23,7 @@ class Application @Inject() (configuration: play.api.Configuration) extends Cont
 
 	def index = Action { request =>
 		request.session.get(TURKER_ID_KEY).map { user =>
-			Ok(views.html.index(user))
+			Ok(views.html.index())
 		}.getOrElse {
 			//Ok(views.html.index(""))
 			Ok(views.html.login())
