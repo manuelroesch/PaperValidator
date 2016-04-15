@@ -20,7 +20,9 @@
 	</head>
 	<body ng-app="ballotApp">
 		<div class="container" id="headerarea">
-			<img src="@{urlPrefix + routes.Assets.at("images/uzh_logo.svg").url}" height="100px">
+			<a href="@{urlPrefix + routes.Application.index.url}">
+				<img src="@{urlPrefix + routes.Assets.at("images/uzh_logo.svg").url}" height="100px">
+			</a>
 		</div>
 
 		<hr />
