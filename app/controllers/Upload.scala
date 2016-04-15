@@ -4,7 +4,7 @@ import java.io.{FileWriter, BufferedWriter, File}
 
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.integrationtest.console.ConsoleIntegrationTest
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.report.Report
-import ch.uzh.ifi.pdeboer.pplib.hcomp.{HTMLQuery, HComp}
+import ch.uzh.ifi.pdeboer.pplib.hcomp._
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.{Algorithm250, BallotPortalAdapter}
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.dao.BallotDAO
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.persistence.{Permutation, DBSettings}
