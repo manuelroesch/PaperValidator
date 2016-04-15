@@ -1,4 +1,4 @@
-package ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.integrationtest.console
+package ch.uzh.ifi.pdeboer.pplib.hhcomp.ballot.integrationtest.console
 
 import ch.uzh.ifi.pdeboer.pplib.hcomp._
 
