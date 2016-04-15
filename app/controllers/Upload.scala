@@ -34,7 +34,7 @@ class Upload extends Controller {
       //val contentType = paper.contentType
       paper.ref.moveTo(new File(PreprocessPDF.INPUT_DIR + "/" + filename))
       PreprocessPDF.start()
-      ConsoleIntegrationTest.start()
+      permutation2DB()
       Logger.info("done")
       Ok("Ok")
     }.getOrElse {
@@ -42,10 +42,12 @@ class Upload extends Controller {
     }
   }
 
-  def permutation2DB(isTemplate: Boolean): Unit = {
+  def permutation2DB(): Unit = {
     DBSettings.initialize()
     val dao = new BallotDAO
-    val ballotPortalAdapter = HComp(BallotPortalAdapter.PORTAL_KEY)
+    val hComp = HComp
+    Thread.sleep(3000)
+    val ballotPortalAdapter = hComp(BallotPortalAdapter.PORTAL_KEY)
     val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
     if (QuestionDAO.findById(1L).isEmpty) {
       Logger.info("init template")
