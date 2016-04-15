@@ -46,7 +46,6 @@ class Upload extends Controller {
     DBSettings.initialize()
     val dao = new BallotDAO
     val hComp = HComp
-    HComp.randomPortal
     Logger.info(HComp.allDefinedPortals.toString())
     val ballotPortalAdapter = hComp(BallotPortalAdapter.PORTAL_KEY)
     val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
