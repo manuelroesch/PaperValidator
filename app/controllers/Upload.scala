@@ -13,6 +13,7 @@ import helper.pdfpreprocessing.PreprocessPDF
 import helper.pdfpreprocessing.pdf.PDFLoader
 import helper.pdfpreprocessing.stats.{StatTermPermuter, PruneTermsWithinOtherTerms, StatTermPruning, StatTermSearcher}
 import helper.pdfpreprocessing.util.FileUtils
+import helper.questiongenerator.HCompNew
 import models.QuestionDAO
 import play.api.Logger
 import play.api.mvc.{Action, Controller}
@@ -45,7 +46,8 @@ class Upload extends Controller {
   def permutation2DB(): Unit = {
     DBSettings.initialize()
     val dao = new BallotDAO
-    val hComp = HComp
+    val hComp = HCompNew
+    hComp.autoloadConfiguredPortals()
     Logger.info(HComp.allDefinedPortals.toString())
     val ballotPortalAdapter = hComp(BallotPortalAdapter.PORTAL_KEY)
     val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
