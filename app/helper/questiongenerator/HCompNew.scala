@@ -63,6 +63,7 @@ object HCompNew extends LazyLogger{
 				}
 			}
 		})
+		logger.debug(builders.toList.toString)
 
 	}
 
