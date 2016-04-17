@@ -91,7 +91,9 @@ class Upload extends Controller {
 
 
   def createDirs(): Unit = {
-    var tmpDirs: File = new File(PreprocessPDF.TMP_DIR)
+    var tmpDirs: File = new File("state")
+    if (!tmpDirs.exists()) tmpDirs.mkdir()
+    tmpDirs = new File(PreprocessPDF.TMP_DIR)
     if (!tmpDirs.exists()) tmpDirs.mkdir()
     tmpDirs = new File(PreprocessPDF.PNG_ERROR_OUTPUT_PATH)
     if (!tmpDirs.exists()) tmpDirs.mkdir()
