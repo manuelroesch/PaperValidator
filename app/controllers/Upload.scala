@@ -14,6 +14,9 @@ import helper.pdfpreprocessing.pdf.PDFLoader
 import helper.pdfpreprocessing.stats.{StatTermPermuter, PruneTermsWithinOtherTerms, StatTermPruning, StatTermSearcher}
 import helper.pdfpreprocessing.util.FileUtils
 import models.QuestionDAO
+import org.reflections.Reflections
+import org.reflections.scanners.{ResourcesScanner, SubTypesScanner, TypeAnnotationsScanner}
+import org.reflections.util.{FilterBuilder, ConfigurationBuilder, ClasspathHelper}
 import play.api.Logger
 import play.api.mvc.{Action, Controller}
 
@@ -34,12 +37,27 @@ class Upload extends Controller {
       //val contentType = paper.contentType
       paper.ref.moveTo(new File(PreprocessPDF.INPUT_DIR + "/" + filename))
       PreprocessPDF.start()
-      permutation2DB()
+      findClassesInPackageWithProcessAnnotation("ch.uzh.ifi.pdeboer.pplib.hcomp", classOf[HCompPortal])
+      //permutation2DB()
       Logger.info("done")
       Ok("Ok")
     }.getOrElse {
       Ok("Error")
     }
+  }
+
+  def findClassesInPackageWithProcessAnnotation(packagePrefix: String, anno: Class[_ <: annotation.Annotation]): Unit = {
+    val classLoadersList = List(ClasspathHelper.contextClassLoader(),
+      ClasspathHelper.staticClassLoader())
+
+    Logger.debug(classLoadersList.toString())
+    val reflections = new Reflections(new ConfigurationBuilder()
+      .setScanners(new TypeAnnotationsScanner(), new SubTypesScanner(false), new ResourcesScanner())
+      .setUrls(ClasspathHelper.forClassLoader(classLoadersList(0)))
+      .filterInputsBy(new FilterBuilder().include(
+        FilterBuilder.prefix(packagePrefix))))
+
+    Logger.debug(reflections.getTypesAnnotatedWith(classOf[HCompPortal]).toString())
   }
 
   def permutation2DB(): Unit = {
