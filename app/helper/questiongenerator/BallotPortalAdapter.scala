@@ -8,6 +8,7 @@ import ch.uzh.ifi.pdeboer.pplib.hcomp._
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.dao.{BallotDAO, DAO}
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.report.AnswerParser
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.snippet.SnippetHTMLValidator
+import helper.questiongenerator.HCompNew
 import org.joda.time.DateTime
 
 import scala.xml._
@@ -192,7 +193,7 @@ class BallotPortalBuilder extends HCompPortalBuilder {
 	val BASE_URL = "BaseURL"
 
 	override def build: HCompPortalAdapter = new BallotPortalAdapter(
-		HComp(params(DECORATED_PORTAL_KEY_BALLOT))
+		HCompNew(params(DECORATED_PORTAL_KEY_BALLOT))
 			.asInstanceOf[HCompPortalAdapter with AnswerRejection],
 		baseURL = params(BASE_URL))
 
