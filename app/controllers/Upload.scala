@@ -2,13 +2,13 @@ package controllers
 
 import java.io.{FileWriter, BufferedWriter, File}
 
-import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.integrationtest.console.ConsoleIntegrationTest
-import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.report.Report
-import ch.uzh.ifi.pdeboer.pplib.hcomp._
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.{Algorithm250, BallotPortalAdapter}
+import ch.uzh.ifi.pdeboer.pplib.hcomp.{HTMLQuery, HComp}
+import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.report.Report
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.dao.BallotDAO
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.persistence.{Permutation, DBSettings}
 import ch.uzh.ifi.pdeboer.pplib.util.CollectionUtils._
+import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.integrationtest.console.ConsoleIntegrationTest
 import helper.pdfpreprocessing.PreprocessPDF
 import helper.pdfpreprocessing.pdf.PDFLoader
 import helper.pdfpreprocessing.stats.{StatTermPermuter, PruneTermsWithinOtherTerms, StatTermPruning, StatTermSearcher}
@@ -46,7 +46,6 @@ class Upload extends Controller {
     DBSettings.initialize()
     val dao = new BallotDAO
     val hComp = HComp
-    Thread.sleep(10000)
     Logger.info(HComp.allDefinedPortals.toString())
     val ballotPortalAdapter = hComp(BallotPortalAdapter.PORTAL_KEY)
     val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
