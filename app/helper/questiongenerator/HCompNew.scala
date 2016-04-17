@@ -11,13 +11,14 @@ import ch.uzh.ifi.pdeboer.pplib.hcomp.randomportal.RandomHCompPortal
 import ch.uzh.ifi.pdeboer.pplib.util.{U, LazyLogger}
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.codec.binary.Base64
+import play.api.Logger
 
 import scala.collection.mutable
 
 /**
  * Created by mattia on 28.08.15.
  */
-object HCompNew extends LazyLogger{
+object HCompNew {
 	private val portals = new mutable.HashMap[String, HCompPortalAdapter]()
 
 	def addPortal(portal: HCompPortalAdapter) {
@@ -26,7 +27,7 @@ object HCompNew extends LazyLogger{
 
 	def addPortal(key: String, portal: HCompPortalAdapter) {
 		if (!portals.contains(key)) {
-			logger.info(s"adding portaladapter ${portal.getClass.getSimpleName} with key ${portal.getDefaultPortalKey}")
+			Logger.info(s"adding portaladapter ${portal.getClass.getSimpleName} with key ${portal.getDefaultPortalKey}")
 			portals += (key -> portal)
 		}
 	}
@@ -47,9 +48,9 @@ object HCompNew extends LazyLogger{
 
 		val classes = U.findClassesInPackageWithProcessAnnotation("ch.uzh.ifi.pdeboer.pplib.hcomp", classOf[HCompPortal])
 			.asInstanceOf[Set[Class[HCompPortalAdapter]]]
-		logger.debug(classes.toList.toString)
+		Logger.debug(classes.toList.toString)
 		val annotations = classes.map(_.getAnnotation(classOf[HCompPortal])).filter(a => a != null && a.autoInit)
-		logger.debug(annotations.toList.toString)
+		Logger.debug(annotations.toList.toString)
 		val builders = annotations.map(_.builder().newInstance())
 		builders.toList.sortBy(_.order).foreach(b => {
 			try {
@@ -61,11 +62,11 @@ object HCompNew extends LazyLogger{
 				case e: Throwable => {
 					val errorMessage: String = s"Skipped automatic initialization of ${b.getClass.getSimpleName} due to missing / invalid configuration."
 					//logger.error(errorMessage, e)
-					logger.debug(errorMessage, e)
+					Logger.debug(errorMessage, e)
 				}
 			}
 		})
-		logger.debug(builders.toList.toString)
+		Logger.debug(builders.toList.toString)
 
 	}
 
