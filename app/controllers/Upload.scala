@@ -14,9 +14,6 @@ import helper.pdfpreprocessing.pdf.PDFLoader
 import helper.pdfpreprocessing.stats.{StatTermPermuter, PruneTermsWithinOtherTerms, StatTermPruning, StatTermSearcher}
 import helper.pdfpreprocessing.util.FileUtils
 import models.QuestionDAO
-import org.reflections.Reflections
-import org.reflections.scanners.{ResourcesScanner, SubTypesScanner, TypeAnnotationsScanner}
-import org.reflections.util.{FilterBuilder, ConfigurationBuilder, ClasspathHelper}
 import play.api.Logger
 import play.api.mvc.{Action, Controller}
 
@@ -31,14 +28,13 @@ class Upload extends Controller {
   }
 
   def uploaded = Action(parse.multipartFormData) { request =>
-    createDirs
+    createDirs()
     request.body.file("paper").map { paper =>
       val filename = paper.filename
       //val contentType = paper.contentType
       paper.ref.moveTo(new File(PreprocessPDF.INPUT_DIR + "/" + filename))
       PreprocessPDF.start()
-      findClassesInPackageWithProcessAnnotation("ch.uzh.ifi.pdeboer.pplib.hcomp", classOf[HCompPortal])
-      //permutation2DB()
+      permutation2DB()
       Logger.info("done")
       Ok("Ok")
     }.getOrElse {
@@ -46,24 +42,11 @@ class Upload extends Controller {
     }
   }
 
-  def findClassesInPackageWithProcessAnnotation(packagePrefix: String, anno: Class[_ <: annotation.Annotation]): Unit = {
-    val classLoadersList = List(ClasspathHelper.contextClassLoader(),
-      ClasspathHelper.staticClassLoader())
-
-    Logger.debug(classLoadersList.toString())
-    val reflections = new Reflections(new ConfigurationBuilder()
-      .setScanners(new TypeAnnotationsScanner(), new SubTypesScanner(false), new ResourcesScanner())
-      .setUrls(ClasspathHelper.forClassLoader(classLoadersList(0)))
-      .filterInputsBy(new FilterBuilder().include(
-        FilterBuilder.prefix(packagePrefix))))
-
-    Logger.debug(reflections.getTypesAnnotatedWith(classOf[HCompPortal]).toString())
-  }
-
   def permutation2DB(): Unit = {
     DBSettings.initialize()
     val dao = new BallotDAO
     val hComp = HComp
+    Thread.sleep(10000)
     Logger.info(HComp.allDefinedPortals.toString())
     val ballotPortalAdapter = hComp(BallotPortalAdapter.PORTAL_KEY)
     val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
@@ -107,19 +90,19 @@ class Upload extends Controller {
   }
 
 
-  def createDirs: Unit = {
-    var tmpDirs: File = new File(PreprocessPDF.TMP_DIR);
-    if (!tmpDirs.exists()) tmpDirs.mkdir();
-    tmpDirs = new File(PreprocessPDF.PNG_ERROR_OUTPUT_PATH);
-    if (!tmpDirs.exists()) tmpDirs.mkdir();
-    tmpDirs = new File(PreprocessPDF.OUTPUT_DIR);
-    if (!tmpDirs.exists()) tmpDirs.mkdir();
-    tmpDirs = new File(PreprocessPDF.INPUT_DIR);
-    if (!tmpDirs.exists()) tmpDirs.mkdir();
+  def createDirs(): Unit = {
+    var tmpDirs: File = new File(PreprocessPDF.TMP_DIR)
+    if (!tmpDirs.exists()) tmpDirs.mkdir()
+    tmpDirs = new File(PreprocessPDF.PNG_ERROR_OUTPUT_PATH)
+    if (!tmpDirs.exists()) tmpDirs.mkdir()
+    tmpDirs = new File(PreprocessPDF.OUTPUT_DIR)
+    if (!tmpDirs.exists()) tmpDirs.mkdir()
+    tmpDirs = new File(PreprocessPDF.INPUT_DIR)
+    if (!tmpDirs.exists()) tmpDirs.mkdir()
   }
 
   def statTest = Action {
-    createDirs
+    createDirs()
     Logger.debug("starting highlighting")
 
 
