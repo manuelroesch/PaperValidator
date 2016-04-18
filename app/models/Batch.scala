@@ -1,25 +1,30 @@
 package models
 
+import javax.inject.Inject
+
 import anorm.SqlParser._
 import anorm._
-import play.api.Play.current
-import play.api.db.DB
+import play.api.db.DBApi
 
 /**
   * Created by mattia on 02.07.15.
   */
-case class Batch(id: Pk[Long], allowedAnswersPerTurker: Int) extends Serializable
+case class Batch(id: Option[Long], allowedAnswersPerTurker: Int) extends Serializable
 
-object BatchDAO {
+@javax.inject.Singleton
+class BatchService @Inject()(dbapi: DBApi) {
+
+	private val db = dbapi.database("default")
+
 	private val batchParser: RowParser[Batch] =
-		get[Pk[Long]]("id") ~
+		get[Option[Long]]("id") ~
 				get[Int]("allowed_answers_per_turker") map {
 			case id ~ allowed_answers_per_turker =>
 				Batch(id, allowed_answers_per_turker)
 		}
 
 	def findById(id: Long): Option[Batch] =
-		DB.withConnection { implicit c =>
+		db.withConnection { implicit c =>
 			SQL("SELECT * FROM batch WHERE id = {id}").on(
 				'id -> id
 			).as(batchParser.singleOpt)

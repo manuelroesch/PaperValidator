@@ -10,11 +10,9 @@ libraryDependencies ++= Seq(
   "mysql" % "mysql-connector-java" % "5.1.34",
   "org.postgresql" % "postgresql" % "9.4-1201-jdbc41",
   "org.scalikejdbc" %% "scalikejdbc"       % "2.2.2",
-  "com.h2database"  %  "h2"                % "1.4.184",
   "org.scalikejdbc" %% "scalikejdbc-config"  % "2.2.2",
   "com.typesafe.play" %% "anorm" % "2.4.0",
   "org.apache.pdfbox" % "pdfbox" % "1.8.10",
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
   "com.github.tototoshi" %% "scala-csv" % "1.2.2",
   "junit" % "junit" % "4.8.1" % "test",
   "org.scalacheck" %% "scalacheck" % "1.12.4" % "test",
@@ -27,6 +25,8 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies ++= Seq( jdbc , cache , ws   , specs2 % Test , evolutions )
+
+libraryDependencies ~= { _.map(_.exclude("org.slf4j", "slf4j-log4j12")) }
 
 resolvers += Resolver.file("Local repo", file("custom_lib"))(Resolver.ivyStylePatterns)
 

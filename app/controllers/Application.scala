@@ -8,40 +8,34 @@ import helper.QuestionHTMLFormatter
 import models._
 import org.joda.time.DateTime
 import play.Configuration
+import play.api.Logger
 import play.api.mvc._
 
 import scala.util.parsing.json.JSONObject
 
-object Application {
+object Application  {
 	val TEMPLATE_ID = 1L
 	val TURKER_ID_KEY: String = "TurkerId"
 }
 
-class Application @Inject() (configuration: play.api.Configuration) extends Controller {
-	val TEMPLATE_ID = 1L
-	val TURKER_ID_KEY: String = "TurkerId"
+class Application @Inject() (configuration: Configuration, questionService: QuestionService, answerService: AnswerService, assetService: AssetService, userService: UserService, batchService: BatchService, log: Log) extends Controller {
 
 	def index = Action { request =>
-		request.session.get(TURKER_ID_KEY).map { user =>
 			Ok(views.html.index())
-		}.getOrElse {
-			//Ok(views.html.index(""))
-			Ok(views.html.login())
-		}
 	}
 
 	def showAsset(id: Long, secret: String) = Action { request =>
-		val parentQuestions = QuestionDAO.findByAssetId(id).filter(_.secret == secret)
-		val turkerId: Option[String] = request.session.get(TURKER_ID_KEY)
+		val parentQuestions = questionService.findByAssetId(id).filter(_.secret == secret)
+		val turkerId: Option[String] = request.session.get(Application.TURKER_ID_KEY)
 
-		val isAssetOfTemplate: Boolean = parentQuestions.exists(_.id.get == TEMPLATE_ID)
+		val isAssetOfTemplate: Boolean = parentQuestions.exists(_.id.get == Application.TEMPLATE_ID)
 		if (!isAssetOfTemplate && logAccessAndCheckIfExceedsAccessCount(request, turkerId.orNull)) {
 			Unauthorized("We received too many requests by your IP address")
 		} else {
 
 			if (turkerId.isDefined || isAssetOfTemplate) {
-				val asset = AssetDAO.findById(id)
-				val hasUnansweredQuestions: Boolean = !parentQuestions.forall(q => AnswerDAO.existsAcceptedAnswerForQuestionId(q.id.get))
+				val asset = assetService.findById(id)
+				val hasUnansweredQuestions: Boolean = !parentQuestions.forall(q => answerService.existsAcceptedAnswerForQuestionId(q.id.get))
 
 				if (asset.isDefined && parentQuestions.nonEmpty && hasUnansweredQuestions) {
 					val contentType = asset.get.contentType
@@ -59,25 +53,25 @@ class Application @Inject() (configuration: play.api.Configuration) extends Cont
 		}
 	}
 
-	def sessionUser(request: Request[AnyContent]) = request.session.get(TURKER_ID_KEY).filterNot(_.isEmpty)
+	def sessionUser(request: Request[AnyContent]) = request.session.get(Application.TURKER_ID_KEY).filterNot(_.isEmpty)
 
 	def showMTQuestion(uuid: String, secret: String, assignmentId: String, hitId: String, turkSubmitTo: String, workerId: String, target: String) = Action { request =>
-		if (workerId.length > 5 && UserDAO.findByTurkerId(workerId).isEmpty) {
-			UserDAO.create(workerId, new DateTime())
+		if (workerId.length > 5 && userService.findByTurkerId(workerId).isEmpty) {
+			userService.create(workerId, new DateTime())
 		}
 
 		if (assignmentId == "ASSIGNMENT_ID_NOT_AVAILABLE") {
 			def showAlreadyUsedMessage: Boolean = {
 				if (sessionUser(request).isDefined) {
-					val userFound = UserDAO.findByTurkerId(sessionUser(request).get)
+					val userFound = userService.findByTurkerId(sessionUser(request).get)
 					if (userFound.isDefined) {
-						val question = QuestionDAO.findById(QuestionDAO.findIdByUUID(uuid))
+						val question = questionService.findById(questionService.findIdByUUID(uuid))
 						if (question.isDefined) !checkUserDidntExceedMaxAnswersPerBatch(userFound.get.id.get, question.get) else false
 					} else false
 				} else false
 			}
 
-			if (showAlreadyUsedMessage) Unauthorized(views.html.tooManyAnswersInBatch(true)) else Ok(views.html.question(workerId, QuestionDAO.findById(TEMPLATE_ID).map(q => new QuestionHTMLFormatter(q.html).format).getOrElse("No Example page defined")))
+			if (showAlreadyUsedMessage) Unauthorized(views.html.tooManyAnswersInBatch(true)) else Ok(views.html.question(workerId, questionService.findById(Application.TEMPLATE_ID).map(q => new QuestionHTMLFormatter(q.html).format).getOrElse("No Example page defined")))
 
 		} else {
 			assert(!workerId.isEmpty)
@@ -99,29 +93,29 @@ class Application @Inject() (configuration: play.api.Configuration) extends Cont
 	  * @return
 	  */
 	def showQuestion(uuid: String, secret: String = "") = Action { request =>
-		showQuestionAction(uuid, secret, request, request.session.get(TURKER_ID_KEY))
+		showQuestionAction(uuid, secret, request, request.session.get(Application.TURKER_ID_KEY))
 	}
 
 	def showQuestionAction(uuid: String, secret: String, request: Request[AnyContent], turkerId: Option[String], _replaceSession: Option[Session] = None) = {
 		//dont allow session to be reset turker ID field
 		val replaceSession = _replaceSession.map(s => {
-			val t = s.get(TURKER_ID_KEY)
+			val t = s.get(Application.TURKER_ID_KEY)
 			if (t.isDefined && t.get.length < 5) {
 				println("nasty removal")
-				s - TURKER_ID_KEY
+				s - Application.TURKER_ID_KEY
 			} else s
 		})
 		if (!logAccessAndCheckIfExceedsAccessCount(request, turkerId.orNull)) {
-			val questionId = QuestionDAO.findIdByUUID(uuid)
+			val questionId = questionService.findIdByUUID(uuid)
 			turkerId.map { user =>
 				// get the answers of the turker in the batch group
-				val userFound = UserDAO.findByTurkerId(user)
+				val userFound = userService.findByTurkerId(user)
 				if (userFound.isDefined && isUserAllowedToAnswer(questionId, userFound.get.id.get, secret)) {
-					val question = QuestionDAO.findById(questionId).get
+					val question = questionService.findById(questionId).get
 					val formattedHTML: String = new QuestionHTMLFormatter(question.html).format
 					Ok(views.html.question(user, formattedHTML, questionId, secret)).withSession(replaceSession.getOrElse(request.session))
 				} else if (userFound.isDefined) {
-					if (checkUserDidntExceedMaxAnswersPerBatch(userFound.get.id.get, QuestionDAO.findById(questionId).get))
+					if (checkUserDidntExceedMaxAnswersPerBatch(userFound.get.id.get, questionService.findById(questionId).get))
 						Unauthorized("This HIT has already been answered / you don't have permission to answer this HIT. If this error persists, please write pdeboer@mit.edu ")
 					else
 						Unauthorized(views.html.tooManyAnswersInBatch()).withSession(replaceSession.getOrElse(request.session))
@@ -144,9 +138,9 @@ class Application @Inject() (configuration: play.api.Configuration) extends Cont
 	}
 
 	def isUserAllowedToAnswer(questionId: Long, userId: Long, providedSecret: String = ""): Boolean = {
-		val question = QuestionDAO.findById(questionId)
+		val question = questionService.findById(questionId)
 		// The question exists and there is no answer yet accepted in the DB
-		if (question.isDefined && !AnswerDAO.existsAcceptedAnswerForQuestionId(questionId) && question.get.secret == providedSecret) {
+		if (question.isDefined && !answerService.existsAcceptedAnswerForQuestionId(questionId) && question.get.secret == providedSecret) {
 			checkUserDidntExceedMaxAnswersPerBatch(userId, question.get)
 		} else {
 			false
@@ -154,11 +148,11 @@ class Application @Inject() (configuration: play.api.Configuration) extends Cont
 	}
 
 	def checkUserDidntExceedMaxAnswersPerBatch(userId: Long, question: Question): Boolean = {
-		val batch = BatchDAO.findById(question.batchId)
+		val batch = batchService.findById(question.batchId)
 		if (batch.get.allowedAnswersPerTurker == 0) {
 			true
 		} else {
-			if (batch.get.allowedAnswersPerTurker > AnswerDAO.countUserAnswersForBatch(userId, question.batchId)) {
+			if (batch.get.allowedAnswersPerTurker > answerService.countUserAnswersForBatch(userId, question.batchId)) {
 				true
 			} else {
 				false
@@ -174,12 +168,12 @@ class Application @Inject() (configuration: play.api.Configuration) extends Cont
 	  * @return
 	  */
 	def storeAnswer = Action { request =>
-		request.session.get(TURKER_ID_KEY).map { user =>
+		request.session.get(Application.TURKER_ID_KEY).map { user =>
 			try {
 
 				val questionId = request.getQueryString("questionId").mkString.toLong
 				val secret = request.getQueryString("secret").mkString
-				val userId: Long = UserDAO.findByTurkerId(user).get.id.get
+				val userId: Long = userService.findByTurkerId(user).get.id.get
 
 				if (isUserAllowedToAnswer(questionId, userId, secret)) {
 					val outputCode = Math.abs(new SecureRandom().nextLong())
@@ -188,10 +182,10 @@ class Application @Inject() (configuration: play.api.Configuration) extends Cont
 						(m._1, m._2.mkString(","))
 					}))
 
-					AnswerDAO.create(questionId, userId, new DateTime, answer.toString(), outputCode)
+					answerService.create(questionId, userId, new DateTime, answer.toString(), outputCode)
 
 					if (request.session.get("assignmentId").isDefined) {
-						val newSessionInclUser: Session = Session() + (TURKER_ID_KEY -> request.session.get(TURKER_ID_KEY).get)
+						val newSessionInclUser: Session = Session() + (Application.TURKER_ID_KEY -> request.session.get(Application.TURKER_ID_KEY).get)
 						Ok(views.html.postToTurk(request.session.get("target").get, request.session.get("assignmentId").get, outputCode)).withSession(newSessionInclUser)
 					} else
 						Ok(views.html.code(user, outputCode)).withSession(request.session)
@@ -210,14 +204,20 @@ class Application @Inject() (configuration: play.api.Configuration) extends Cont
 	}
 
 	def logAccessAndCheckIfExceedsAccessCount(request: Request[AnyContent], username: String = ""): Boolean = {
-		val userIdCleaned = UserDAO.findByTurkerId(username).map(_.id.get).getOrElse(-1L)
+		val userIdCleaned = userService.findByTurkerId(username).map(_.id.get).getOrElse(-1L)
 
-		Log.createEntry(request.uri, request.remoteAddress, userIdCleaned)
+		log.createEntry(request.uri, request.remoteAddress, userIdCleaned)
 
 		val requestsPerSnippetAnswer = 3
 		val maxSnippetsPerCrowdWorker: Int = 200
 
-		Log.ipLogEntriesSince(request.remoteAddress, DateTime.now().minusWeeks(4)) > requestsPerSnippetAnswer * maxSnippetsPerCrowdWorker
+		val numberOfEntries = log.ipLogEntriesSince(request.remoteAddress, DateTime.now().minusWeeks(4))
+		if(numberOfEntries.isLeft) {
+			Logger.debug("logAccessAndCheckIfExceedsAccessCount error")
+			true
+		} else {
+			numberOfEntries.right.get > (requestsPerSnippetAnswer * maxSnippetsPerCrowdWorker)
+		}
 	}
 
 }

@@ -1,23 +1,27 @@
 package models
 
 import java.sql.SQLException
+import javax.inject.Inject
 
 import anorm.SqlParser._
 import anorm._
 import com.mysql.jdbc.Blob
-import play.api.Play.current
-import play.api.db.DB
+import play.api.db.DBApi
 
 /**
   * Created by mattia on 02.07.15.
   */
-case class Asset(id: Pk[Long], hash_code: String, byteArray: Array[Byte], contentType: String, filename: String) extends Serializable
+case class Asset(id: Option[Long], hash_code: String, byteArray: Array[Byte], contentType: String, filename: String) extends Serializable
 
-case class Question2Assets(id: Pk[Long], questionId: Long, assetId: Long) extends Serializable
+case class Question2Assets(id: Option[Long], questionId: Long, assetId: Long) extends Serializable
 
-object AssetDAO {
+@javax.inject.Singleton
+class AssetService @Inject()(dbapi: DBApi) {
+
+	private val db = dbapi.database("default")
+
 	private val assetParser: RowParser[Asset] =
-		get[Pk[Long]]("id") ~
+		get[Option[Long]]("id") ~
 			get[String]("hash_code") ~
 			bytes("byte_array") ~
 			get[String]("content_type") ~
@@ -27,7 +31,7 @@ object AssetDAO {
 		}
 
 	private val question2AssetsParser: RowParser[Question2Assets] =
-		get[Pk[Long]]("id") ~
+		get[Option[Long]]("id") ~
 			get[Long]("question_id") ~
 			get[Long]("asset_id") map {
 			case id ~ question_id ~ asset_id =>
@@ -54,7 +58,7 @@ object AssetDAO {
 	  * Implicitly convert an Anorm row to a byte array.
 	  */
 	def rowToByteArray: Column[Array[Byte]] = {
-		Column.nonNull[Array[Byte]] { (value, meta) =>
+		Column.nonNull1[Array[Byte]] { (value, meta) =>
 			val MetaDataItem(qualified, nullable, clazz) = meta
 			valueToByteArrayOption(value) match {
 				case Some(bytes) => Right(bytes)
@@ -71,14 +75,14 @@ object AssetDAO {
 	}
 
 	def findById(id: Long): Option[Asset] =
-		DB.withConnection { implicit c =>
+		db.withConnection { implicit c =>
 			SQL("SELECT * FROM assets WHERE id = {id}").on(
 				'id -> id
 			).as(assetParser.singleOpt)
 		}
 
 	def findByQuestionId(questionId: Long): List[Asset] = {
-		val assetIds = DB.withConnection { implicit c =>
+		val assetIds = db.withConnection { implicit c =>
 			SQL("SELECT * FROM question2assets WHERE question_id = {questionId}").on(
 				'questionId -> questionId
 			).as(question2AssetsParser *)

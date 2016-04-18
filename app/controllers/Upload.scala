@@ -1,6 +1,7 @@
 package controllers
 
 import java.io.{FileWriter, BufferedWriter, File}
+import javax.inject.Inject
 
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.{Algorithm250, BallotPortalAdapter}
 import ch.uzh.ifi.pdeboer.pplib.hcomp.{HTMLQuery, HComp}
@@ -14,7 +15,7 @@ import helper.pdfpreprocessing.pdf.PDFLoader
 import helper.pdfpreprocessing.stats.{StatTermPermuter, PruneTermsWithinOtherTerms, StatTermPruning, StatTermSearcher}
 import helper.pdfpreprocessing.util.FileUtils
 import helper.questiongenerator.HCompNew
-import models.QuestionDAO
+import models.QuestionService
 import play.api.Logger
 import play.api.mvc.{Action, Controller}
 
@@ -23,7 +24,7 @@ import scala.io.Source
 /**
   * Created by manuel on 11.04.2016.
   */
-class Upload extends Controller {
+class Upload @Inject() (questionService : QuestionService) extends Controller {
   def upload = Action {
     Ok(views.html.upload())
   }
@@ -51,7 +52,7 @@ class Upload extends Controller {
     Logger.info(HComp.allDefinedPortals.toString())
     val ballotPortalAdapter = hComp(BallotPortalAdapter.PORTAL_KEY)
     val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
-    if (QuestionDAO.findById(1L).isEmpty) {
+    if (questionService.findById(1L).isEmpty) {
       Logger.info("init template")
       val template: File = new File("public/template/perm.csv")
       if (template.exists()) {
