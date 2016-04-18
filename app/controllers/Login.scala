@@ -1,10 +1,12 @@
 package controllers
 
-import models.UserDAO
+import javax.inject.Inject
+
+import models.UserService
 import org.joda.time.DateTime
 import play.api.mvc._
 
-class Login extends Controller {
+class Login @Inject() (userService: UserService) extends Controller {
 
 	def logout = Action { request =>
 		Ok(views.html.login()).withNewSession
@@ -13,8 +15,8 @@ class Login extends Controller {
 	def login = Action { request =>
 		val turkerId = getTurkerIDFromRequest(request)
 
-		if (UserDAO.findByTurkerId(turkerId).isEmpty) {
-			UserDAO.create(turkerId, new DateTime())
+		if (userService.findByTurkerId(turkerId).isEmpty) {
+			userService.create(turkerId, new DateTime())
 		}
 
 		// Redirect if necessary otherwise just go to index

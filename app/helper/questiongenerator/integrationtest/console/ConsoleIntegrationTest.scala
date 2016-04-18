@@ -1,6 +1,7 @@
 package ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.integrationtest.console
 
 import java.io.File
+import javax.inject.Inject
 
 import ch.uzh.ifi.pdeboer.pplib.hcomp._
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot._
@@ -10,15 +11,20 @@ import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.report.Report
 import ch.uzh.ifi.pdeboer.pplib.util.CollectionUtils._
 import ch.uzh.ifi.pdeboer.pplib.util.LazyLogger
 import helper.pdfpreprocessing.PreprocessPDF
-import models.QuestionDAO
+import models.QuestionService
 
 import scala.io.Source
 
 /**
 	* Created by mattia on 07.07.15.
 	*/
-object ConsoleIntegrationTest extends LazyLogger {
+object ConsoleIntegrationTest {
 	val DEFAULT_TEMPLATE_ID: Long = 1L
+	val dao = new BallotDAO
+}
+
+class ConsoleIntegrationTest @Inject()(questionService: QuestionService) extends LazyLogger {
+
 	DBSettings.initialize()
 	val dao = new BallotDAO
 
@@ -37,7 +43,7 @@ object ConsoleIntegrationTest extends LazyLogger {
 
 		val DEFAULT_TEMPLATE_ID: Long = 1L
 
-		if (QuestionDAO.findById(1L).isEmpty) {
+		if (questionService.findById(1L).isEmpty) {
 			logger.info("init template")
 			val template: File = new File("template/perm.csv")
 			if (template.exists()) {

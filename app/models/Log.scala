@@ -1,17 +1,22 @@
 package models
 
+import javax.inject.Inject
+
 import anorm._
 import anorm.JodaParameterMetaData._
 import org.joda.time.DateTime
-import play.api.Play.current
-import play.api.db.DB
+import play.api.db.DBApi
 
 /**
   * Created by pdeboer on 20/11/15.
   */
-object Log {
+@javax.inject.Singleton
+class Log @Inject()(dbapi: DBApi) {
+
+	private val db = dbapi.database("default")
+
 	def createEntry(url: String, ip: String, userId: Long): Unit = {
-		DB.withConnection { implicit c =>
+		db.withConnection { implicit c =>
 			SQL("INSERT INTO log (accesstime, url, ip, users) VALUES (NOW(), {url}, {ip}, {userId})").on(
 				'url -> url,
 				'ip -> ip,
@@ -20,13 +25,12 @@ object Log {
 		}
 	}
 
-	def ipLogEntriesSince(ip: String, since: DateTime): Long = {
-		val head = DB.withConnection { implicit c =>
+	def ipLogEntriesSince(ip: String, since: DateTime): Either[List[Throwable], Long] = {
+		db.withConnection { implicit c =>
 			SQL("SELECT count(*) AS cnt FROM log WHERE accesstime >= {accesstime} AND ip = {ip}").on(
 				'accesstime -> since,
 				'ip -> ip
-			).apply().head
+			).fold(0L) { (c, _) => c + 1 }
 		}
-		head[Long]("cnt")
 	}
 }

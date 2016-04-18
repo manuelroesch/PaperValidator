@@ -1,20 +1,25 @@
 package models
 
+import javax.inject.Inject
+
 import anorm.SqlParser._
 import anorm._
 import anorm.JodaParameterMetaData._
 import org.joda.time.DateTime
-import play.api.Play.current
-import play.api.db.DB
+import play.api.db.DBApi
 
 /**
   * Created by mattia on 02.07.15.
   */
-case class User(id: Pk[Long], turkerId: String, firstSeenDateTime: DateTime)
+case class User(id: Option[Long], turkerId: String, firstSeenDateTime: DateTime)
 
-object UserDAO {
+@javax.inject.Singleton
+class UserService @Inject()(dbapi: DBApi) {
+
+	private val db = dbapi.database("default")
+
 	private val userParser: RowParser[User] =
-		get[Pk[Long]]("id") ~
+		get[Option[Long]]("id") ~
 				get[String]("turker_id") ~
 				get[DateTime]("first_seen_date_time") map {
 			case id ~ turker_id ~ first_seen_date_time =>
@@ -22,7 +27,7 @@ object UserDAO {
 		}
 
 	def findById(id: Long): Option[User] =
-		DB.withConnection { implicit c =>
+		db.withConnection { implicit c =>
 			SQL("SELECT * FROM users WHERE id = {id}").on(
 				'id -> id
 			).as(userParser.singleOpt)
@@ -31,14 +36,14 @@ object UserDAO {
 	def findByTurkerId(turkerId: String): Option[User] =
 		if (turkerId == null) None
 		else
-			DB.withConnection { implicit c =>
+			db.withConnection { implicit c =>
 				SQL("SELECT * FROM users WHERE turker_id = {turkerId}").on(
 					'turkerId -> turkerId
 				).as(userParser.singleOpt)
 			}
 
 	def create(turkerId: String, firstSeenDateTime: DateTime): Option[Long] =
-		DB.withConnection { implicit c =>
+		db.withConnection { implicit c =>
 			SQL("INSERT INTO users(turker_id, first_seen_date_time) VALUES ({turkerId}, {firstSeenDateTime})").on(
 				'turkerId -> turkerId,
 				'firstSeenDateTime -> firstSeenDateTime
