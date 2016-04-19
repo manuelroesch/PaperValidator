@@ -1,4 +1,4 @@
-# --- Created by Slick DDL
+# --- Initial Table
 
 # --- !Ups
 
@@ -20,10 +20,28 @@ CREATE TABLE `assets` (
   `filename` varchar(300) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE `assumptions` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `assumption_synonyms` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `assumption_id` int(11) UNSIGNED NOT NULL,
+  `name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 CREATE TABLE `batch` (
   `id` bigint(20) NOT NULL,
   `allowed_answers_per_turker` int(11) NOT NULL,
   `uuid` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `conference` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(1024) NOT NULL,
+  `secret` varchar(1024) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `log` (
@@ -33,6 +51,24 @@ CREATE TABLE `log` (
   `ip` varchar(254) NOT NULL DEFAULT '',
   `users` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `methods` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `delta` varchar(1024) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `methods2assumptions` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `method_id` int(11) UNSIGNED NOT NULL,
+  `assumption_id` int(11) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `method_synonyms` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `method_id` int(11) UNSIGNED NOT NULL,
+  `name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `permutations` (
   `id` bigint(20) NOT NULL,
@@ -65,12 +101,6 @@ CREATE TABLE `question2assets` (
   `asset_id` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `user` (
-  `id` bigint(20) NOT NULL,
-  `turker_id` varchar(255) NOT NULL,
-  `first_seen_date_time` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
 CREATE TABLE `users` (
   `id` bigint(20) NOT NULL,
   `turker_id` varchar(255) NOT NULL,
@@ -87,12 +117,32 @@ ADD KEY `time` (`time`);
 ALTER TABLE `assets`
 ADD PRIMARY KEY (`id`);
 
+ALTER TABLE `assumptions`
+ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `assumption_synonyms`
+ADD PRIMARY KEY (`id`);
+
 ALTER TABLE `batch`
+ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `conference`
 ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `log`
 ADD PRIMARY KEY (`id`),
 ADD KEY `accesstime` (`accesstime`);
+
+ALTER TABLE `methods`
+ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `methods2assumptions`
+ADD PRIMARY KEY (`id`),
+ADD KEY `method_id` (`method_id`),
+ADD KEY `assumption_id` (`assumption_id`);
+
+ALTER TABLE `method_synonyms`
+ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `permutations`
 ADD PRIMARY KEY (`id`);
@@ -107,35 +157,45 @@ ADD PRIMARY KEY (`id`),
 ADD KEY `question_id` (`question_id`),
 ADD KEY `asset_id` (`asset_id`);
 
-ALTER TABLE `user`
-ADD PRIMARY KEY (`id`);
-
 ALTER TABLE `users`
 ADD PRIMARY KEY (`id`);
 
 
 ALTER TABLE `answer`
-MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `assets`
-MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `assumptions`
+MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+ALTER TABLE `assumption_synonyms`
+MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 ALTER TABLE `batch`
-MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `conference`
+MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 ALTER TABLE `log`
-MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+ALTER TABLE `methods`
+MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+ALTER TABLE `methods2assumptions`
+MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+ALTER TABLE `method_synonyms`
+MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 ALTER TABLE `permutations`
-MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `question`
-MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `question2assets`
-MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
-ALTER TABLE `user`
 MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `users`
-MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `answer`
 ADD CONSTRAINT `answer_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`),
 ADD CONSTRAINT `answer_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+ALTER TABLE `assumption_synonyms`
+ADD CONSTRAINT `assumptions_synonyms_ibfk_1` FOREIGN KEY (`assumption_id`) REFERENCES `assumptions` (`id`);
 
 ALTER TABLE `question`
 ADD CONSTRAINT `question_ibfk_1` FOREIGN KEY (`batch_id`) REFERENCES `batch` (`id`),
@@ -144,6 +204,13 @@ ADD CONSTRAINT `question_ibfk_2` FOREIGN KEY (`permutation`) REFERENCES `permuta
 ALTER TABLE `question2assets`
 ADD CONSTRAINT `question2assets_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`),
 ADD CONSTRAINT `question2assets_ibfk_2` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`);
+
+ALTER TABLE `method_synonyms`
+ADD CONSTRAINT `method_synonyms_ibfk_1` FOREIGN KEY (`method_id`) REFERENCES `methods` (`id`);
+
+ALTER TABLE `methods2assumptions`
+ADD CONSTRAINT `methods2assumptions_ibfk_1` FOREIGN KEY (`method_id`) REFERENCES `methods` (`id`),
+ADD CONSTRAINT `methods2assumptions_ibfk_2` FOREIGN KEY (`assumption_id`) REFERENCES `assumptions` (`id`);
 
 # --- !Downs
 

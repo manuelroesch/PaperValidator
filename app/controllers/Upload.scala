@@ -10,6 +10,7 @@ import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.dao.BallotDAO
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.persistence.{Permutation, DBSettings}
 import ch.uzh.ifi.pdeboer.pplib.util.CollectionUtils._
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.integrationtest.console.ConsoleIntegrationTest
+import helper.MailService
 import helper.pdfpreprocessing.PreprocessPDF
 import helper.pdfpreprocessing.pdf.PDFLoader
 import helper.pdfpreprocessing.stats.{StatTermPermuter, PruneTermsWithinOtherTerms, StatTermPruning, StatTermSearcher}
@@ -26,6 +27,7 @@ import scala.io.Source
   */
 class Upload @Inject() (questionService : QuestionService) extends Controller {
   def upload = Action {
+    MailService.sendMail("manuelroesch@gmail.com","test Subject","content test content")
     Ok(views.html.upload())
   }
 
