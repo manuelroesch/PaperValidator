@@ -27,7 +27,7 @@ import scala.io.Source
   */
 class Upload @Inject() (questionService : QuestionService) extends Controller {
   def upload = Action {
-    MailService.sendMail("manuelroesch@gmail.com","test Subject","content test content")
+    //MailService.sendMail("manuelroesch@gmail.com","test Subject","content test content")
     Ok(views.html.upload())
   }
 
