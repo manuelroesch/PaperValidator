@@ -1,4 +1,4 @@
-package helper
+package helper.email
 
 import java.util.Properties
 import javax.mail._

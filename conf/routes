@@ -9,10 +9,20 @@ GET        /showMTQuestion                  controllers.Application.showMTQuesti
 GET        /storeAnswer                     controllers.Application.storeAnswer
 GET        /upload                          controllers.Upload.upload
 POST       /uploaded                        controllers.Upload.uploaded
-GET        /conference                      controllers.Conference.conference
+GET        /conference-creator              controllers.Conference.conferenceCreator
+POST       /conference-created              controllers.Conference.conferenceCreated
+GET        /conference-editor/:id/:secret   controllers.Conference.conferenceEdit(id: Int, secret: String)
 POST       /write-statterms                 controllers.Conference.writeMet2AssFile
 GET        /test                            controllers.Upload.statTest
 GET        /show-paper                      controllers.ShowPaper.show
+GET        /statterms                       controllers.StatTerms.showStatTerms
+POST       /statterms/add-method            controllers.StatTerms.addMethod
+POST       /statterms/edit-method           controllers.StatTerms.editMethod
+POST       /statterms/add-assumption        controllers.StatTerms.addAssumption
+POST       /statterms/edit-assumption       controllers.StatTerms.editAssumption
+GET        /methods2assumptions             controllers.StatTerms.method2assumptions
+POST       /methods2assumptions/add         controllers.StatTerms.addMethod2assumptions
+POST       /methods2assumptions/edit        controllers.StatTerms.editMethod2assumptions
 
 # Login
 GET        /login                           controllers.Login.login

@@ -1,0 +1,42 @@
+@import play.Configuration
+
+@urlPrefix = {@Configuration.root().getString("url.prefix")}
+@mainFrame("Create a Conference") {
+    <div class="row text-center">
+        <div class="conference-creator">
+            <h1>Create a new Conference</h1>
+            <form id="conference-form" action="@{urlPrefix + routes.Conference.conferenceCreated.url}" method="post">
+                <div class="form-group">
+                    <label for="conference-name">Conference Name</label>
+                    <input type="text" class="form-control" id="conference-name" name="name" placeholder="Name of the Conference">
+                </div>
+                <div class="form-group">
+                    <label for="conference-email">Email address</label>
+                    <input type="email" class="form-control" id="conference-email" name="email" placeholder="Your Email Address">
+                </div>
+                <div class="row text-center">
+                    <button type="submit" class="btn btn-primary" id="save-button">Confirm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <style>
+        .conference-creator {
+            display: inline-block;
+        }
+
+        #conference-form {
+            text-align: left ;
+        }
+
+        .conference-editor .btn {
+            width: 100px;
+        }
+
+        #loader {
+            display:none;
+            width: 35px;
+            margin-top: 30px;
+        }
+    </style>
+}

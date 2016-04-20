@@ -7,6 +7,10 @@ CREATE TABLE `answer` (
   `question_id` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL,
   `time` datetime NOT NULL,
+  `is_related` boolean NOT NULL,
+  `is_checked_before` boolean NOT NULL,
+  `extra_answer` int(11) NOT NULL,
+  `confidence` int(11) NOT NULL,
   `answer_json` longtext NOT NULL,
   `expected_output_code` bigint(20) NOT NULL,
   `accepted` tinyint(1) NOT NULL DEFAULT '0'
@@ -22,14 +26,21 @@ CREATE TABLE `assets` (
 
 CREATE TABLE `assumptions` (
   `id` int(11) UNSIGNED NOT NULL,
-  `name` varchar(255) NOT NULL
+  `name` varchar(255) NOT NULL,
+  `synonyms` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `assumption_synonyms` (
-  `id` int(11) UNSIGNED NOT NULL,
-  `assumption_id` int(11) UNSIGNED NOT NULL,
-  `name` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+INSERT INTO `assumptions` (`id`, `name`, `synonyms`) VALUES
+  (1, 'independen', 'randomly'),
+  (2, 'homoscedasticity', 'homogeneity of variance,same variance,equal variance,sphericity,Constant variance'),
+  (3, 'homogeneity of regression slopes', ''),
+  (4, 'normal', 'gaussian,bell,normal error,multivariate normality'),
+  (5, 'interval', 'ratio'),
+  (6, 'multicollinearity', ''),
+  (7, 'linearity', ''),
+  (8, 'linearity of dependent variable', ''),
+  (9, 'categorical', 'dichotomous'),
+  (10, 'homogenity of variance-covariance', 'homogenity of variance-covariance,homogenity of var-covar');
 
 CREATE TABLE `batch` (
   `id` bigint(20) NOT NULL,
@@ -44,6 +55,13 @@ CREATE TABLE `conference` (
   `secret` varchar(1024) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE `conference_settings` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `conference_id` int(11) UNSIGNED NOT NULL,
+  `method2assumption_id` int(11) UNSIGNED NOT NULL,
+  `flag` int(11) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 CREATE TABLE `log` (
   `id` int(11) UNSIGNED NOT NULL,
   `accesstime` datetime NOT NULL,
@@ -55,8 +73,17 @@ CREATE TABLE `log` (
 CREATE TABLE `methods` (
   `id` int(11) UNSIGNED NOT NULL,
   `name` varchar(255) NOT NULL,
-  `delta` varchar(1024) NOT NULL
+  `delta` int(11) NOT NULL,
+  `synonyms` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO `methods` (`id`, `name`, `delta`, `synonyms`) VALUES
+  (1, 'MANOVA', 0, 'multivariant analysis of variance'),
+  (2, 'ANOVA', 23064, 'analysis of variance'),
+  (3, 'ANCOVA', 16722, 'analysis of covariance'),
+  (4, 'linear regression', 19517, ''),
+  (5, 'multiple regression', 16735, ''),
+  (6, 't-test', 17017, 't test');
 
 CREATE TABLE `methods2assumptions` (
   `id` int(11) UNSIGNED NOT NULL,
@@ -64,11 +91,24 @@ CREATE TABLE `methods2assumptions` (
   `assumption_id` int(11) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `method_synonyms` (
-  `id` int(11) UNSIGNED NOT NULL,
-  `method_id` int(11) UNSIGNED NOT NULL,
-  `name` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+INSERT INTO `methods2assumptions` (`id`, `method_id`, `assumption_id`) VALUES
+  (1, 4, 4),
+  (2, 3, 4),
+  (3, 4, 2),
+  (4, 2, 4),
+  (5, 3, 2),
+  (6, 3, 3),
+  (7, 2, 2),
+  (8, 4, 6),
+  (9, 1, 4),
+  (10, 1, 10),
+  (11, 1, 8),
+  (12, 5, 4),
+  (13, 5, 2),
+  (14, 5, 6),
+  (15, 6, 4),
+  (16, 6, 2),
+  (17, 6, 7);
 
 CREATE TABLE `permutations` (
   `id` bigint(20) NOT NULL,
@@ -83,6 +123,17 @@ CREATE TABLE `permutations` (
   `relative_height_top` double(5,2) NOT NULL,
   `relative_height_bottom` double(5,2) NOT NULL,
   `distanceMinIndexMax` bigint(20) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `papers` (
+  `id` bigint(20) NOT NULL,
+  `path` varchar(1024) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `analyzed` boolean NOT NULL,
+  `anlyzed_time` datetime NOT NULL,
+  `pplibed` boolean NOT NULL,
+  `pplibed_time` datetime NOT NULL,
+  `secret` varchar(1024) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `question` (
@@ -120,13 +171,13 @@ ADD PRIMARY KEY (`id`);
 ALTER TABLE `assumptions`
 ADD PRIMARY KEY (`id`);
 
-ALTER TABLE `assumption_synonyms`
-ADD PRIMARY KEY (`id`);
-
 ALTER TABLE `batch`
 ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `conference`
+ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `conference_settings`
 ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `log`
@@ -140,9 +191,6 @@ ALTER TABLE `methods2assumptions`
 ADD PRIMARY KEY (`id`),
 ADD KEY `method_id` (`method_id`),
 ADD KEY `assumption_id` (`assumption_id`);
-
-ALTER TABLE `method_synonyms`
-ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `permutations`
 ADD PRIMARY KEY (`id`);
@@ -167,8 +215,6 @@ ALTER TABLE `assets`
 MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `assumptions`
 MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
-ALTER TABLE `assumption_synonyms`
-MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 ALTER TABLE `batch`
 MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `conference`
@@ -178,8 +224,6 @@ MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 ALTER TABLE `methods`
 MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 ALTER TABLE `methods2assumptions`
-MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
-ALTER TABLE `method_synonyms`
 MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 ALTER TABLE `permutations`
 MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
@@ -194,8 +238,9 @@ ALTER TABLE `answer`
 ADD CONSTRAINT `answer_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`),
 ADD CONSTRAINT `answer_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
-ALTER TABLE `assumption_synonyms`
-ADD CONSTRAINT `assumptions_synonyms_ibfk_1` FOREIGN KEY (`assumption_id`) REFERENCES `assumptions` (`id`);
+ALTER TABLE `conference_settings`
+ADD CONSTRAINT `conference_settings_ibfk_1` FOREIGN KEY (`conference_id`) REFERENCES `conference` (`id`),
+ADD CONSTRAINT `conference_settings_ibfk_2` FOREIGN KEY (`method2assumption_id`) REFERENCES `methods2assumptions` (`id`);
 
 ALTER TABLE `question`
 ADD CONSTRAINT `question_ibfk_1` FOREIGN KEY (`batch_id`) REFERENCES `batch` (`id`),
@@ -204,9 +249,6 @@ ADD CONSTRAINT `question_ibfk_2` FOREIGN KEY (`permutation`) REFERENCES `permuta
 ALTER TABLE `question2assets`
 ADD CONSTRAINT `question2assets_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`),
 ADD CONSTRAINT `question2assets_ibfk_2` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`);
-
-ALTER TABLE `method_synonyms`
-ADD CONSTRAINT `method_synonyms_ibfk_1` FOREIGN KEY (`method_id`) REFERENCES `methods` (`id`);
 
 ALTER TABLE `methods2assumptions`
 ADD CONSTRAINT `methods2assumptions_ibfk_1` FOREIGN KEY (`method_id`) REFERENCES `methods` (`id`),

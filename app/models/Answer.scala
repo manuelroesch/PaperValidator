@@ -11,7 +11,7 @@ import play.api.db.DBApi
 /**
   * Created by mattia on 02.07.15.
   */
-case class Answer(id: Option[Long], questionId: Long, userId: Long, time: DateTime, answerJson: String, expectedOutputCode: Long, accepted: Boolean) extends Serializable
+case class Answer(id: Option[Long], questionId: Long, userId: Long, time: DateTime, isRelated: Boolean, isCheckedBefore: Boolean, extraAnswer: Int, answerJson: String, expectedOutputCode: Long, accepted: Boolean) extends Serializable
 
 
 @javax.inject.Singleton
@@ -23,11 +23,14 @@ class AnswerService @Inject()(dbapi: DBApi) {
 				get[Long]("question_id") ~
 				get[Long]("user_id") ~
 				get[DateTime]("time") ~
+				get[Boolean]("is_related") ~
+				get[Boolean]("is_checked_before") ~
+				get[Int]("extra_answer") ~
 				get[String]("answer_json") ~
 				get[Long]("expected_output_code") ~
 				get[Boolean]("accepted") map {
-			case id ~ question_id ~ user_id ~ time ~ answer_json ~ expected_output_code ~ accepted =>
-				Answer(id, question_id, user_id, time, answer_json, expected_output_code, accepted)
+			case id ~ question_id ~ user_id ~ time ~ is_related ~ is_checked_before ~ extra_answer ~ answer_json ~ expected_output_code ~ accepted =>
+				Answer(id, question_id, user_id, time, is_related, is_checked_before, extra_answer, answer_json, expected_output_code, accepted)
 		}
 
 	def findById(id: Long): Option[Answer] =
@@ -51,12 +54,15 @@ class AnswerService @Inject()(dbapi: DBApi) {
 			).as(answerParser *)
 		}
 
-	def create(questionId: Long, userId: Long, time: DateTime, answerJson: String, expected_output_code: Long, accepted: Boolean = false) =
+	def create(questionId: Long, userId: Long, time: DateTime, isRelated: Boolean, isCheckedBefore: Boolean, extraAnswer: Int, answerJson: String, expected_output_code: Long, accepted: Boolean = false) =
 		db.withConnection { implicit c =>
-			SQL("INSERT INTO answer(question_id, user_id, time, answer_json, expected_output_code, accepted) VALUES ({questionId}, {userId}, {time}, {answerJson}, {expected_output_code}, {accepted})").on(
+			SQL("INSERT INTO answer(question_id, user_id, time, is_related, is_checked_before, extra_answer, answer_json, expected_output_code, accepted) VALUES ({questionId}, {userId}, {time}, {answerJson}, {expected_output_code}, {accepted})").on(
 				'questionId -> questionId,
 				'userId -> userId,
 				'time -> time,
+				'isRelated -> isRelated,
+				'isCheckedBefore -> isCheckedBefore,
+				'extraAnswer -> extraAnswer,
 				'answerJson -> answerJson,
 				'expected_output_code -> expected_output_code,
 				'accepted -> accepted

@@ -1,0 +1,97 @@
+@import play.Configuration
+
+@(methods : List[Method], assumptions : List[Assumption])
+
+@urlPrefix = {@Configuration.root().getString("url.prefix")}
+@mainFrame("StatTerms Editor") {
+	<div class="row text-center">
+		<div class="statTerms-editor">
+			<h1>Methods</h1>
+            @for(method <- methods) {
+                <form action="@{urlPrefix + routes.StatTerms.editMethod.url}" method="post">
+                    <div class="form-inline">
+                        <div class="form-group">
+                            <input type="text" class="form-control text-bold" name="method-name" value="@method.name" placeholder="Method Name">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-control" name="method-delta" value="@method.delta" placeholder="Delta">
+                        </div>
+                        <input type="hidden" name="method-id" value="@method.id">
+                        <button type="submit" class="btn btn-primary">Edit</button>
+                        <button type="submit" name="delete-method-id" class="btn btn-danger">X</button><br>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control synonyms" name="method-synonyms" value="@method.synonyms" placeholder="Method Synonyms (comma separated)">
+                    </div>
+                </form>
+            }
+            <br><br>
+			<form action="@{urlPrefix + routes.StatTerms.addMethod.url}#methodForm" method="post" id="methodFrom">
+                <div class="form-inline">
+                    <div class="form-group">
+                        <input type="text" class="form-control text-bold" name="method-name" placeholder="Method Name">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="method-delta" placeholder="Delta">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-add">Add</button>
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control synonyms" name="method-synonyms" placeholder="Method Synonyms (comma separated)">
+                </div>
+			</form>
+            <h1>Assumptions</h1>
+            @for(assumption <- assumptions) {
+                <form action="@{urlPrefix + routes.StatTerms.editAssumption.url}" method="post">
+                    <div class="form-inline">
+                        <div class="form-group">
+                            <input type="text" class="form-control text-bold" name="assumption-name" value="@assumption.name" placeholder="Assumption Name">
+                        </div>
+                        <input type="hidden" name="assumption-id" value="@assumption.id">
+                        <button type="submit" class="btn btn-primary">Edit</button>
+                        <button type="submit" name="delete-assumption-id" class="btn btn-danger">X</button><br>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control synonyms" name="assumption-synonyms" value="@assumption.synonyms" placeholder="Assumption Synonyms (comma separated)">
+                    </div>
+                </form>
+            }
+            <br><br>
+            <form action="@{urlPrefix + routes.StatTerms.addAssumption.url}#assumptionForm" method="post" id="assumptionForm">
+                <div class="form-inline">
+                    <div class="form-group">
+                        <input type="text" class="form-control text-bold" name="assumption-name" placeholder="Assumption Name">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-add">Add</button>
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control synonyms" name="assumption-synonyms" placeholder="Assumption Synonyms (comma separated)">
+                </div>
+            </form>
+		</div>
+	</div>
+	<style>
+	.statTerms-editor {
+	    display: inline-block;
+	}
+
+	#statTerms-form {
+	    text-align: left ;
+	}
+
+    .form-group .synonyms {
+        margin-top:5px;
+        margin-bottom:15px;
+    }
+
+    .form-group .text-bold {
+        font-weight: bold;
+    }
+
+    .form-inline .btn-add {
+        width: 88px
+    }
+
+	</style>
+
+}
