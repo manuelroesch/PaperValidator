@@ -30,9 +30,10 @@
 			.header .btn-primary {
 				width: 150px;
 				margin-left:10px;
+				margin-top:30px;
 			}
 
-			.header .input-group, .btn-primary {
+			.header .input-group {
 				margin-top:30px;
 			}
 
@@ -66,7 +67,7 @@
 				</div>
 				<div class="col-sm-4">
 					<a href="@{urlPrefix + routes.Upload.upload.url}"><button class="btn btn-primary">Upload Paper</button></a>
-					<a href="@{urlPrefix + routes.Conference.conference.url}"><button class="btn btn-primary">Create Conference</button></a>
+					<a href="@{urlPrefix + routes.Conference.conferenceCreator().url}"><button class="btn btn-primary">Create Conference</button></a>
 				</div>
 			</div>
 			@content

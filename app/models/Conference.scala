@@ -1,0 +1,59 @@
+package models
+
+import javax.inject.Inject
+
+import anorm.SqlParser._
+import anorm._
+import anorm.JodaParameterMetaData._
+import org.joda.time.DateTime
+import play.api.db.DBApi
+
+/**
+  * Created by manuel on 19.04.16.
+  */
+case class Conference(id: Option[Int], name: String, email: String, secret: String) extends Serializable
+
+@javax.inject.Singleton
+class ConferenceService @Inject()(dbapi: DBApi) {
+	private val db = dbapi.database("default")
+
+	private val answerParser: RowParser[Conference] =
+		get[Option[Int]]("id") ~
+			get[String]("name") ~
+			get[String]("email") ~
+			get[String]("secret") map {
+			case id ~ name ~ email ~ secret =>
+				Conference(id, name, email, secret)
+		}
+
+	def findById(id: Int): Option[Conference] =
+		db.withConnection { implicit c =>
+			SQL("SELECT * FROM conference WHERE id = {id}").on(
+				'id -> id
+			).as(answerParser.singleOpt)
+		}
+
+	def findByIdAndSecret(id: Int, secret: String): Option[Conference] =
+		db.withConnection { implicit c =>
+			SQL("SELECT * FROM conference WHERE id = {id} AND secret = {secret}").on(
+				'id -> id,
+				'secret -> secret
+			).as(answerParser.singleOpt)
+		}
+
+	def findAll(): List[Conference] =
+		db.withConnection { implicit c =>
+			SQL("SELECT * FROM conference").as(answerParser *)
+		}
+
+
+	def create(name: String, email: String, secret: String) : Int =
+		db.withConnection { implicit c =>
+			SQL("INSERT INTO conference(name, email, secret) VALUES ({name}, {email}, {secret})").on(
+				'name -> name,
+				'email -> email,
+				'secret -> secret
+			).executeInsert(scalar[Int].single)
+		}
+
+}

@@ -1,16 +1,41 @@
 package controllers
 
 import java.io.{BufferedWriter, FileWriter, File}
+import javax.inject.Inject
 
 import com.typesafe.config.ConfigFactory
+import helper.Commons
+import helper.email.MailTemplates
+import models.{ConferenceSettingsService, ConferenceService}
+import play.Configuration
 import play.api.mvc.{Action, Controller}
 
 /**
   * Created by manuel on 11.04.2016.
   */
-class Conference extends Controller {
-  def conference = Action {
-    Ok(views.html.conference())
+class Conference @Inject() (configuration: Configuration, conferenceService: ConferenceService, conferenceSettingsService: ConferenceSettingsService) extends Controller {
+  def conferenceCreator = Action {
+    Ok(views.html.conference.conferenceCreator())
+  }
+
+  def conferenceCreated = Action(parse.urlFormEncoded) { request =>
+    val name = request.body.get("name").get(0)
+    val email = request.body.get("email").get(0)
+    val secret = Commons.generateSecret()
+    val id = conferenceService.create(name, email, secret)
+    val conferenceLink = routes.Conference.conferenceEdit(id,secret).url
+    MailTemplates.sendConferenceMail(name,conferenceLink,email)
+    Ok(views.html.conference.conferenceCreated())
+  }
+
+  def conferenceEdit(id: Int, secret: String) = Action {
+    val conference = conferenceService.findByIdAndSecret(id,secret)
+    if(conference.size > 0) {
+      val name = conference.get.name
+      Ok(views.html.conference.conferenceEditor(id,secret,name,conferenceSettingsService.findAllByConference(id)))
+    } else {
+      NotFound("Invalid Url")
+    }
   }
 
   def writeMet2AssFile = Action(parse.json) { request =>

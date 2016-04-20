@@ -1,0 +1,79 @@
+@import play.Configuration
+
+@(method2assumptions : List[Method2Assumption],methods : List[Method], assumptions : List[Assumption])
+
+@urlPrefix = {@Configuration.root().getString("url.prefix")}
+@mainFrame("Method to Assumptions Editor") {
+	<div class="row text-center">
+		<div class="method2assumption-editor">
+			<h1>Methods to Assumptions</h1>
+            @for(method2assumption <- method2assumptions) {
+                <form action="@{urlPrefix + routes.StatTerms.editMethod2assumptions().url}" method="post">
+                    <div class="form-inline">
+                        <div class="form-group">
+                            <select class="form-control text-bold" name="method2assumption-methodId">
+                                @for(method <- methods) {
+                                    @if(method.id.get==method2assumption.methodId){
+                                        <option value="@method.id" selected>@method.name</option>
+                                    } else {
+                                        <option value="@method.id">@method.name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" name="method2assumption-assumptionId">
+                            @for(assumption <- assumptions) {
+                                @if(assumption.id.get==method2assumption.assumptionId){
+                                    <option value="@assumption.id" selected>@assumption.name</option>
+                                } else {
+                                    <option value="@assumption.id">@assumption.name</option>
+                                }
+                            }
+                            </select>
+                        </div>
+                        <input type="hidden" name="method2assumption-id" value="@method2assumption.id">
+                        <button type="submit" class="btn btn-primary">Edit</button>
+                        <button type="submit" name="delete-method2assumption-id" class="btn btn-danger">X</button><br>
+                    </div>
+                </form>
+            }
+            <br><br>
+			<form action="@{urlPrefix + routes.StatTerms.addMethod2assumptions().url}#method2assumptionFrom" method="post" id="method2assumptionFrom">
+                <div class="form-inline">
+                    <div class="form-group">
+                        <select class="form-control text-bold" name="method2assumption-methodId">
+                            <option>Select Method</option>
+                        @for(method <- methods) {
+                            <option value="@method.id">@method.name</option>
+                        }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control" name="method2assumption-assumptionId">
+                            <option>Select Assumption</option>
+                        @for(assumption <- assumptions) {
+                            <option value="@assumption.id">@assumption.name</option>
+                        }
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+			</form>
+	    </div>
+    </div>
+	<style>
+        .method2assumption-editor {
+            display: inline-block;
+        }
+
+        #method2assumptionFrom {
+            text-align: left;
+        }
+
+        .form-group .text-bold {
+            font-weight: bold;
+        }
+	</style>
+
+}
