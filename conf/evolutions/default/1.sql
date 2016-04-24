@@ -88,7 +88,9 @@ INSERT INTO `methods` (`id`, `name`, `delta`, `synonyms`) VALUES
 CREATE TABLE `methods2assumptions` (
   `id` int(11) UNSIGNED NOT NULL,
   `method_id` int(11) UNSIGNED NOT NULL,
-  `assumption_id` int(11) UNSIGNED NOT NULL
+  `assumption_id` int(11) UNSIGNED NOT NULL,
+  `question` varchar(512) NOT NULL,
+  `answers` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 INSERT INTO `methods2assumptions` (`id`, `method_id`, `assumption_id`) VALUES
@@ -127,12 +129,11 @@ CREATE TABLE `permutations` (
 
 CREATE TABLE `papers` (
   `id` bigint(20) NOT NULL,
-  `path` varchar(1024) NOT NULL,
+  `name` varchar(512) NOT NULL,
   `email` varchar(255) NOT NULL,
-  `analyzed` boolean NOT NULL,
-  `anlyzed_time` datetime NOT NULL,
-  `pplibed` boolean NOT NULL,
-  `pplibed_time` datetime NOT NULL,
+  `conference_id` int(11) NOT NULL,
+  `status` int(11) NOT NULL,
+  `last_modified` datetime NOT NULL,
   `secret` varchar(1024) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -195,6 +196,9 @@ ADD KEY `assumption_id` (`assumption_id`);
 ALTER TABLE `permutations`
 ADD PRIMARY KEY (`id`);
 
+ALTER TABLE `papers`
+ADD PRIMARY KEY (`id`);
+
 ALTER TABLE `question`
 ADD PRIMARY KEY (`id`),
 ADD KEY `batch_id` (`batch_id`),
@@ -219,12 +223,16 @@ ALTER TABLE `batch`
 MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `conference`
 MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+ALTER TABLE `conference_settings`
+MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 ALTER TABLE `log`
 MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 ALTER TABLE `methods`
 MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 ALTER TABLE `methods2assumptions`
 MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+ALTER TABLE `papers`
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `permutations`
 MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `question`
@@ -249,10 +257,6 @@ ADD CONSTRAINT `question_ibfk_2` FOREIGN KEY (`permutation`) REFERENCES `permuta
 ALTER TABLE `question2assets`
 ADD CONSTRAINT `question2assets_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`),
 ADD CONSTRAINT `question2assets_ibfk_2` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`);
-
-ALTER TABLE `methods2assumptions`
-ADD CONSTRAINT `methods2assumptions_ibfk_1` FOREIGN KEY (`method_id`) REFERENCES `methods` (`id`),
-ADD CONSTRAINT `methods2assumptions_ibfk_2` FOREIGN KEY (`assumption_id`) REFERENCES `assumptions` (`id`);
 
 # --- !Downs
 

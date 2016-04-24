@@ -1,6 +1,6 @@
 package helper
 
-import java.security.SecureRandom
+import java.security.{MessageDigest, SecureRandom}
 
 import org.apache.commons.codec.binary.Base64
 
@@ -13,6 +13,11 @@ object Commons {
     val b = new Array[Byte](size)
     new SecureRandom().nextBytes(b)
     Base64.encodeBase64URLSafeString(b)
+  }
+
+  def getSecretHash(secret:String): String = {
+    val secretHash = MessageDigest.getInstance("MD5").digest(secret.getBytes)
+    Base64.encodeBase64URLSafeString(secretHash)
   }
 
 }

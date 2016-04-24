@@ -1,22 +1,19 @@
 package models
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 
 import anorm.SqlParser._
 import anorm._
-import anorm.JodaParameterMetaData._
 import org.joda.time.DateTime
-import play.api.db.DBApi
+import anorm.JodaParameterMetaData._
+import play.api.db.Database
 
 /**
   * Created by mattia on 02.07.15.
   */
 case class User(id: Option[Long], turkerId: String, firstSeenDateTime: DateTime)
 
-@javax.inject.Singleton
-class UserService @Inject()(dbapi: DBApi) {
-
-	private val db = dbapi.database("default")
+class UserService @Inject()(db:Database) {
 
 	private val userParser: RowParser[User] =
 		get[Option[Long]]("id") ~

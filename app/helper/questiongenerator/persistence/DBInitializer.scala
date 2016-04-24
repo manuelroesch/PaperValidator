@@ -12,14 +12,14 @@ object DBInitializer extends LazyLogger {
 		DB readOnly { implicit s =>
 			//user TABLE
 			try {
-				sql"SELECT 1 FROM user LIMIT 1".map(_.long(1)).single.apply()
-				logger.debug("Table user already initialized")
+				sql"SELECT 1 FROM users LIMIT 1".map(_.long(1)).single.apply()
+				logger.debug("Table users already initialized")
 			}
 			catch {
 				case e: java.sql.SQLException =>
 					DB autoCommit { implicit s =>
-						sql"CREATE TABLE user (id BIGINT NOT NULL AUTO_INCREMENT,turker_id VARCHAR(255) NOT NULL, first_seen_date_time DATETIME NOT NULL, PRIMARY KEY(id));".execute().apply()
-						logger.debug("Table user created")
+						sql"CREATE TABLE users (id BIGINT NOT NULL AUTO_INCREMENT,turker_id VARCHAR(255) NOT NULL, first_seen_date_time DATETIME NOT NULL, PRIMARY KEY(id));".execute().apply()
+						logger.debug("Table users created")
 					}
 			}
 
@@ -45,7 +45,7 @@ object DBInitializer extends LazyLogger {
 			catch {
 				case e: java.sql.SQLException =>
 					DB autoCommit { implicit s =>
-						sql"CREATE TABLE log (id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,`accesstime` DATETIME NOT NULL,`url` VARCHAR(1024) NOT NULL DEFAULT '',`ip` VARCHAR(254) NOT NULL DEFAULT '',`USER` INT(11) DEFAULT NULL,PRIMARY KEY (`id`),KEY `accesstime` (`accesstime`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8;".execute().apply()
+						sql"CREATE TABLE log (id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,`accesstime` DATETIME NOT NULL,`url` VARCHAR(1024) NOT NULL DEFAULT '',`ip` VARCHAR(254) NOT NULL DEFAULT '',`USERS` INT(11) DEFAULT NULL,PRIMARY KEY (`id`),KEY `accesstime` (`accesstime`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8;".execute().apply()
 						logger.debug("Table log created")
 					}
 			}

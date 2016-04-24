@@ -9,9 +9,9 @@ multiple regression,homoscedasticity
 multiple regression,multicollinearity
 ANOVA,normal
 ANOVA,homoscedasticity
-t-test,normal
 t-test,homoscedasticity
 t-test,linearity
+t-test,normal
 ANCOVA,normal
 ANCOVA,homoscedasticity
 ANCOVA,homogeneity of regression slopes

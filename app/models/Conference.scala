@@ -1,21 +1,17 @@
 package models
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 
 import anorm.SqlParser._
 import anorm._
-import anorm.JodaParameterMetaData._
-import org.joda.time.DateTime
-import play.api.db.DBApi
+import play.api.db.Database
 
 /**
   * Created by manuel on 19.04.16.
   */
 case class Conference(id: Option[Int], name: String, email: String, secret: String) extends Serializable
 
-@javax.inject.Singleton
-class ConferenceService @Inject()(dbapi: DBApi) {
-	private val db = dbapi.database("default")
+class ConferenceService  @Inject()(db:Database) {
 
 	private val answerParser: RowParser[Conference] =
 		get[Option[Int]]("id") ~

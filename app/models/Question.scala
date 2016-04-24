@@ -1,20 +1,18 @@
 package models
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 
 import anorm.SqlParser._
 import anorm._
 import org.joda.time.DateTime
-import play.api.db.DBApi
+import play.api.db.Database
 
 /**
   * Created by mattia on 02.07.15.
   */
 case class Question(id: Option[Long], html: String, batchId: Long, createTime: DateTime, uuid: String, secret: String)
 
-@javax.inject.Singleton
-class QuestionService @Inject()(dbapi: DBApi) {
-	private val db = dbapi.database("default")
+class QuestionService @Inject()(db:Database) {
 
 	private val questionParser: RowParser[Question] =
 		get[Option[Long]]("id") ~

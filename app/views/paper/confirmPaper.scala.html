@@ -1,0 +1,10 @@
+@import play.Configuration
+
+@urlPrefix = {@Configuration.root().getString("url.prefix")}
+@mainFrame("Paper Confirmed") {
+	<div class="row text-center">
+        <img src="@{urlPrefix + routes.Assets.at("images/pdf.png").url}">
+        <h3>Paper confirmed! <span class="glyphicon glyphicon-ok"></span></h3>
+        Your paper will be processed soon.
+	</div>
+}

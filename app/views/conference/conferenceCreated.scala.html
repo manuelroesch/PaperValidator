@@ -1,10 +1,15 @@
 @import play.Configuration
 
+@(name: String)
+
 @urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Create a Conference") {
     <div class="row text-center">
         <div class="conference-creator">
-                created!
+            <img src="@{urlPrefix + routes.Assets.at("images/conference.jpg").url}">
+            <h1>@name</h1>
+            <h3>Successfully created! <span class="glyphicon glyphicon-ok"></span></h3>
+            We've sent you an Email with a link to edit this conference.
         </div>
     </div>
 }

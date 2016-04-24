@@ -31,10 +31,16 @@
                                 }
                             }
                             </select>
+                        </div><br>
+                        <div class="form-group q-and-a">
+                            <input name="method2assumption-question" class="form-control"
+                                value="@method2assumption.question" placeholder="Question">
+                            <input name="method2assumption-answers" class="form-control"
+                                value="@method2assumption.answers" placeholder="Answers">
+                            <input type="hidden" name="method2assumption-id" value="@method2assumption.id">
+                            <button type="submit" class="btn btn-primary">Edit</button>
+                            <button type="submit" name="delete-method2assumption-id" class="btn btn-danger">X</button><br>
                         </div>
-                        <input type="hidden" name="method2assumption-id" value="@method2assumption.id">
-                        <button type="submit" class="btn btn-primary">Edit</button>
-                        <button type="submit" name="delete-method2assumption-id" class="btn btn-danger">X</button><br>
                     </div>
                 </form>
             }
@@ -56,8 +62,12 @@
                             <option value="@assumption.id">@assumption.name</option>
                         }
                         </select>
+                    </div><br>
+                    <div class="form-group q-and-a">
+                        <input name="method2assumption-question" class="form-control" placeholder="Question">
+                        <input name="method2assumption-answers" class="form-control" placeholder="Answers">
+                        <button type="submit" class="btn btn-primary">Add</button>
                     </div>
-                    <button type="submit" class="btn btn-primary">Add</button>
                 </div>
 			</form>
 	    </div>
@@ -67,12 +77,16 @@
             display: inline-block;
         }
 
-        #method2assumptionFrom {
-            text-align: left;
-        }
-
         .form-group .text-bold {
             font-weight: bold;
+        }
+
+        .q-and-a {
+            margin-top: 5px;
+        }
+
+        .form-inline {
+            margin-bottom: 15px;
         }
 	</style>
 

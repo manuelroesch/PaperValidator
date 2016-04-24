@@ -1,6 +1,7 @@
 package helper.pdfpreprocessing
 
 import java.io.File
+import javax.inject.Inject
 
 import helper.pdfpreprocessing.entities.Paper
 import helper.pdfpreprocessing.pdf.PDFLoader
@@ -9,12 +10,13 @@ import helper.pdfpreprocessing.stats.StatTermSearcher
 import ch.uzh.ifi.pdeboer.pplib.process.entities.FileProcessMemoizer
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
+import play.api.db.Database
 
 
 /**
   * Created by pdeboer on 30/10/15.
   */
-object PaperSampler extends App with LazyLogging {
+class PaperSampler @Inject()(database: Database) extends App with LazyLogging {
 	logger.info("starting sampling")
 	val mem = new FileProcessMemoizer("everything")
 
@@ -25,7 +27,7 @@ object PaperSampler extends App with LazyLogging {
 	case class SerializedPaper(p: Array[Paper]) extends Serializable
 
 	val allPapers: Array[Paper] = new PDFLoader(new File(INPUT_DIR)).papers
-	val allPaperMethodMaps: List[PaperMethodMap] = allPapers.map(p => new StatTermSearcher(p, includeAssumptions = false).occurrences.toList)
+	val allPaperMethodMaps: List[PaperMethodMap] = allPapers.map(p => new StatTermSearcher(p, database, null, includeAssumptions = false).occurrences.toList)
 		.filter(_.nonEmpty).map(p => PaperMethodMap.fromOccurrenceList(p)).filter(_.methodOccurrenceMap.values.sum > 0).toList
 
 	val targetDistribution: MethodDistribution = new MethodDistribution(

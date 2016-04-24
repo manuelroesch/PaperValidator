@@ -1,0 +1,9 @@
+@(papers: List[Papers])
+
+@mainFrame("Show Paper") {
+	<div class="row">
+        @for(paper <- papers) {
+            @paper.name @paper.email @paper.status @paper.secret<br>
+        }
+	</div>
+}

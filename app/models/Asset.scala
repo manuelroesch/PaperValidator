@@ -1,12 +1,12 @@
 package models
 
 import java.sql.SQLException
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 
 import anorm.SqlParser._
 import anorm._
 import com.mysql.jdbc.Blob
-import play.api.db.DBApi
+import play.api.db.Database
 
 /**
   * Created by mattia on 02.07.15.
@@ -15,10 +15,7 @@ case class Asset(id: Option[Long], hash_code: String, byteArray: Array[Byte], co
 
 case class Question2Assets(id: Option[Long], questionId: Long, assetId: Long) extends Serializable
 
-@javax.inject.Singleton
-class AssetService @Inject()(dbapi: DBApi) {
-
-	private val db = dbapi.database("default")
+class AssetService @Inject()(db:Database) {
 
 	private val assetParser: RowParser[Asset] =
 		get[Option[Long]]("id") ~

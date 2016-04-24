@@ -1,12 +1,12 @@
 package models
 
-import javax.inject.Inject
+import javax.inject.{Singleton, Inject}
 
 import anorm.SqlParser._
 import anorm._
 import anorm.JodaParameterMetaData._
 import org.joda.time.DateTime
-import play.api.db.DBApi
+import play.api.db.Database
 
 /**
   * Created by mattia on 02.07.15.
@@ -14,9 +14,7 @@ import play.api.db.DBApi
 case class Answer(id: Option[Long], questionId: Long, userId: Long, time: DateTime, isRelated: Boolean, isCheckedBefore: Boolean, extraAnswer: Int, answerJson: String, expectedOutputCode: Long, accepted: Boolean) extends Serializable
 
 
-@javax.inject.Singleton
-class AnswerService @Inject()(dbapi: DBApi) {
-	private val db = dbapi.database("default")
+class AnswerService @Inject()(db:Database) {
 
 	private val answerParser: RowParser[Answer] =
 		get[Option[Long]]("id") ~
