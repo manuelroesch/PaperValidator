@@ -1,31 +1,25 @@
 package controllers
 
-import java.io.{FileWriter, BufferedWriter, File}
+import java.io.{BufferedWriter, File, FileWriter}
 import javax.inject.Inject
 
-import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.{Algorithm250, BallotPortalAdapter}
-import ch.uzh.ifi.pdeboer.pplib.hcomp.{HTMLQuery, HComp}
-import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.report.Report
-import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.dao.BallotDAO
-import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.persistence.{Permutation, DBSettings}
-import ch.uzh.ifi.pdeboer.pplib.util.CollectionUtils._
-import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.integrationtest.console.ConsoleIntegrationTest
-import helper.email.MailService
 import helper.pdfpreprocessing.PreprocessPDF
 import helper.pdfpreprocessing.pdf.PDFLoader
-import helper.pdfpreprocessing.stats.{StatTermPermuter, PruneTermsWithinOtherTerms, StatTermPruning, StatTermSearcher}
+import helper.pdfpreprocessing.stats.{PruneTermsWithinOtherTerms, StatTermPermuter, StatTermPruning, StatTermSearcher}
 import helper.pdfpreprocessing.util.FileUtils
-import helper.questiongenerator.HCompNew
-import models.QuestionService
-import play.api.Logger
+import helper.{Commons, PaperProcessingManager}
+import models.{PapersService, QuestionService}
+import play.api.{Configuration, Logger}
+import play.api.db.Database
 import play.api.mvc.{Action, Controller}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import scala.io.Source
+import scala.concurrent.Future
 
 /**
   * Created by manuel on 11.04.2016.
   */
-class Upload @Inject() (questionService : QuestionService) extends Controller {
+class Upload @Inject() (database: Database, configuration: Configuration, questionService : QuestionService, papersService: PapersService) extends Controller {
   def upload = Action {
     //MailService.sendMail("manuelroesch@gmail.com","test Subject","content test content")
     Ok(views.html.upload())
@@ -33,65 +27,23 @@ class Upload @Inject() (questionService : QuestionService) extends Controller {
 
   def uploaded = Action(parse.multipartFormData) { request =>
     createDirs()
+    val email = request.body.dataParts.get("email").get.mkString("")
     request.body.file("paper").map { paper =>
       val filename = paper.filename
-      //val contentType = paper.contentType
-      paper.ref.moveTo(new File(PreprocessPDF.INPUT_DIR + "/" + filename))
-      PreprocessPDF.start()
-      permutation2DB()
+      val secret = Commons.generateSecret()
+      val tmpDirs: File = new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(secret))
+      if (!tmpDirs.exists()) tmpDirs.mkdir()
+      paper.ref.moveTo(new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(secret) + "/" + filename))
+      papersService.create(filename,email,secret)
+      Future  {
+        PaperProcessingManager.run(database, configuration, papersService, questionService)
+      }
       Logger.info("done")
       Ok("Ok")
     }.getOrElse {
       Ok("Error")
     }
   }
-
-  def permutation2DB(): Unit = {
-    DBSettings.initialize()
-    val dao = new BallotDAO
-    val hComp = HCompNew
-    hComp.autoloadConfiguredPortals()
-    Logger.info(HComp.allDefinedPortals.toString())
-    val ballotPortalAdapter = hComp(BallotPortalAdapter.PORTAL_KEY)
-    val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
-    if (questionService.findById(1L).isEmpty) {
-      Logger.info("init template")
-      val template: File = new File("public/template/perm.csv")
-      if (template.exists()) {
-        val templatePermutations = Source.fromFile(template).getLines().drop(1).map(l => {
-          val perm: Permutation = Permutation.fromCSVLine(l)
-          dao.createPermutation(perm)
-        })
-        Thread.sleep(1000)
-        templatePermutations.foreach(permutationId => {
-          val q = algorithm250.buildQuestion(dao.getPermutationById(permutationId).get, isTemplate = true)
-          Logger.info("WriteTemplate")
-          ballotPortalAdapter.sendQuery(HTMLQuery(q._2, 1, "Statistical Methods and Prerequisites", ""), q._1)
-          Thread.sleep(1000)
-        })
-        Thread.sleep(1000)
-        assert(!templatePermutations.contains(1L), "Our template didn't get ID 1. Please adapt DB. Current template IDs: " + templatePermutations.mkString(","))
-      }
-    } else {
-      Logger.info("Loading new permutations")
-      dao.loadPermutationsCSV(PreprocessPDF.PERMUTATIONS_CSV_FILENAME)
-      Logger.info("Removing state information of previous runs")
-      new File("state").listFiles().foreach(f => f.delete())
-      val groups = dao.getAllPermutations().filter(_.id != ConsoleIntegrationTest.DEFAULT_TEMPLATE_ID).groupBy(gr => {
-        gr.groupName.split("/").apply(0)
-      }).map(g => (g._1, g._2.sortBy(_.distanceMinIndexMax))).toList
-      groups.mpar.foreach(group => {
-        group._2.foreach(permutation => {
-          if (dao.getPermutationById(permutation.id).map(_.state).getOrElse(-1) == 0) {
-            algorithm250.executePermutation(permutation)
-          }
-        })
-      })
-      Report.writeCSVReport(dao)
-      Report.writeCSVReportAllAnswers(dao)
-    }
-  }
-
 
   def createDirs(): Unit = {
     var tmpDirs: File = new File("state")
@@ -117,7 +69,7 @@ class Upload @Inject() (questionService : QuestionService) extends Controller {
     //val snippets = allPapers.par.flatMap(paper => {
     val writer = new BufferedWriter(new FileWriter(new File("tmp/out.csv")))
     for (paper <- allPapers) {
-      val searcher = new StatTermSearcher(paper)
+      val searcher = new StatTermSearcher(paper, database)
       val statTermsInPaper = new StatTermPruning(List(new PruneTermsWithinOtherTerms)).prune(searcher.occurrences)
       val combinationsOfMethodsAndAssumptions = new StatTermPermuter(statTermsInPaper).permutations
       combinationsOfMethodsAndAssumptions.sortBy(_.distanceBetweenMinMaxIndex).zipWithIndex.par.map(p => {

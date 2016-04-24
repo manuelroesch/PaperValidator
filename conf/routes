@@ -14,7 +14,8 @@ POST       /conference-created              controllers.Conference.conferenceCre
 GET        /conference-editor/:id/:secret   controllers.Conference.conferenceEdit(id: Int, secret: String)
 POST       /write-statterms                 controllers.Conference.writeMet2AssFile
 GET        /test                            controllers.Upload.statTest
-GET        /show-paper                      controllers.ShowPaper.show
+GET        /show-paper/:id/:secret          controllers.Paper.show(id: Int, secret: String)
+GET        /confirm-paper/:id/:secret       controllers.Paper.confirmPaper(id: Int, secret: String)
 GET        /statterms                       controllers.StatTerms.showStatTerms
 POST       /statterms/add-method            controllers.StatTerms.addMethod
 POST       /statterms/edit-method           controllers.StatTerms.editMethod
@@ -23,6 +24,7 @@ POST       /statterms/edit-assumption       controllers.StatTerms.editAssumption
 GET        /methods2assumptions             controllers.StatTerms.method2assumptions
 POST       /methods2assumptions/add         controllers.StatTerms.addMethod2assumptions
 POST       /methods2assumptions/edit        controllers.StatTerms.editMethod2assumptions
+POST       /save-conference-settings        controllers.Conference.saveConferenceSettings
 
 # Login
 GET        /login                           controllers.Login.login

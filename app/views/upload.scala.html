@@ -9,6 +9,10 @@
 					<input type="file" name="paper" id="fileSelect">
 				</div><br>
 				<a href="#" onclick="selectFile()">Click here or drag and drop to upload PDF/ZIP.</a><br>
+				<div class="email-input">
+					<label for="emailIn">Your Email address</label>
+					<input type="email" class="form-control" id="emailIn" name="Email" placeholder="Email">
+				</div>
 				<div id="upload-progress">
 					<input id="upload-start" class="btn btn-primary" type="submit" value="Submit" style="margin-bottom:50px"><br>
 					<div id="upload-upload">
@@ -16,7 +20,8 @@
 						Upload... Please wait... This may take a couple of minutes.
 					</div><br>
 					<div id="upload-success">
-						Upload successful. <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+						Upload successful. <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span><br>
+						Your file is in the queue to be processed!
 					</div>
 				</div>
 			</form>
@@ -31,7 +36,9 @@
 			showUploadProgress("upload");
 			var data = new FormData();
 			var fileData = $('input[name="paper"]')[0].files[0];
+			var email = $('#emailIn').val()
 			data.append("paper", fileData);
+			data.append("email", email);
 			$.ajax({
 				url: '@{urlPrefix + routes.Upload.uploaded.url}',
 				type: 'POST',
@@ -83,6 +90,13 @@
 
 		#upload-upload img {
 			width: 35px;
+		}
+
+		.email-input {
+			display:inline-block;
+			width: 100%;
+			max-width: 300px;
+			margin:20px;
 		}
 	</style>
 }

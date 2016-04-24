@@ -1,19 +1,16 @@
 package models
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 
-import anorm._
 import anorm.JodaParameterMetaData._
+import anorm._
 import org.joda.time.DateTime
-import play.api.db.DBApi
+import play.api.db.Database
 
 /**
   * Created by pdeboer on 20/11/15.
   */
-@javax.inject.Singleton
-class Log @Inject()(dbapi: DBApi) {
-
-	private val db = dbapi.database("default")
+class Log @Inject()(db:Database) {
 
 	def createEntry(url: String, ip: String, userId: Long): Unit = {
 		db.withConnection { implicit c =>

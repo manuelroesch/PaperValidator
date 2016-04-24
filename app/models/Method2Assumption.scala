@@ -1,12 +1,10 @@
 package models
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 
 import anorm.SqlParser._
 import anorm._
-import anorm.JodaParameterMetaData._
-import org.joda.time.DateTime
-import play.api.db.DBApi
+import play.api.db.Database
 
 /**
   * Created by manuel on 19.04.16.
@@ -14,9 +12,7 @@ import play.api.db.DBApi
 case class Method2Assumption(id: Option[Int], methodId: Int, methodName: String, assumptionId: Int, assumptionName: String) extends Serializable
 
 
-@javax.inject.Singleton
-class Method2AssumptionService @Inject()(dbapi: DBApi) {
-	private val db = dbapi.database("default")
+class Method2AssumptionService @Inject()(db:Database) {
 
 	private val answerParser: RowParser[Method2Assumption] =
 		get[Option[Int]]("id") ~

@@ -1,15 +1,20 @@
 package helper.pdfpreprocessing.stats
 
-import helper.pdfpreprocessing.entities.{StatisticalMethod, Paper, StatTermOccurrence, StatisticalTerm}
+import helper.pdfpreprocessing.entities.{Paper, StatTermOccurrence, StatisticalTerm}
+import play.api.Logger
+import play.api.db.Database
 
 import scala.collection.immutable.Iterable
 
 /**
  * Created by pdeboer on 16/10/15.
  */
-class StatTermSearcher(paper: Paper, includeAssumptions: Boolean = true, terms: List[StatisticalMethod] = StatTermloader.terms) {
+class StatTermSearcher(paper: Paper, database: Database, includeAssumptions: Boolean = true) {
 
 	import StatTermSearcher._
+
+	val terms1 = StatTermloaderCSV.terms
+  val terms = new StatTermloader(database).terms
 
 	lazy val occurrences: Iterable[StatTermOccurrence] = {
 		val withDuplicates = findOccurrences

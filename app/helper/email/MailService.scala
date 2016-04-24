@@ -47,7 +47,9 @@ object MailService
       message.setSubject(subject)
 
       // Now set the actual message
-      message.setText(content)
+      message.setContent(content, "text/html");
+      //message.setText(content)
+
 
       Transport.send(message);
     } catch {

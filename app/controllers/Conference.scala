@@ -8,6 +8,7 @@ import helper.Commons
 import helper.email.MailTemplates
 import models.{ConferenceSettingsService, ConferenceService}
 import play.Configuration
+import play.api.Logger
 import play.api.mvc.{Action, Controller}
 
 /**
@@ -23,9 +24,9 @@ class Conference @Inject() (configuration: Configuration, conferenceService: Con
     val email = request.body.get("email").get(0)
     val secret = Commons.generateSecret()
     val id = conferenceService.create(name, email, secret)
-    val conferenceLink = routes.Conference.conferenceEdit(id,secret).url
+    val conferenceLink = configuration.getString("hcomp.ballot.baseURL") + routes.Conference.conferenceEdit(id,secret).url
     MailTemplates.sendConferenceMail(name,conferenceLink,email)
-    Ok(views.html.conference.conferenceCreated())
+    Ok(views.html.conference.conferenceCreated(name))
   }
 
   def conferenceEdit(id: Int, secret: String) = Action {
@@ -35,6 +36,24 @@ class Conference @Inject() (configuration: Configuration, conferenceService: Con
       Ok(views.html.conference.conferenceEditor(id,secret,name,conferenceSettingsService.findAllByConference(id)))
     } else {
       NotFound("Invalid Url")
+    }
+  }
+
+  def saveConferenceSettings = Action(parse.json) { request =>
+    request.body.asOpt[Map[String,String]].map { cs =>
+      val conference = conferenceService.findByIdAndSecret(cs("conferenceId").toInt,cs("secret"))
+      if(conference.size > 0) {
+        if(cs("settingId").toInt < 0) {
+          conferenceSettingsService.create(cs("conferenceId").toInt,cs("m2aId").toInt,cs("flag").toInt)
+        } else {
+          conferenceSettingsService.update(cs("settingId").toInt,cs("flag").toInt)
+        }
+        Ok("Ok")
+      } else {
+        NotFound("Invalid Url")
+      }
+    }.getOrElse {
+      Ok("Error")
     }
   }
 

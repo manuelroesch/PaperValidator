@@ -9,10 +9,11 @@ import helper.pdfpreprocessing.stats._
 import helper.pdfpreprocessing.util.FileUtils
 import com.typesafe.config.ConfigFactory
 import play.api.Logger
+import play.api.db.Database
 
 /**
-  * Created by pdeboer on 16/10/15.
-  */
+	* Created by pdeboer on 16/10/15.
+	*/
 object PreprocessPDF {
 
 	val conf = ConfigFactory.load()
@@ -24,15 +25,15 @@ object PreprocessPDF {
 	val PERMUTATIONS_CSV_FILENAME = conf.getString("highlighter.permutationFilename")
 	val PNG_ERROR_OUTPUT_PATH = conf.getString("highlighter.pngErrorPath")
 
-	def start()  {
+	def start(database: Database, secretHash : String) : Int = {
 		Logger.debug("starting highlighting")
 
 
-		FileUtils.emptyDir(new File(OUTPUT_DIR))
+		//FileUtils.emptyDir(new File(OUTPUT_DIR))
 
-		val allPapers = new PDFLoader(new File(INPUT_DIR)).papers
+		val allPapers = new PDFLoader(new File(INPUT_DIR + "/" + secretHash)).papers
 		val snippets = allPapers.par.flatMap(paper => {
-			val searcher = new StatTermSearcher(paper)
+			val searcher = new StatTermSearcher(paper,database)
 			val statTermsInPaper = new StatTermPruning(List(new PruneTermsWithinOtherTerms)).prune(searcher.occurrences)
 			val combinationsOfMethodsAndAssumptions = new StatTermPermuter(statTermsInPaper).permutations
 
@@ -48,7 +49,8 @@ object PreprocessPDF {
 			snippets.filter(_.isDefined).map(_.get)
 		}).toList
 
-		new CSVExporter(PERMUTATIONS_CSV_FILENAME, snippets).persist()
+		new CSVExporter(OUTPUT_DIR + "/" + secretHash + "/permutations.csv", snippets).persist()
+		snippets.length
 	}
 
 }

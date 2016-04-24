@@ -1,20 +1,18 @@
 package models
 
-import javax.inject.Inject
+import javax.inject.{Singleton, Inject}
 
 import anorm.SqlParser._
 import anorm._
-import play.api.db.DBApi
+import play.api.db.Database
 
 /**
   * Created by mattia on 02.07.15.
   */
 case class Batch(id: Option[Long], allowedAnswersPerTurker: Int) extends Serializable
 
-@javax.inject.Singleton
-class BatchService @Inject()(dbapi: DBApi) {
+class BatchService @Inject()(db:Database) {
 
-	private val db = dbapi.database("default")
 
 	private val batchParser: RowParser[Batch] =
 		get[Option[Long]]("id") ~

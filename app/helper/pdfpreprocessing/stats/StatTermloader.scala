@@ -1,7 +1,12 @@
 package helper.pdfpreprocessing.stats
 
-import com.typesafe.config.ConfigFactory
-import helper.pdfpreprocessing.entities.{StatisticalMethod, StatisticalAssumption}
+
+import javax.inject.Inject
+
+import helper.pdfpreprocessing.entities.{StatisticalAssumption, StatisticalMethod}
+import models.{AssumptionService, ConferenceSettingsService, MethodService}
+import play.api.Logger
+import play.api.db.Database
 
 import scala.collection.mutable
 import scala.io.Source
@@ -9,29 +14,40 @@ import scala.io.Source
 /**
  * Created by pdeboer on 16/06/15.
  */
-object StatTermloader {
-	lazy val deltas: Map[String, Int] = Source.fromFile("statterms/deltas.csv", "UTF-8").getLines().map(l => {
-		val cols = l.split(",")
-		(cols(0), cols(1).toInt)
+
+class StatTermloader(database: Database) {
+	val methodService = new MethodService(database)
+	val assumptionService = new AssumptionService(database)
+	val conferenceSettingsService = new ConferenceSettingsService(database)
+
+	lazy val deltas: Map[String, Int] = methodService.findAll().map(method => {
+		(method.name, method.delta)
 	}).toMap
 
 
 	lazy val terms: List[StatisticalMethod] = {
 
-		def getTermCSV(filename: String) = Source.fromFile(filename, "UTF-8").getLines().map(l => {
-			val cols = l.split(",").map(_.trim)
-			(cols(0), cols.drop(1).toList)
-		}).toList
-
-		val assumptionsInCSV = getTermCSV("statterms/assumptions.csv").map(a => StatisticalAssumption(a._1, a._2))
-		val methodNamesAndSynonyms = getTermCSV("statterms/methods.csv")
+		val assumptionsNamesAndSynonyms = assumptionService.findAll().map(a => {
+			var synonyms : List[String] = List()
+			if(!a.synonyms.isEmpty) {
+				synonyms = a.synonyms.split(",").toList
+			}
+			StatisticalAssumption(a.name,synonyms)
+		})
+		val methodNamesAndSynonyms = methodService.findAll().map(m => {
+			var synonyms : List[String] = List()
+			if(!m.synonyms.isEmpty) {
+				synonyms = m.synonyms.split(",").toList
+			}
+			(m.name,synonyms)
+		})
 
 		var methodMap = new mutable.HashMap[String, List[StatisticalAssumption]]()
-		Source.fromFile(ConfigFactory.load().getString("highlighter.statFile"), "UTF-8").getLines().foreach(l => {
-			val cols = l.split(",").map(_.trim)
-
-			val assumption = assumptionsInCSV.find(_.name == cols(1)).getOrElse(throw new Exception(cols(1)))
-			methodMap += cols(0) -> (assumption :: methodMap.getOrElse(cols(0), Nil))
+		conferenceSettingsService.findAllByConference(1).map(cs => {
+			if(cs.flag.isDefined) {
+				val assumption = assumptionsNamesAndSynonyms.find(_.name == cs.assumptionName).getOrElse(throw new Exception(cs.assumptionName))
+				methodMap += cs.methodName -> (assumption :: methodMap.getOrElse(cs.methodName, Nil))
+			}
 		})
 
 		val methods = methodMap.map { case (method, assumptions) =>
