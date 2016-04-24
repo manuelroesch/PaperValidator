@@ -4,7 +4,7 @@ package helper.pdfpreprocessing.stats
 import javax.inject.Inject
 
 import helper.pdfpreprocessing.entities.{StatisticalAssumption, StatisticalMethod}
-import models.{AssumptionService, ConferenceSettingsService, MethodService}
+import models.{Papers, AssumptionService, ConferenceSettingsService, MethodService}
 import play.api.Logger
 import play.api.db.Database
 
@@ -15,7 +15,7 @@ import scala.io.Source
  * Created by pdeboer on 16/06/15.
  */
 
-class StatTermloader(database: Database) {
+class StatTermloader(database: Database, paper: Papers) {
 	val methodService = new MethodService(database)
 	val assumptionService = new AssumptionService(database)
 	val conferenceSettingsService = new ConferenceSettingsService(database)
@@ -43,7 +43,7 @@ class StatTermloader(database: Database) {
 		})
 
 		var methodMap = new mutable.HashMap[String, List[StatisticalAssumption]]()
-		conferenceSettingsService.findAllByConference(1).map(cs => {
+		conferenceSettingsService.findAllByConference(paper.conferenceId).map(cs => {
 			if(cs.flag.isDefined) {
 				val assumption = assumptionsNamesAndSynonyms.find(_.name == cs.assumptionName).getOrElse(throw new Exception(cs.assumptionName))
 				methodMap += cs.methodName -> (assumption :: methodMap.getOrElse(cs.methodName, Nil))

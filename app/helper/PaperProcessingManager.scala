@@ -52,7 +52,7 @@ object PaperProcessingManager {
   def processPaper(database: Database, configuration: Configuration, papersService: PapersService, questionService: QuestionService, paper : Papers): Unit = {
     val paperLink = configuration.getString("hcomp.ballot.baseURL").get + routes.Paper.confirmPaper(paper.id.get,paper.secret).url
     if(paper.status == PAPER_STATUS_NEW) {
-      val permutations = PreprocessPDF.start(database,Commons.getSecretHash(paper.secret))
+      val permutations = PreprocessPDF.start(database,paper)
       papersService.updateStatus(paper.id.get,PAPER_STATUS_ANALYZED)
       MailTemplates.sendPaperAnalyzedMail(paper.name,paperLink,permutations,paper.email)
     } else if(paper.status == PAPER_STATUS_IN_PPLIB_QUEUE) {

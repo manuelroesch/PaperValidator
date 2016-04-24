@@ -27,7 +27,7 @@ class PaperSampler @Inject()(database: Database) extends App with LazyLogging {
 	case class SerializedPaper(p: Array[Paper]) extends Serializable
 
 	val allPapers: Array[Paper] = new PDFLoader(new File(INPUT_DIR)).papers
-	val allPaperMethodMaps: List[PaperMethodMap] = allPapers.map(p => new StatTermSearcher(p, database, includeAssumptions = false).occurrences.toList)
+	val allPaperMethodMaps: List[PaperMethodMap] = allPapers.map(p => new StatTermSearcher(p, database, null, includeAssumptions = false).occurrences.toList)
 		.filter(_.nonEmpty).map(p => PaperMethodMap.fromOccurrenceList(p)).filter(_.methodOccurrenceMap.values.sum > 0).toList
 
 	val targetDistribution: MethodDistribution = new MethodDistribution(

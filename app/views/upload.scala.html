@@ -1,5 +1,7 @@
 @import play.Configuration
 
+@(conferences: List[models.Conference])
+
 @urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Upload File") {
 	<div class="row">
@@ -9,12 +11,18 @@
 					<input type="file" name="paper" id="fileSelect">
 				</div><br>
 				<a href="#" onclick="selectFile()">Click here or drag and drop to upload PDF/ZIP.</a><br>
-				<div class="email-input">
+				<div class="data-input">
 					<label for="emailIn">Your Email address</label>
 					<input type="email" class="form-control" id="emailIn" name="Email" placeholder="Email">
+					<select class="form-control" id="conference">
+						<option value="">Select Conference</option>
+						@for(conference <- conferences) {
+							<option value="@conference.id">@conference.name</option>
+						}
+					</select>
 				</div>
 				<div id="upload-progress">
-					<input id="upload-start" class="btn btn-primary" type="submit" value="Submit" style="margin-bottom:50px"><br>
+					<input id="upload-start" class="btn btn-primary" type="submit" value="Submit"><br>
 					<div id="upload-upload">
 						<img src="@{urlPrefix + routes.Assets.at("images/loader2.gif").url}"><br><br>
 						Upload... Please wait... This may take a couple of minutes.
@@ -37,7 +45,9 @@
 			var data = new FormData();
 			var fileData = $('input[name="paper"]')[0].files[0];
 			var email = $('#emailIn').val()
+			var conference = $('#conference').val()
 			data.append("paper", fileData);
+			data.append("conference", conference);
 			data.append("email", email);
 			$.ajax({
 				url: '@{urlPrefix + routes.Upload.uploaded.url}',
@@ -92,11 +102,19 @@
 			width: 35px;
 		}
 
-		.email-input {
+		.data-input {
 			display:inline-block;
 			width: 100%;
 			max-width: 300px;
 			margin:20px;
+		}
+
+		.data-input select {
+			margin-top: 5px
+		}
+
+		#upload-progress .btn-primary {
+			margin-bottom:50px
 		}
 	</style>
 }

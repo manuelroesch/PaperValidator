@@ -8,7 +8,7 @@ import play.api.Logger
 object MailTemplates {
 
   def sendConferenceMail(conferenceName : String, conferenceLink : String, toEmail : String): Unit = {
-    val subject = "PaperValidator: About Conference '" + conferenceName + "'"
+    val subject = "PaperValidator: About Conference " + conferenceName
     val content =
       s"""Dear user of PaperValidator,<br><br>
         |
@@ -24,12 +24,12 @@ object MailTemplates {
   }
 
   def sendPaperAnalyzedMail(paperName: String, paperLink : String, permutations: Int, toEmail: String): Unit = {
-    val subject = "PaperValidator: '" + paperName + "' analyzed!"
+    val subject = "PaperValidator: " + paperName + " analyzed!"
     val content =
       s"""Dear user of PaperValidator,<br><br>
           |
         |Your paper '$paperName' has been analyzed.<br>
-          |There where $permutations found. Confirm with the following link that you would like to process the paper:
+          |There where $permutations permutations found. Confirm with the following link that you would like to process the paper:
           |<b>$paperLink</b><br><br>
           |
         |Have fun using PaperValidator!
@@ -40,7 +40,7 @@ object MailTemplates {
 
 
   def sendPaperCompletedMail(paperName: String, paperLink : String, toEmail: String): Unit = {
-    val subject = "PaperValidator: '" + paperName + "' completed!"
+    val subject = "PaperValidator: " + paperName + " completed!"
     val content =
       s"""Dear user of PaperValidator,<br><br>
           |

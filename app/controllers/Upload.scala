@@ -8,7 +8,7 @@ import helper.pdfpreprocessing.pdf.PDFLoader
 import helper.pdfpreprocessing.stats.{PruneTermsWithinOtherTerms, StatTermPermuter, StatTermPruning, StatTermSearcher}
 import helper.pdfpreprocessing.util.FileUtils
 import helper.{Commons, PaperProcessingManager}
-import models.{PapersService, QuestionService}
+import models.{Papers, ConferenceService, PapersService, QuestionService}
 import play.api.{Configuration, Logger}
 import play.api.db.Database
 import play.api.mvc.{Action, Controller}
@@ -19,22 +19,23 @@ import scala.concurrent.Future
 /**
   * Created by manuel on 11.04.2016.
   */
-class Upload @Inject() (database: Database, configuration: Configuration, questionService : QuestionService, papersService: PapersService) extends Controller {
+class Upload @Inject() (database: Database, configuration: Configuration, questionService : QuestionService, papersService: PapersService, conferenceService: ConferenceService) extends Controller {
   def upload = Action {
-    //MailService.sendMail("manuelroesch@gmail.com","test Subject","content test content")
-    Ok(views.html.upload())
+    val conferences = conferenceService.findAll()
+    Ok(views.html.upload(conferences))
   }
 
   def uploaded = Action(parse.multipartFormData) { request =>
     createDirs()
     val email = request.body.dataParts.get("email").get.mkString("")
+    val conference = request.body.dataParts.get("conference").get.mkString("").toInt
     request.body.file("paper").map { paper =>
       val filename = paper.filename
       val secret = Commons.generateSecret()
       val tmpDirs: File = new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(secret))
       if (!tmpDirs.exists()) tmpDirs.mkdir()
       paper.ref.moveTo(new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(secret) + "/" + filename))
-      papersService.create(filename,email,secret)
+      papersService.create(filename,email,conference,secret)
       Future  {
         PaperProcessingManager.run(database, configuration, papersService, questionService)
       }
@@ -69,7 +70,7 @@ class Upload @Inject() (database: Database, configuration: Configuration, questi
     //val snippets = allPapers.par.flatMap(paper => {
     val writer = new BufferedWriter(new FileWriter(new File("tmp/out.csv")))
     for (paper <- allPapers) {
-      val searcher = new StatTermSearcher(paper, database)
+      val searcher = new StatTermSearcher(paper, database, null)
       val statTermsInPaper = new StatTermPruning(List(new PruneTermsWithinOtherTerms)).prune(searcher.occurrences)
       val combinationsOfMethodsAndAssumptions = new StatTermPermuter(statTermsInPaper).permutations
       combinationsOfMethodsAndAssumptions.sortBy(_.distanceBetweenMinMaxIndex).zipWithIndex.par.map(p => {

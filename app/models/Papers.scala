@@ -12,7 +12,7 @@ import play.api.db.Database
 /**
   * Created by manuel on 19.04.16.
   */
-case class Papers(id: Option[Int], name: String, email: String, status: Int, lastModified: DateTime, secret: String) extends Serializable
+case class Papers(id: Option[Int], name: String, email: String, conferenceId: Int, status: Int, lastModified: DateTime, secret: String) extends Serializable
 
 class PapersService @Inject()(db:Database) {
 
@@ -20,11 +20,12 @@ class PapersService @Inject()(db:Database) {
 		get[Option[Int]]("id") ~
 				get[String]("name") ~
 				get[String]("email") ~
+				get[Int]("conference_id") ~
 				get[Int]("status") ~
 				get[DateTime]("last_modified") ~
 				get[String]("secret") map {
-			case id ~ name ~ email ~ status ~ last_modified ~ secret =>
-				Papers(id, name, email, status, last_modified, secret)
+			case id ~ name ~ email ~ conference_id ~ status ~ last_modified ~ secret =>
+				Papers(id, name, email, conference_id, status, last_modified, secret)
 		}
 
 	def findById(id: Int): Option[Papers] =
@@ -63,13 +64,14 @@ class PapersService @Inject()(db:Database) {
 		}
 	}
 
-	def create(name: String, email: String, secret: String) =
+	def create(name: String, email: String, conferenceId: Int, secret: String) =
 		db.withConnection { implicit c =>
-			SQL("INSERT INTO papers(name, email, status, last_modified, secret) " +
-				"VALUES ({name},{email},{status},{last_modified},{secret})").on(
+			SQL("INSERT INTO papers(name, email, conference_id, status, last_modified, secret) " +
+				"VALUES ({name},{email},{conference_id},{status},{last_modified},{secret})").on(
 				'name -> name,
 				'email -> email,
 				'status -> PaperProcessingManager.PAPER_STATUS_NEW,
+				'conference_id -> conferenceId,
 				'last_modified -> DateTime.now(),
 				'secret -> secret
 			).executeInsert()

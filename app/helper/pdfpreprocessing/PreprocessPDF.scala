@@ -2,12 +2,14 @@ package helper.pdfpreprocessing
 
 import java.io.File
 
+import helper.Commons
 import helper.pdfpreprocessing.csv.{CSVExporter, Snippet}
 import helper.pdfpreprocessing.pdf.{PDFHighlighter, PDFLoader}
 import helper.pdfpreprocessing.png.{PNGProcessor, PDFToPNGConverter}
 import helper.pdfpreprocessing.stats._
 import helper.pdfpreprocessing.util.FileUtils
 import com.typesafe.config.ConfigFactory
+import models.Papers
 import play.api.Logger
 import play.api.db.Database
 
@@ -25,15 +27,15 @@ object PreprocessPDF {
 	val PERMUTATIONS_CSV_FILENAME = conf.getString("highlighter.permutationFilename")
 	val PNG_ERROR_OUTPUT_PATH = conf.getString("highlighter.pngErrorPath")
 
-	def start(database: Database, secretHash : String) : Int = {
+	def start(database: Database, paper : Papers) : Int = {
 		Logger.debug("starting highlighting")
 
 
 		//FileUtils.emptyDir(new File(OUTPUT_DIR))
-
+		val secretHash = Commons.getSecretHash(paper.secret)
 		val allPapers = new PDFLoader(new File(INPUT_DIR + "/" + secretHash)).papers
-		val snippets = allPapers.par.flatMap(paper => {
-			val searcher = new StatTermSearcher(paper,database)
+		val snippets = allPapers.par.flatMap(snip => {
+			val searcher = new StatTermSearcher(snip,database,paper)
 			val statTermsInPaper = new StatTermPruning(List(new PruneTermsWithinOtherTerms)).prune(searcher.occurrences)
 			val combinationsOfMethodsAndAssumptions = new StatTermPermuter(statTermsInPaper).permutations
 
@@ -45,7 +47,7 @@ object PreprocessPDF {
 				statTermLocationsInSnippet.map(s => Snippet(fullPNG, p._1, s))
 			})
 
-			Logger.info(s"finished processing paper $paper")
+			Logger.info(s"finished processing paper $snip")
 			snippets.filter(_.isDefined).map(_.get)
 		}).toList
 
