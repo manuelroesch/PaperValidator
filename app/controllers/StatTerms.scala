@@ -74,7 +74,9 @@ class StatTerms @Inject()(configuration: Configuration, methodService: MethodSer
   def addMethod2assumptions = Action(parse.urlFormEncoded) { request =>
     val methodId = request.body.get("method2assumption-methodId").get(0).toInt
     val assumptionId = request.body.get("method2assumption-assumptionId").get(0).toInt
-    method2AssumptionService.create(methodId, assumptionId)
+    val question = request.body.get("method2assumption-question").get(0).toString
+    val answers = request.body.get("method2assumption-answers").get(0).toString
+    method2AssumptionService.create(methodId, assumptionId, question, answers)
     Ok(views.html.method2assumption(method2AssumptionService.findAll(),methodService.findAll(),assumptionService.findAll()))
   }
 
@@ -86,7 +88,9 @@ class StatTerms @Inject()(configuration: Configuration, methodService: MethodSer
       val id=request.body.get("method2assumption-id").get(0).toInt
       val methodId = request.body.get("method2assumption-methodId").get(0).toInt
       val assumptionId = request.body.get("method2assumption-assumptionId").get(0).toInt
-      method2AssumptionService.update(id,methodId,assumptionId)
+      val question = request.body.get("method2assumption-question").get(0).toString
+      val answers = request.body.get("method2assumption-answers").get(0).toString
+      method2AssumptionService.update(id,methodId,assumptionId, question, answers)
     }
     Ok(views.html.method2assumption(method2AssumptionService.findAll(),methodService.findAll(),assumptionService.findAll()))
   }

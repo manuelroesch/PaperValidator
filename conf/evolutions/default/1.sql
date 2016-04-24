@@ -88,7 +88,9 @@ INSERT INTO `methods` (`id`, `name`, `delta`, `synonyms`) VALUES
 CREATE TABLE `methods2assumptions` (
   `id` int(11) UNSIGNED NOT NULL,
   `method_id` int(11) UNSIGNED NOT NULL,
-  `assumption_id` int(11) UNSIGNED NOT NULL
+  `assumption_id` int(11) UNSIGNED NOT NULL,
+  `question` varchar(512) NOT NULL,
+  `answers` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 INSERT INTO `methods2assumptions` (`id`, `method_id`, `assumption_id`) VALUES
