@@ -33,7 +33,6 @@ class Conference @Inject() (configuration: Configuration, conferenceService: Con
     val conference = conferenceService.findByIdAndSecret(id,secret)
     if(conference.size > 0) {
       val name = conference.get.name
-      Logger.debug(conferenceSettingsService.findAllByConference(id).toString)
       Ok(views.html.conference.conferenceEditor(id,secret,name,conferenceSettingsService.findAllByConference(id)))
     } else {
       NotFound("Invalid Url")
