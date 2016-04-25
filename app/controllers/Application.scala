@@ -75,13 +75,8 @@ class Application @Inject() (configuration: Configuration, questionService: Ques
 
 		} else {
 			assert(!workerId.isEmpty)
-			val newSession = request.session + ("TurkerID" -> workerId) + ("assignmentId" -> assignmentId) + ("target" -> target)
-
-			if(!request.session.get(Application.TURKER_ID_KEY).isDefined) {
-				showQuestionAction(uuid, secret, request, Some(workerId), Some(newSession)).withSession(request.session + (Application.TURKER_ID_KEY -> workerId))
-			} else {
-				showQuestionAction(uuid, secret, request, Some(workerId), Some(newSession))
-			}
+			val newSession = request.session + (Application.TURKER_ID_KEY -> workerId) + ("assignmentId" -> assignmentId) + ("target" -> target)
+			showQuestionAction(uuid, secret, request, Some(workerId), Some(newSession))
 		}
 	}
 
