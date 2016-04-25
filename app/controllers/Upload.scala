@@ -8,7 +8,7 @@ import helper.pdfpreprocessing.pdf.PDFLoader
 import helper.pdfpreprocessing.stats.{PruneTermsWithinOtherTerms, StatTermPermuter, StatTermPruning, StatTermSearcher}
 import helper.pdfpreprocessing.util.FileUtils
 import helper.{Commons, PaperProcessingManager}
-import models.{Papers, ConferenceService, PapersService, QuestionService}
+import models._
 import play.api.{Configuration, Logger}
 import play.api.db.Database
 import play.api.mvc.{Action, Controller}
@@ -19,7 +19,9 @@ import scala.concurrent.Future
 /**
   * Created by manuel on 11.04.2016.
   */
-class Upload @Inject() (database: Database, configuration: Configuration, questionService : QuestionService, papersService: PapersService, conferenceService: ConferenceService) extends Controller {
+class Upload @Inject() (database: Database, configuration: Configuration, questionService : QuestionService,
+                        papersService: PapersService, conferenceService: ConferenceService,
+                        method2AssumptionService: Method2AssumptionService) extends Controller {
   def upload = Action {
     val conferences = conferenceService.findAll()
     Ok(views.html.upload(conferences))
@@ -37,7 +39,7 @@ class Upload @Inject() (database: Database, configuration: Configuration, questi
       paper.ref.moveTo(new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(secret) + "/" + filename))
       papersService.create(filename,email,conference,secret)
       Future  {
-        PaperProcessingManager.run(database, configuration, papersService, questionService)
+        PaperProcessingManager.run(database, configuration, papersService, questionService, method2AssumptionService)
       }
       Logger.info("done")
       Ok("Ok")

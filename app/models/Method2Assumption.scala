@@ -35,6 +35,18 @@ class Method2AssumptionService @Inject()(db:Database) {
 			).as(answerParser.singleOpt)
 		}
 
+	def findByMethodAndAssumptionName(method: String, assumption: String) : Option[Method2Assumption] =
+		db.withConnection { implicit c =>
+			SQL("SELECT m2a.id, m2a.method_id, m.name method_name, m2a.assumption_id, a.name assumption_name, " +
+				"m2a.question, m2a.answers  " +
+				"FROM methods2assumptions m2a,methods m,assumptions a " +
+				"WHERE m2a.method_id=m.id AND m2a.assumption_id=a.id AND " +
+				" m.name = {method} AND a.name = {assumption}").on(
+				'method -> method,
+				'assumption -> assumption
+			).as(answerParser.singleOpt)
+		}
+
 	def findAll(): List[Method2Assumption] = {
 		db.withConnection { implicit c =>
 			SQL("SELECT m2a.id, m2a.method_id, m.name method_name, " +

@@ -39,7 +39,7 @@ class ConsoleIntegrationTest @Inject()(questionService: QuestionService) extends
 			* Second, all the permutation with the same methodIndex, pdf filename and assumption name are disabled. This second step is performed
 			* because it is assumed that a method (or group of methods) is/are related to only one assumption type.
 			*/
-		val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
+		val algorithm250 = Algorithm250(dao, ballotPortalAdapter, null)
 
 		val DEFAULT_TEMPLATE_ID: Long = 1L
 

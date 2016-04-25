@@ -9,7 +9,7 @@ CREATE TABLE `answer` (
   `time` datetime NOT NULL,
   `is_related` boolean NOT NULL,
   `is_checked_before` boolean NOT NULL,
-  `extra_answer` int(11) NOT NULL,
+  `extra_answer` text NOT NULL,
   `confidence` int(11) NOT NULL,
   `answer_json` longtext NOT NULL,
   `expected_output_code` bigint(20) NOT NULL,
@@ -93,24 +93,24 @@ CREATE TABLE `methods2assumptions` (
   `answers` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-INSERT INTO `methods2assumptions` (`id`, `method_id`, `assumption_id`) VALUES
-  (1, 4, 4),
-  (2, 3, 4),
-  (3, 4, 2),
-  (4, 2, 4),
-  (5, 3, 2),
-  (6, 3, 3),
-  (7, 2, 2),
-  (8, 4, 6),
-  (9, 1, 4),
-  (10, 1, 10),
-  (11, 1, 8),
-  (12, 5, 4),
-  (13, 5, 2),
-  (14, 5, 6),
-  (15, 6, 4),
-  (16, 6, 2),
-  (17, 6, 7);
+INSERT INTO `methods2assumptions` (`id`, `method_id`, `assumption_id`, `question`, `answers`) VALUES
+  (1, 4, 4, '', ''),
+  (2, 3, 4, '', ''),
+  (3, 4, 2, '', ''),
+  (4, 2, 4, '', ''),
+  (5, 3, 2, '', ''),
+  (6, 3, 3, '', ''),
+  (7, 2, 2, '', ''),
+  (8, 4, 6, '', ''),
+  (9, 1, 4, '', ''),
+  (10, 1, 10, '', ''),
+  (11, 1, 8, '', ''),
+  (12, 5, 4, '', ''),
+  (13, 5, 2, '', ''),
+  (14, 5, 6, '', ''),
+  (15, 6, 4, '', ''),
+  (16, 6, 2, '', ''),
+  (17, 6, 7, '', '');
 
 CREATE TABLE `permutations` (
   `id` bigint(20) NOT NULL,

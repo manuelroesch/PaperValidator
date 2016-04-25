@@ -13,7 +13,7 @@ import controllers.routes
 import helper.email.{MailTemplates}
 import helper.pdfpreprocessing.PreprocessPDF
 import helper.questiongenerator.HCompNew
-import models.{Papers, PapersService, QuestionService}
+import models.{Method2AssumptionService, Papers, PapersService, QuestionService}
 import play.api.{Configuration, Logger}
 import play.api.db.Database
 
@@ -33,36 +33,36 @@ object PaperProcessingManager {
   var isRunning = false
 
 
-  def run(database: Database, configuration: Configuration, papersService: PapersService, questionService: QuestionService): Boolean = {
+  def run(database: Database, configuration: Configuration, papersService: PapersService, questionService: QuestionService, method2AssumptionService: Method2AssumptionService): Boolean = {
     if(!isRunning) {
       isRunning = true
       val papersToProcess = papersService.findProcessablePapers()
       if(papersToProcess.nonEmpty) {
         papersToProcess.foreach(paper =>
-          processPaper(database, configuration, papersService, questionService, paper)
+          processPaper(database, configuration, papersService, questionService, method2AssumptionService, paper)
         )
         isRunning = false
-        run(database, configuration, papersService, questionService)
+        run(database, configuration, papersService, questionService, method2AssumptionService)
       }
       isRunning = false
     }
     true
   }
 
-  def processPaper(database: Database, configuration: Configuration, papersService: PapersService, questionService: QuestionService, paper : Papers): Unit = {
+  def processPaper(database: Database, configuration: Configuration, papersService: PapersService, questionService: QuestionService, method2AssumptionService: Method2AssumptionService, paper : Papers): Unit = {
     val paperLink = configuration.getString("hcomp.ballot.baseURL").get + routes.Paper.confirmPaper(paper.id.get,paper.secret).url
     if(paper.status == PAPER_STATUS_NEW) {
       val permutations = PreprocessPDF.start(database,paper)
       papersService.updateStatus(paper.id.get,PAPER_STATUS_ANALYZED)
       MailTemplates.sendPaperAnalyzedMail(paper.name,paperLink,permutations,paper.email)
     } else if(paper.status == PAPER_STATUS_IN_PPLIB_QUEUE) {
-      questionGenerator(questionService, paper)
+      questionGenerator(questionService, method2AssumptionService, paper)
       papersService.updateStatus(paper.id.get,PAPER_STATUS_COMPLETED)
       MailTemplates.sendPaperCompletedMail(paper.name,paperLink,paper.email)
     }
   }
 
-  def questionGenerator(questionService: QuestionService , paper: Papers): Unit = {
+  def questionGenerator(questionService: QuestionService, method2AssumptionService: Method2AssumptionService , paper: Papers): Unit = {
 
     val DEFAULT_TEMPLATE_ID: Long = 1L
 
@@ -72,7 +72,7 @@ object PaperProcessingManager {
     hComp.autoloadConfiguredPortals()
     Logger.info(HComp.allDefinedPortals.toString())
     val ballotPortalAdapter = hComp(BallotPortalAdapter.PORTAL_KEY)
-    val algorithm250 = Algorithm250(dao, ballotPortalAdapter)
+    val algorithm250 = Algorithm250(dao, ballotPortalAdapter, method2AssumptionService)
 
     if (questionService.findById(DEFAULT_TEMPLATE_ID).isEmpty) {
       Logger.info("templateInit")
@@ -93,7 +93,7 @@ object PaperProcessingManager {
         assert(!templatePermutations.contains(DEFAULT_TEMPLATE_ID), "Our template didn't get ID 1. Please adapt DB. Current template IDs: " + templatePermutations.mkString(","))
       }
       Logger.info("templateInit Done")
-      questionGenerator(questionService, paper)
+      questionGenerator(questionService, method2AssumptionService, paper)
     } else {
       Logger.info("Loading new permutations")
       dao.loadPermutationsCSV(PreprocessPDF.OUTPUT_DIR + "/" + Commons.getSecretHash(paper.secret) + "/permutations.csv")

@@ -11,7 +11,7 @@ import play.api.db.Database
 /**
   * Created by mattia on 02.07.15.
   */
-case class Answer(id: Option[Long], questionId: Long, userId: Long, time: DateTime, isRelated: Boolean, isCheckedBefore: Boolean, extraAnswer: Int, answerJson: String, expectedOutputCode: Long, accepted: Boolean) extends Serializable
+case class Answer(id: Option[Long], questionId: Long, userId: Long, time: DateTime, isRelated: Boolean, isCheckedBefore: Boolean, extraAnswer: String, answerJson: String, expectedOutputCode: Long, accepted: Boolean) extends Serializable
 
 
 class AnswerService @Inject()(db:Database) {
@@ -23,12 +23,14 @@ class AnswerService @Inject()(db:Database) {
 				get[DateTime]("time") ~
 				get[Boolean]("is_related") ~
 				get[Boolean]("is_checked_before") ~
-				get[Int]("extra_answer") ~
+				get[String]("extra_answer") ~
 				get[String]("answer_json") ~
 				get[Long]("expected_output_code") ~
 				get[Boolean]("accepted") map {
-			case id ~ question_id ~ user_id ~ time ~ is_related ~ is_checked_before ~ extra_answer ~ answer_json ~ expected_output_code ~ accepted =>
-				Answer(id, question_id, user_id, time, is_related, is_checked_before, extra_answer, answer_json, expected_output_code, accepted)
+			case id ~ question_id ~ user_id ~ time ~ is_related ~ is_checked_before ~ extra_answer ~ answer_json ~
+				expected_output_code ~ accepted =>
+				Answer(id, question_id, user_id, time, is_related, is_checked_before, extra_answer, answer_json,
+					expected_output_code, accepted)
 		}
 
 	def findById(id: Long): Option[Answer] =
@@ -52,16 +54,21 @@ class AnswerService @Inject()(db:Database) {
 			).as(answerParser *)
 		}
 
-	def create(questionId: Long, userId: Long, time: DateTime, isRelated: Boolean, isCheckedBefore: Boolean, extraAnswer: Int, answerJson: String, expected_output_code: Long, accepted: Boolean = false) =
+	def create(questionId: Long, userId: Long, time: DateTime, isRelated: Boolean, isCheckedBefore: Boolean,
+						 extraAnswer: String, confidence: Int, answerJson: String, expected_output_code: Long, accepted: Boolean = false) =
 		db.withConnection { implicit c =>
-			SQL("INSERT INTO answer(question_id, user_id, time, is_related, is_checked_before, extra_answer, answer_json, expected_output_code, accepted) VALUES ({questionId}, {userId}, {time}, {answerJson}, {expected_output_code}, {accepted})").on(
-				'questionId -> questionId,
-				'userId -> userId,
+			SQL("INSERT INTO answer(question_id, user_id, time, is_related, is_checked_before, extra_answer, confidence, " +
+				"answer_json, expected_output_code, accepted) " +
+				"VALUES ({question_id}, {user_id}, {time}, {is_related}, {is_checked_before}, {extra_answer}, {confidence}, " +
+				"{answer_json}, {expected_output_code}, {accepted})").on(
+				'question_id -> questionId,
+				'user_id -> userId,
 				'time -> time,
-				'isRelated -> isRelated,
-				'isCheckedBefore -> isCheckedBefore,
-				'extraAnswer -> extraAnswer,
-				'answerJson -> answerJson,
+				'is_related -> isRelated,
+				'is_checked_before -> isCheckedBefore,
+				'extra_answer -> extraAnswer,
+				'confidence -> confidence,
+				'answer_json -> answerJson,
 				'expected_output_code -> expected_output_code,
 				'accepted -> accepted
 			).executeInsert()
@@ -69,7 +76,8 @@ class AnswerService @Inject()(db:Database) {
 
 	def countUserAnswersForBatch(userId: Long, batchId: Long): Int = {
 		db.withConnection { implicit c =>
-			SQL("SELECT * FROM answer a INNER JOIN question q ON a.question_id = q.id WHERE a.user_id = {userId}  AND q.batch_id = {batchId} ").on(
+			SQL("SELECT * FROM answer a INNER JOIN question q ON a.question_id = q.id WHERE a.user_id = {userId} " +
+				"AND q.batch_id = {batchId} ").on(
 				'userId -> userId,
 				'batchId -> batchId
 			).as(answerParser *).size
