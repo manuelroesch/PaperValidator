@@ -9,7 +9,7 @@ CREATE TABLE `answer` (
   `time` datetime NOT NULL,
   `is_related` boolean NOT NULL,
   `is_checked_before` boolean NOT NULL,
-  `extra_answer` int(11) NOT NULL,
+  `extra_answer` text NOT NULL,
   `confidence` int(11) NOT NULL,
   `answer_json` longtext NOT NULL,
   `expected_output_code` bigint(20) NOT NULL,

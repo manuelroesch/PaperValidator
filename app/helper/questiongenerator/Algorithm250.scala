@@ -13,6 +13,8 @@ import ch.uzh.ifi.pdeboer.pplib.process.entities.DefaultParameters._
 import ch.uzh.ifi.pdeboer.pplib.process.entities.IndexedPatch
 import ch.uzh.ifi.pdeboer.pplib.process.stdlib.ContestWithBeatByKVotingProcess
 import ch.uzh.ifi.pdeboer.pplib.process.stdlib.ContestWithBeatByKVotingProcess._
+import models.{Method2Assumption, Method2AssumptionService}
+import play.api.Logger
 
 import scala.xml.NodeSeq
 
@@ -20,7 +22,7 @@ import scala.xml.NodeSeq
 /**
   * Created by mattia on 01.09.15.
   */
-case class Algorithm250(dao: DAO, ballotPortalAdapter: HCompPortalAdapter) {
+case class Algorithm250(dao: DAO, ballotPortalAdapter: HCompPortalAdapter, method2AssumptionService: Method2AssumptionService) {
 
 	def executePermutation(p: Permutation) = {
 		val answers: List[ParsedAnswer] = buildAndExecuteQuestion(p)
@@ -42,7 +44,6 @@ case class Algorithm250(dao: DAO, ballotPortalAdapter: HCompPortalAdapter) {
 
 	def buildAndExecuteQuestion(permutation: Permutation): List[ParsedAnswer] = {
 		val (properties: BallotProperties, ballotHtmlPage: NodeSeq) = buildQuestion(permutation)
-
 		val description: String = "Can you grasp some of the main concepts in the field of statistics without necessary prior knowledge in the field - just by basic text understanding?"
 		val title: String = s"Are these two words related? {Batch ${properties.permutationId}}"
 		val process = new ContestWithBeatByKVotingProcess(Map(
@@ -82,8 +83,14 @@ case class Algorithm250(dao: DAO, ballotPortalAdapter: HCompPortalAdapter) {
 		val properties = new BallotProperties(Batch(allowedAnswersPerTurker = 1), List(
 			snippetAsset, jsAsset), permutation.id, propertiesForDecoratedPortal = new HCompQueryProperties(50, qualifications = Nil)) //TODO put in qualifications
 
+		val method = permutation.methodIndex.substring(0,permutation.methodIndex.indexOf("_"))
+		val assumption = permutation.groupName.substring(permutation.groupName.indexOf("/")+1,permutation.groupName.lastIndexOf("/"))
+		Logger.debug(method+" "+assumption)
+		val m2a = method2AssumptionService.findByMethodAndAssumptionName(method,assumption).get
+		Logger.debug(m2a.question+"+"+m2a.answers)
+		Logger.debug(SnippetHTMLTemplate.generateHTMLPage(snippetAsset.url, jsAsset.url, m2a.question, m2a.answers.split(",").toList, isTemplate).toString())
 		val ballotHtmlPage: NodeSeq =
-			SnippetHTMLTemplate.generateHTMLPage(snippetAsset.url, jsAsset.url, isTemplate)
+			SnippetHTMLTemplate.generateHTMLPage(snippetAsset.url, jsAsset.url, m2a.question, m2a.answers.split(",").toList, isTemplate)
 		(properties, ballotHtmlPage)
 	}
 
