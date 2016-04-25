@@ -33,6 +33,7 @@ class Conference @Inject() (configuration: Configuration, conferenceService: Con
     val conference = conferenceService.findByIdAndSecret(id,secret)
     if(conference.size > 0) {
       val name = conference.get.name
+      Logger.debug(conferenceSettingsService.findAllByConference(id).toString)
       Ok(views.html.conference.conferenceEditor(id,secret,name,conferenceSettingsService.findAllByConference(id)))
     } else {
       NotFound("Invalid Url")
@@ -42,7 +43,6 @@ class Conference @Inject() (configuration: Configuration, conferenceService: Con
   def saveConferenceSettings = Action(parse.json) { request =>
     request.body.asOpt[Map[String,String]].map { cs =>
       val conference = conferenceService.findByIdAndSecret(cs("conferenceId").toInt,cs("secret"))
-      Logger.debug(conference.toString)
       if(conference.size > 0) {
         if(cs("settingId").toInt < 0) {
           conferenceSettingsService.create(cs("conferenceId").toInt,cs("m2aId").toInt,cs("flag").toInt)
