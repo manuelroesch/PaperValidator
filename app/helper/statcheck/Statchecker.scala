@@ -37,7 +37,7 @@ object Statchecker {
     val pw = new PrintWriter(new File(paperLink+".txt"))
     pw.write(text)
     pw.close
-    "<b>Statcheck Results:</b><br>\n"+extractFValues(text).mkString("<br>\n") + "<br>"
+    "<b>Statcheck Results:</b><br>\n"+extractFValues(text).mkString("<br>\n") + "<br><br>"
   }
 
   val REGEX_EXTRACT_P_RAW = new Regex("([^a-z]ns)|(p\\s?[<>=]\\s?\\d?\\.\\d+e?-?\\d*)")
