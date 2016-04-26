@@ -29,7 +29,7 @@ object MailTemplates {
       s"""Dear user of PaperValidator,<br><br>
           |
         |Your paper '$paperName' has been analyzed.<br>
-          |There where $permutations permutations found. Confirm with the following link that you would like to process the paper:
+          |There where $permutations permutations found. Confirm with the following link that you would like to process the paper:<br>
           |<b>$paperLink</b><br><br>
           |
           |$comment
