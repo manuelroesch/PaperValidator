@@ -23,19 +23,21 @@ object MailTemplates {
     //MailService.sendMail(toEmail,subject,content)
   }
 
-  def sendPaperAnalyzedMail(paperName: String, paperLink : String, permutations: Int, toEmail: String): Unit = {
+  def sendPaperAnalyzedMail(paperName: String, paperLink : String, permutations: Int, toEmail: String, comment: String): Unit = {
     val subject = "PaperValidator: " + paperName + " analyzed!"
     val content =
       s"""Dear user of PaperValidator,<br><br>
           |
         |Your paper '$paperName' has been analyzed.<br>
-          |There where $permutations permutations found. Confirm with the following link that you would like to process the paper:
+          |There where $permutations permutations found. Confirm with the following link that you would like to process the paper:<br>
           |<b>$paperLink</b><br><br>
+          |
+          |$comment
           |
         |Have fun using PaperValidator!
       """.stripMargin
     Logger.debug(content)
-    //MailService.sendMail(toEmail,subject,content)
+    MailService.sendMail(toEmail,subject,content)
   }
 
 
