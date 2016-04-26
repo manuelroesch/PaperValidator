@@ -5,8 +5,8 @@
 @urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Conference Editor") {
 	<div class="row text-center">
+		<h1>Conference: @name</h1>
 		<div class="conference-editor">
-			<h1>Conference: @name</h1>
 			<form id="conference-form" onsubmit="return false;">
 				@for((conferenceSetting,index) <- conferenceSettings.zipWithIndex) {
 					@if(index == 0 || conferenceSetting.methodName != conferenceSettings(index-1).methodName) {

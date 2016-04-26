@@ -37,7 +37,7 @@ object MailTemplates {
         |Have fun using PaperValidator!
       """.stripMargin
     Logger.debug(content)
-    //MailService.sendMail(toEmail,subject,content)
+    MailService.sendMail(toEmail,subject,content)
   }
 
 
