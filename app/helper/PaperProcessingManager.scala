@@ -13,6 +13,7 @@ import controllers.routes
 import helper.email.{MailTemplates}
 import helper.pdfpreprocessing.PreprocessPDF
 import helper.questiongenerator.HCompNew
+import helper.statcheck.Statchecker
 import models.{Method2AssumptionService, Papers, PapersService, QuestionService}
 import play.api.{Configuration, Logger}
 import play.api.db.Database
@@ -52,9 +53,10 @@ object PaperProcessingManager {
   def processPaper(database: Database, configuration: Configuration, papersService: PapersService, questionService: QuestionService, method2AssumptionService: Method2AssumptionService, paper : Papers): Unit = {
     val paperLink = configuration.getString("hcomp.ballot.baseURL").get + routes.Paper.confirmPaper(paper.id.get,paper.secret).url
     if(paper.status == PAPER_STATUS_NEW) {
+      val statcheckerResult = Statchecker.run(paper)
       val permutations = PreprocessPDF.start(database,paper)
       papersService.updateStatus(paper.id.get,PAPER_STATUS_ANALYZED)
-      MailTemplates.sendPaperAnalyzedMail(paper.name,paperLink,permutations,paper.email)
+      MailTemplates.sendPaperAnalyzedMail(paper.name,paperLink,permutations,paper.email, statcheckerResult)
     } else if(paper.status == PAPER_STATUS_IN_PPLIB_QUEUE) {
       questionGenerator(questionService, method2AssumptionService, paper)
       papersService.updateStatus(paper.id.get,PAPER_STATUS_COMPLETED)

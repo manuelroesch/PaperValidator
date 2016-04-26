@@ -1,10 +1,16 @@
+@import play.Configuration
+
+
+@urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Welcome to PaperValidator") {
 	<div class="row">
-		<div class="col-md-3"></div>
-		<div class="col-md-6">
-			<div class="embed-responsive embed-responsive-16by9" style="margin:30px 0px">
+		<div class="col-md-2"></div>
+		<div class="col-md-8 text-center">
+			<img src="@{urlPrefix + routes.Assets.at("images/movie-mock.jpg").url}" alt="Movie Mock" class="movie-mock"
+				style="margin:50px 0px;width:100%;max-width:650px">
+			<!--<div class="embed-responsive embed-responsive-16by9" style="margin:30px 0px">
 				<iframe class="embed-responsive-item" src="https://www.youtube-nocookie.com/embed/_7b7er3MZ1c" frameborder="0" allowfullscreen></iframe>
-			</div>
+			</div>-->
 		</div>
 	</div>
 }
