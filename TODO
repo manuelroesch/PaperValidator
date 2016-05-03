@@ -1,4 +1,17 @@
 Pending high-priority:
+- Template für method-assumption ignore-flag-require auswahl
+- 3. frage ja/nein/unklar
+- Github, darf Kosten
+- Bei ZIP upload Email flood
+- Alle Statchecker tests implementieren
+- Stats zum eigenen Paper (Meth-Ass-Flag, Statchecker, einfache Stat-Fehler
+- Prüf-Fortschritt
+- Paper-Checker in eigener JVM
+- PDF-Text extraktion
+- 2-Spalten cropping Bug
+- Method mapping
+- Riesen-PNG
+- M-A weit auseinander: cuf-off
 
 Pending low-priority:
 - Upload R-File + Data-File

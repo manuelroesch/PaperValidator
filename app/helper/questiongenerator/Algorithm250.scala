@@ -24,8 +24,8 @@ import scala.xml.NodeSeq
   */
 case class Algorithm250(dao: DAO, ballotPortalAdapter: HCompPortalAdapter, method2AssumptionService: Method2AssumptionService) {
 
-	def executePermutation(p: Permutation) = {
-		val answers: List[ParsedAnswer] = buildAndExecuteQuestion(p)
+	def executePermutation(conferenceId: Int, p: Permutation) = {
+		val answers: List[ParsedAnswer] = buildAndExecuteQuestion(conferenceId, p)
 		if (isFinalAnswerYesYes(answers)) {
 			dao.updateStateOfPermutationId(p.id, p.id)
 			dao.getAllOpenByGroupName(p.groupName).foreach(g => {
@@ -42,8 +42,8 @@ case class Algorithm250(dao: DAO, ballotPortalAdapter: HCompPortalAdapter, metho
 	}
 
 
-	def buildAndExecuteQuestion(permutation: Permutation): List[ParsedAnswer] = {
-		val (properties: BallotProperties, ballotHtmlPage: NodeSeq) = buildQuestion(permutation)
+	def buildAndExecuteQuestion(conferenceId: Int, permutation: Permutation): List[ParsedAnswer] = {
+		val (properties: BallotProperties, ballotHtmlPage: NodeSeq) = buildQuestion(conferenceId, permutation)
 		val description: String = "Can you grasp some of the main concepts in the field of statistics without necessary prior knowledge in the field - just by basic text understanding?"
 		val title: String = s"Are these two words related? {Batch ${properties.permutationId}}"
 		val process = new ContestWithBeatByKVotingProcess(Map(
@@ -62,7 +62,7 @@ case class Algorithm250(dao: DAO, ballotPortalAdapter: HCompPortalAdapter, metho
 		})
 	}
 
-	def buildQuestion(permutation: Permutation, isTemplate: Boolean = false): (BallotProperties, NodeSeq) = {
+	def buildQuestion(conferenceId: Int, permutation: Permutation, isTemplate: Boolean = false): (BallotProperties, NodeSeq) = {
 		val snippetFile: File = new File(permutation.snippetFilename)
 		val snippetInputStream: InputStream = new FileInputStream(snippetFile)
 		val snippetByteArray = Stream.continually(snippetInputStream.read()).takeWhile(-1 !=).map(_.toByte).toArray
@@ -85,9 +85,9 @@ case class Algorithm250(dao: DAO, ballotPortalAdapter: HCompPortalAdapter, metho
 
 		val method = permutation.methodIndex.substring(0,permutation.methodIndex.indexOf("_"))
 		val assumption = permutation.groupName.substring(permutation.groupName.indexOf("/")+1,permutation.groupName.lastIndexOf("/"))
-		val m2a = method2AssumptionService.findByMethodAndAssumptionName(method,assumption).get
+		val m2a = method2AssumptionService.findByMethodAndAssumptionName(method,assumption,conferenceId).get
 		val ballotHtmlPage: NodeSeq =
-			SnippetHTMLTemplate.generateHTMLPage(snippetAsset.url, jsAsset.url, m2a.question, m2a.answers.split(",").toList, isTemplate)
+			SnippetHTMLTemplate.generateHTMLPage(snippetAsset.url, jsAsset.url, m2a.question, isTemplate)
 		(properties, ballotHtmlPage)
 	}
 

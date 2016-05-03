@@ -1,5 +1,7 @@
 @import play.Configuration
 
+@(templates: List[String])
+
 @urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Create a Conference") {
     <div class="row text-center">
@@ -13,6 +15,14 @@
                 <div class="form-group">
                     <label for="conference-email">Email address</label>
                     <input type="email" class="form-control" id="conference-email" name="email" placeholder="Your Email Address">
+                </div>
+                <div class="form-group">
+                    <label for="conference-template">Methods and Assumptions Template</label>
+                    <select class="form-control" id="conference-template" name="template">
+                        @for(template <- templates) {
+                            <option value="@template">@template</option>
+                        }
+                    </select>
                 </div>
                 <div class="row text-center">
                     <button type="submit" class="btn btn-primary" id="save-button">Confirm</button>

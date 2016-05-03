@@ -11,7 +11,7 @@ import play.api.db.Database
 /**
   * Created by mattia on 02.07.15.
   */
-case class Answer(id: Option[Long], questionId: Long, userId: Long, time: DateTime, isRelated: Boolean, isCheckedBefore: Boolean, extraAnswer: String, answerJson: String, expectedOutputCode: Long, accepted: Boolean) extends Serializable
+case class Answer(id: Option[Long], questionId: Long, userId: Long, time: DateTime, isRelated: Boolean, isCheckedBefore: Boolean, extraAnswer: Boolean, answerJson: String, expectedOutputCode: Long, accepted: Boolean) extends Serializable
 
 
 class AnswerService @Inject()(db:Database) {
@@ -23,7 +23,7 @@ class AnswerService @Inject()(db:Database) {
 				get[DateTime]("time") ~
 				get[Boolean]("is_related") ~
 				get[Boolean]("is_checked_before") ~
-				get[String]("extra_answer") ~
+				get[Boolean]("extra_answer") ~
 				get[String]("answer_json") ~
 				get[Long]("expected_output_code") ~
 				get[Boolean]("accepted") map {
@@ -55,7 +55,7 @@ class AnswerService @Inject()(db:Database) {
 		}
 
 	def create(questionId: Long, userId: Long, time: DateTime, isRelated: Boolean, isCheckedBefore: Boolean,
-						 extraAnswer: String, confidence: Int, answerJson: String, expected_output_code: Long, accepted: Boolean = false) =
+						 extraAnswer: Boolean, confidence: Int, answerJson: String, expected_output_code: Long, accepted: Boolean = false) =
 		db.withConnection { implicit c =>
 			SQL("INSERT INTO answer(question_id, user_id, time, is_related, is_checked_before, extra_answer, confidence, " +
 				"answer_json, expected_output_code, accepted) " +

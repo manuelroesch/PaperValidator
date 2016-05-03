@@ -1,6 +1,6 @@
 @import play.Configuration
 
-@(method2assumptions : List[Method2Assumption],methods : List[Method], assumptions : List[Assumption])
+@(conferenceId : Int, secret: String,method2assumptions : List[Method2Assumption],methods : List[Method], assumptions : List[Assumption])
 
 @urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Method to Assumptions Editor") {
@@ -8,7 +8,7 @@
 		<div class="method2assumption-editor">
 			<h1>Methods to Assumptions</h1>
             @for(method2assumption <- method2assumptions) {
-                <form action="@{urlPrefix + routes.StatTerms.editMethod2assumptions().url}" method="post">
+                <form action="@{urlPrefix + routes.StatTerms.editMethod2assumptions(conferenceId,secret).url}" method="post">
                     <div class="form-inline">
                         <div class="form-group">
                             <select class="form-control text-bold" name="method2assumption-methodId">
@@ -31,21 +31,19 @@
                                 }
                             }
                             </select>
+                            <button type="submit" class="btn btn-primary">Edit</button>
+                            <button type="submit" name="delete-method2assumption-id" class="btn btn-danger">X</button><br>
                         </div><br>
                         <div class="form-group q-and-a">
                             <input name="method2assumption-question" class="form-control"
-                                value="@method2assumption.question" placeholder="Question">
-                            <input name="method2assumption-answers" class="form-control"
-                                value="@method2assumption.answers" placeholder="Answers">
-                            <input type="hidden" name="method2assumption-id" value="@method2assumption.id">
-                            <button type="submit" class="btn btn-primary">Edit</button>
-                            <button type="submit" name="delete-method2assumption-id" class="btn btn-danger">X</button><br>
+                                value="@method2assumption.question" placeholder="Additional yes/no Question">
                         </div>
+                        <input type="hidden" name="method2assumption-id" value="@method2assumption.id">
                     </div>
                 </form>
             }
             <br><br>
-			<form action="@{urlPrefix + routes.StatTerms.addMethod2assumptions().url}#method2assumptionFrom" method="post" id="method2assumptionFrom">
+			<form action="@{urlPrefix + routes.StatTerms.addMethod2assumptions(conferenceId,secret).url}#method2assumptionFrom" method="post" id="method2assumptionFrom">
                 <div class="form-inline">
                     <div class="form-group">
                         <select class="form-control text-bold" name="method2assumption-methodId">
@@ -62,11 +60,10 @@
                             <option value="@assumption.id">@assumption.name</option>
                         }
                         </select>
+                        <button type="submit" class="btn btn-primary" style="width:86px">Add</button>
                     </div><br>
                     <div class="form-group q-and-a">
-                        <input name="method2assumption-question" class="form-control" placeholder="Question">
-                        <input name="method2assumption-answers" class="form-control" placeholder="Answers">
-                        <button type="submit" class="btn btn-primary">Add</button>
+                        <input name="method2assumption-question" class="form-control" placeholder="Additional yes/no Question">
                     </div>
                 </div>
 			</form>
@@ -82,7 +79,12 @@
         }
 
         .q-and-a {
+            width: 100%;
             margin-top: 5px;
+        }
+
+        .q-and-a input {
+            width: 100% !important;
         }
 
         .form-inline {

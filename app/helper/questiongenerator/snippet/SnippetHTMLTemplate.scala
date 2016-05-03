@@ -7,7 +7,7 @@ import scala.xml.NodeSeq
   */
 object SnippetHTMLTemplate {
 
-	def generateHTMLPage(imgAssetUrl: String, jsAssetUrl: String, question: String, answers: List[String], isTemplate: Boolean = false): NodeSeq = {
+	def generateHTMLPage(imgAssetUrl: String, jsAssetUrl: String, question: String, isTemplate: Boolean = false): NodeSeq = {
 		<div ng-controller="QuestionCtrl">
 			{if (isTemplate) {
 			<p>
@@ -124,13 +124,18 @@ object SnippetHTMLTemplate {
 							</h2>
 						</div>
 						<h3>
-								<select name="answer">
-									{
-										answers.map { answer =>
-											<option value={answer}>{answer}</option>
-										}
-									}
-								</select>
+							<label class="radio-inline">
+								<input type="radio" name="extraAnswer" ng-model="extraAnswer" id="yes3" value="Yes" required="required"/>
+								Yes
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="extraAnswer" ng-model="extraAnswer" id="no3" value="No"/>
+								No
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="extraAnswer" ng-model="extraAnswer" id="idk3" value="?"/>
+								I don't know
+							</label>
 						</h3>
 					</span>
 				}}

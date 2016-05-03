@@ -1,0 +1,145 @@
+@import play.Configuration
+
+@(id: Long, secret: String, name: String, conferenceSettings: List[ConferenceSettings])
+
+@urlPrefix = {@Configuration.root().getString("url.prefix")}
+@mainFrame("Conference Editor") {
+	<div class="row text-center">
+		<h1>Conference: @name</h1>
+		<div class="conference-editor">
+			<form id="conference-form" onsubmit="return false;">
+				@for((conferenceSetting,index) <- conferenceSettings.zipWithIndex) {
+					@if(index == 0 || conferenceSetting.methodName != conferenceSettings(index-1).methodName) {
+						<h2 data-name="@conferenceSetting.methodName">
+							@conferenceSetting.methodName
+						</h2>
+					}
+					<div class="conference-assumption">
+						<div class="conference-assumption-name" data-name="@conferenceSetting.assumptionName">
+							@conferenceSetting.assumptionName
+						</div>
+						<div class="btn-group" role="group" data-settingid="@conferenceSetting.id.getOrElse(-1)"
+                            data-m2aid="@conferenceSetting.method2AssumptionId" data-flag="@conferenceSetting.flag">
+							<button type="button" data-flag="2" name="danger" class="btn btn-default">Require</button>
+							<button type="button" data-flag="1" name="warning" class="btn btn-default">Flag</button>
+							<button type="button" data-flag="0" name="ignore" class="btn btn-ignore">Ignore</button>
+						</div>
+					</div>
+				}
+			</form>
+		</div>
+	</div>
+	<style>
+		.conference-editor {
+			display: inline-block;
+		}
+
+		#conference-form {
+			text-align: left ;
+		}
+
+		.conference-assumption-name {
+			display: inline-block;
+			font-weight: bold;
+			padding-left: 5px;
+			padding-right: 20px;
+			width: 333px;
+			border-bottom: 1px dotted #71665B;
+		}
+
+		.conference-assumption {
+			margin-top:5px;
+		}
+
+		.conference-editor .btn {
+			width: 100px;
+		}
+
+		.btn-ignore {
+		background-color: #ccc;
+		}
+
+		#loader {
+			display:none;
+			width: 35px;
+			margin-top: 30px;
+		}
+	</style>
+	<script>
+        $("#conference-form .btn-group").each(function(){
+            var originalFlag = $(this).attr('data-flag');
+            if(originalFlag!=-1) {
+                $(this).find("button").attr('class','btn btn-default')
+                var buttonPos = originalFlag*-1+2
+                var activeButton = $(this).find("button").get(buttonPos);
+                var buttonName = $(activeButton).attr('name');
+                $(activeButton).attr('class','btn btn-'+buttonName);
+            }
+        });
+		$("#conference-form .btn-group").click(function(event){
+			$(this).find("button").attr('class','btn btn-default')
+			var buttonName = $(event.target).attr('name');
+			$(event.target).attr('class','btn btn-'+buttonName);
+            var settingId = $(this).attr('data-settingid');
+            var m2aId = $(this).attr('data-m2aid');
+			var flag = $(event.target).attr('data-flag');
+			saveFlag(settingId,m2aId,flag)
+		});
+
+		function submitConferenceForm() {
+			$('#save-button').css({display:"none"});
+			$('#loader').css({display:"inline-block"});
+			console.log("submitConferenceForm");
+			var methods = {};
+			$(".conference-method").each(function() {
+				var assumptions = {};
+				$(this).find(".conference-assumption").each(function(index, element){
+					var assumptionVal = $(element).find(".btn-group").attr('class').replace("btn-group","").replace(" ","");
+					if(assumptionVal=="") assumptionVal="ignore";
+					assumptions[$(element).find(".conference-assumption-name").attr("data-name")] = assumptionVal;
+				});
+				methods[$(this).find("h2").attr("data-name")] = assumptions;
+			});
+			$.ajax({
+				url: '@{urlPrefix + routes.Conference.writeMet2AssFile.url}',
+				type: 'POST',
+				data: JSON.stringify(methods),
+				contentType: 'application/json',
+				complete: function(data){
+					$('#loader').css({display:"none"});
+					$('#save-button').css({display:"inline-block"});
+					if(data.responseText == "Ok") {
+						console.log("success");
+					} else {
+						alert("Error, sorry!");
+					}
+				}
+			});
+			return false;
+		}
+
+		function saveFlag(settingid,m2aId,flag) {
+			var confSettings = {
+				settingId : settingid,
+                m2aId, m2aId,
+				flag : flag,
+				conferenceId: '@id',
+				secret: '@secret'
+			};
+            console.log(JSON.stringify(confSettings));
+			$.ajax({
+				url: '@{urlPrefix + routes.Conference.saveFlags.url}',
+				type: 'POST',
+				data: JSON.stringify(confSettings),
+				contentType: 'application/json',
+				complete: function(data){
+					if(data.responseText == "Ok") {
+						console.log("success");
+					} else {
+						alert("Error, sorry!");
+					}
+				}
+			});
+		}
+	</script>
+}

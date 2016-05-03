@@ -86,7 +86,7 @@ object PaperProcessingManager {
         })
         Thread.sleep(1000)
         templatePermutations.foreach(permutationId => {
-          val q = algorithm250.buildQuestion(dao.getPermutationById(permutationId).get, isTemplate = true)
+          val q = algorithm250.buildQuestion(paper.conferenceId, dao.getPermutationById(permutationId).get, isTemplate = true)
           Logger.info("WriteTemplate")
           ballotPortalAdapter.sendQuery(HTMLQuery(q._2, 1, "Statistical Methods and Prerequisites", ""), q._1)
           Thread.sleep(1000)
@@ -110,7 +110,7 @@ object PaperProcessingManager {
     groups.mpar.foreach(group => {
       group._2.foreach(permutation => {
         if (dao.getPermutationById(permutation.id).map(_.state).getOrElse(-1) == 0) {
-          algorithm250.executePermutation(permutation)
+          algorithm250.executePermutation(paper.conferenceId,permutation)
         }
       })
     })

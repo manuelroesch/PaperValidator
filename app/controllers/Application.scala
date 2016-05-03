@@ -176,7 +176,7 @@ class Application @Inject() (configuration: Configuration, questionService: Ques
 				val isRelated = request.getQueryString("isRelated").mkString == ("yes")
 				val isCheckedBefore = request.getQueryString("isCheckedBefore").mkString == ("yes")
 				val confidence = request.getQueryString("confidence").mkString.toInt
-				val extraAnswer = request.getQueryString("answer").mkString
+				val extraAnswer = request.getQueryString("extraAnswer").mkString == ("yes")
 				val secret = request.getQueryString("secret").mkString
 				val userId: Long = userService.findByTurkerId(user).get.id.get
 
