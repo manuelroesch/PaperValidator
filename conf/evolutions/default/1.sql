@@ -9,7 +9,7 @@ CREATE TABLE `answer` (
   `time` datetime NOT NULL,
   `is_related` boolean NOT NULL,
   `is_checked_before` boolean NOT NULL,
-  `extra_answer` text NOT NULL,
+  `extra_answer` boolean NOT NULL,
   `confidence` int(11) NOT NULL,
   `answer_json` longtext NOT NULL,
   `expected_output_code` bigint(20) NOT NULL,
@@ -26,21 +26,10 @@ CREATE TABLE `assets` (
 
 CREATE TABLE `assumptions` (
   `id` int(11) UNSIGNED NOT NULL,
+  `conference_id` int(11) UNSIGNED NOT NULL,
   `name` varchar(255) NOT NULL,
   `synonyms` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-INSERT INTO `assumptions` (`id`, `name`, `synonyms`) VALUES
-  (1, 'independen', 'randomly'),
-  (2, 'homoscedasticity', 'homogeneity of variance,same variance,equal variance,sphericity,Constant variance'),
-  (3, 'homogeneity of regression slopes', ''),
-  (4, 'normal', 'gaussian,bell,normal error,multivariate normality'),
-  (5, 'interval', 'ratio'),
-  (6, 'multicollinearity', ''),
-  (7, 'linearity', ''),
-  (8, 'linearity of dependent variable', ''),
-  (9, 'categorical', 'dichotomous'),
-  (10, 'homogenity of variance-covariance', 'homogenity of variance-covariance,homogenity of var-covar');
 
 CREATE TABLE `batch` (
   `id` bigint(20) NOT NULL,
@@ -72,45 +61,19 @@ CREATE TABLE `log` (
 
 CREATE TABLE `methods` (
   `id` int(11) UNSIGNED NOT NULL,
+  `conference_id` int(11) UNSIGNED NOT NULL,
   `name` varchar(255) NOT NULL,
   `delta` int(11) NOT NULL,
   `synonyms` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-INSERT INTO `methods` (`id`, `name`, `delta`, `synonyms`) VALUES
-  (1, 'MANOVA', 0, 'multivariant analysis of variance'),
-  (2, 'ANOVA', 23064, 'analysis of variance'),
-  (3, 'ANCOVA', 16722, 'analysis of covariance'),
-  (4, 'linear regression', 19517, ''),
-  (5, 'multiple regression', 16735, ''),
-  (6, 't-test', 17017, 't test');
-
 CREATE TABLE `methods2assumptions` (
   `id` int(11) UNSIGNED NOT NULL,
+  `conference_id` int(11) UNSIGNED NOT NULL,
   `method_id` int(11) UNSIGNED NOT NULL,
   `assumption_id` int(11) UNSIGNED NOT NULL,
-  `question` varchar(512) NOT NULL,
-  `answers` text NOT NULL
+  `question` varchar(512) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-INSERT INTO `methods2assumptions` (`id`, `method_id`, `assumption_id`, `question`, `answers`) VALUES
-  (1, 4, 4, '', ''),
-  (2, 3, 4, '', ''),
-  (3, 4, 2, '', ''),
-  (4, 2, 4, '', ''),
-  (5, 3, 2, '', ''),
-  (6, 3, 3, '', ''),
-  (7, 2, 2, '', ''),
-  (8, 4, 6, '', ''),
-  (9, 1, 4, '', ''),
-  (10, 1, 10, '', ''),
-  (11, 1, 8, '', ''),
-  (12, 5, 4, '', ''),
-  (13, 5, 2, '', ''),
-  (14, 5, 6, '', ''),
-  (15, 6, 4, '', ''),
-  (16, 6, 2, '', ''),
-  (17, 6, 7, '', '');
 
 CREATE TABLE `permutations` (
   `id` bigint(20) NOT NULL,

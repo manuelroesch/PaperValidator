@@ -1,6 +1,6 @@
 @import play.Configuration
 
-@(methods : List[Method], assumptions : List[Assumption])
+@(conferenceId : Int, secret : String,methods : List[Method], assumptions : List[Assumption])
 
 @urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("StatTerms Editor") {
@@ -8,7 +8,7 @@
 		<div class="statTerms-editor">
 			<h1>Methods</h1>
             @for(method <- methods) {
-                <form action="@{urlPrefix + routes.StatTerms.editMethod.url}" method="post">
+                <form action="@{urlPrefix + routes.StatTerms.editMethod(conferenceId,secret).url}" method="post">
                     <div class="form-inline">
                         <div class="form-group">
                             <input type="text" class="form-control text-bold" name="method-name" value="@method.name" placeholder="Method Name">
@@ -26,7 +26,7 @@
                 </form>
             }
             <br><br>
-			<form action="@{urlPrefix + routes.StatTerms.addMethod.url}#methodForm" method="post" id="methodFrom">
+			<form action="@{urlPrefix + routes.StatTerms.addMethod(conferenceId,secret).url}#methodForm" method="post" id="methodFrom">
                 <div class="form-inline">
                     <div class="form-group">
                         <input type="text" class="form-control text-bold" name="method-name" placeholder="Method Name">
@@ -42,7 +42,7 @@
 			</form>
             <h1>Assumptions</h1>
             @for(assumption <- assumptions) {
-                <form action="@{urlPrefix + routes.StatTerms.editAssumption.url}" method="post">
+                <form action="@{urlPrefix + routes.StatTerms.editAssumption(conferenceId,secret).url}" method="post">
                     <div class="form-inline">
                         <div class="form-group">
                             <input type="text" class="form-control text-bold" name="assumption-name" value="@assumption.name" placeholder="Assumption Name">
@@ -57,7 +57,7 @@
                 </form>
             }
             <br><br>
-            <form action="@{urlPrefix + routes.StatTerms.addAssumption.url}#assumptionForm" method="post" id="assumptionForm">
+            <form action="@{urlPrefix + routes.StatTerms.addAssumption(conferenceId,secret).url}#assumptionForm" method="post" id="assumptionForm">
                 <div class="form-inline">
                     <div class="form-group">
                         <input type="text" class="form-control text-bold" name="assumption-name" placeholder="Assumption Name">

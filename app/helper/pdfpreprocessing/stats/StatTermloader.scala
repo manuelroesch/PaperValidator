@@ -20,21 +20,21 @@ class StatTermloader(database: Database, paper: Papers) {
 	val assumptionService = new AssumptionService(database)
 	val conferenceSettingsService = new ConferenceSettingsService(database)
 
-	lazy val deltas: Map[String, Int] = methodService.findAll().map(method => {
+	lazy val deltas: Map[String, Int] = methodService.findAll(paper.conferenceId).map(method => {
 		(method.name, method.delta)
 	}).toMap
 
 
 	lazy val terms: List[StatisticalMethod] = {
 
-		val assumptionsNamesAndSynonyms = assumptionService.findAll().map(a => {
+		val assumptionsNamesAndSynonyms = assumptionService.findAll(paper.conferenceId).map(a => {
 			var synonyms : List[String] = List()
 			if(!a.synonyms.isEmpty) {
 				synonyms = a.synonyms.split(",").toList
 			}
 			StatisticalAssumption(a.name,synonyms)
 		})
-		val methodNamesAndSynonyms = methodService.findAll().map(m => {
+		val methodNamesAndSynonyms = methodService.findAll(paper.conferenceId).map(m => {
 			var synonyms : List[String] = List()
 			if(!m.synonyms.isEmpty) {
 				synonyms = m.synonyms.split(",").toList

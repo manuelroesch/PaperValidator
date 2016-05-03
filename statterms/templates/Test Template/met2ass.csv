@@ -1,0 +1,17 @@
+linear regression;normal
+linear regression;homoscedasticity
+linear regression;multicollinearity
+MANOVA;linearity of dependent variable
+MANOVA;normal
+MANOVA;homogenity of variance-covariance
+multiple regression;normal
+multiple regression;homoscedasticity
+multiple regression;multicollinearity
+ANOVA;normal
+ANOVA;homoscedasticity
+t-test;homoscedasticity
+t-test;linearity
+t-test;normal
+ANCOVA;normal
+ANCOVA;homoscedasticity
+ANCOVA;homogeneity of regression slopes

@@ -29,7 +29,8 @@ class ConferenceSettingsService @Inject()(db:Database) {
 			SQL("SELECT cs.id, m2a.id methods2assumption_id, m2a.method_name, m2a.assumption_name, cs.flag " +
 						"FROM (SELECT m2a.id, m2a.method_id, m.name method_name, m2a.assumption_id, a.name assumption_name " +
 						"FROM methods2assumptions m2a,methods m,assumptions a " +
-						"WHERE m2a.method_id=m.id AND m2a.assumption_id=a.id) m2a " +
+						"WHERE m2a.method_id=m.id AND m2a.assumption_id=a.id AND m2a.conference_id={conference_id} " +
+						"AND m.conference_id={conference_id} AND a.conference_id={conference_id} ) m2a " +
 				"LEFT JOIN conference_settings cs ON m2a.id = cs.method2assumption_id " +
 				"AND cs.conference_id={conference_id} AND cs.id = {id}").on(
 				'id -> id,
@@ -42,7 +43,8 @@ class ConferenceSettingsService @Inject()(db:Database) {
 			SQL("SELECT cs.id, m2a.m2aid method2assumption_id, m2a.method_name, m2a.assumption_name, cs.flag " +
 						"FROM (SELECT m2a.id m2aid, m2a.method_id, m.name method_name, m2a.assumption_id, a.name assumption_name " +
 						"FROM methods2assumptions m2a,methods m,assumptions a " +
-						"WHERE m2a.method_id=m.id AND m2a.assumption_id=a.id) m2a " +
+						"WHERE m2a.method_id=m.id AND m2a.assumption_id=a.id AND m2a.conference_id={conference_id} " +
+						"AND m.conference_id={conference_id} AND a.conference_id={conference_id}) m2a " +
 				"LEFT JOIN conference_settings cs ON m2a.m2aid = cs.method2assumption_id AND cs.conference_id={conference_id} " +
 				"ORDER BY method_name ASC, assumption_name ASC").on(
 				'conference_id -> conferenceId
@@ -60,18 +62,20 @@ class ConferenceSettingsService @Inject()(db:Database) {
 			).executeInsert()
 		}
 
-	def update(id: Int, flag : Int) =
+	def update(id: Int, conferenceId: Int, flag : Int) =
 		db.withConnection { implicit c =>
-			SQL("UPDATE conference_settings SET flag={flag} WHERE id={id}").on(
+			SQL("UPDATE conference_settings SET flag={flag} WHERE id={id} AND conference_id={conference_id}").on(
 				'id -> id,
+				'conference_id -> conferenceId,
 				'flag -> flag
 			).executeUpdate()
 		}
 
-	def delete(id: Int) =
+	def delete(id: Int, conferenceId: Int) =
 		db.withConnection { implicit c =>
-			SQL("DELETE FROM conference_settings WHERE id={id}").on(
-				'id -> id
+			SQL("DELETE FROM conference_settings WHERE id={id} AND conference_id={conference_id}").on(
+				'id -> id,
+				'conference_id -> conferenceId
 			).executeUpdate()
 		}
 

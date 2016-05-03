@@ -1,0 +1,11 @@
+@import play.Configuration
+
+@urlPrefix = {@Configuration.root().getString("url.prefix")}
+@mainFrame("Unauthorized Access") {
+	<div class="row text-center">
+		<img src="@{urlPrefix + routes.Assets.at("images/security.jpg").url}">
+		<h1>Authorization Error</h1>
+		<h3>Sorry. Your Link is invalid.</h3>
+	</div>
+
+}

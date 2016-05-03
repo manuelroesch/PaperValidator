@@ -12,7 +12,7 @@ libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc"       % "2.2.2",
   "org.scalikejdbc" %% "scalikejdbc-config"  % "2.2.2",
   "com.typesafe.play" %% "anorm" % "2.4.0",
-  "org.apache.pdfbox" % "pdfbox" % "1.8.10",
+  "org.apache.pdfbox" % "pdfbox" % "1.8.11",
   "com.github.tototoshi" %% "scala-csv" % "1.2.2",
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % "test",
   "org.apache.httpcomponents" % "httpclient" % "4.5",
@@ -24,7 +24,7 @@ libraryDependencies ++= Seq(
   "pdeboer" %% "pplib" % "0.1-SNAPSHOT"
 )
 
-libraryDependencies ++= Seq( jdbc , cache , ws   , specs2 % Test , evolutions )
+libraryDependencies ++= Seq( jdbc , cache , ws , evolutions )
 
 libraryDependencies ~= { _.map(_.exclude("org.slf4j", "slf4j-log4j12")) }
 
@@ -35,7 +35,4 @@ resolvers ++= Seq(
   "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/"
 )
 
-unmanagedJars in Compile += file("bin/jvmr_2.11-2.11.2.1.jar")
-
 unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )
-

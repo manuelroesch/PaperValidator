@@ -53,7 +53,7 @@ class ConsoleIntegrationTest @Inject()(questionService: QuestionService) extends
 				})
 				Thread.sleep(1000)
 				templatePermutations.foreach(permutationId => {
-					val q = algorithm250.buildQuestion(dao.getPermutationById(permutationId).get, isTemplate = false)
+					val q = algorithm250.buildQuestion(1,dao.getPermutationById(permutationId).get, isTemplate = false)
 					logger.info("now")
 					//ballotPortalAdapter.sendQuery(HTMLQuery(q._2, 1, "Statistical Methods and Prerequisites", ""), q._1)
 					Thread.sleep(1000)
@@ -77,7 +77,7 @@ class ConsoleIntegrationTest @Inject()(questionService: QuestionService) extends
 		groups.mpar.foreach(group => {
 			group._2.foreach(permutation => {
 				if (dao.getPermutationById(permutation.id).map(_.state).getOrElse(-1) == 0) {
-					algorithm250.executePermutation(permutation)
+					algorithm250.executePermutation(1,permutation)
 				}
 			})
 		})
