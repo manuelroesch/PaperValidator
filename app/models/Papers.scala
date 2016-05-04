@@ -43,6 +43,14 @@ class PapersService @Inject()(db:Database) {
 			).as(answerParser.singleOpt)
 		}
 
+	def findByEmail(email: String): List[Papers] = {
+		db.withConnection { implicit c =>
+			SQL("SELECT * FROM papers WHERE email = {email}").on(
+				'email -> email
+			).as(answerParser *)
+		}
+	}
+
 	def findAll(): List[Papers] = {
 		db.withConnection { implicit c =>
 			SQL("SELECT * FROM papers").as(answerParser *)

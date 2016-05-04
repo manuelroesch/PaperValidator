@@ -21,9 +21,9 @@ class Login @Inject() (userService: UserService) extends Controller {
 
 		// Redirect if necessary otherwise just go to index
 		request.session.get("redirect").map { redirect =>
-			Redirect(redirect).withSession(request.session - "redirect" + (Application.TURKER_ID_KEY -> turkerId))
+			Redirect(redirect).withSession(request.session - "redirect" + (Mturk.TURKER_ID_KEY -> turkerId))
 		}.getOrElse {
-			Ok(views.html.index()).withSession(request.session + (Application.TURKER_ID_KEY -> turkerId))
+			Ok(views.html.index()).withSession(request.session + (Mturk.TURKER_ID_KEY -> turkerId))
 		}
 	}
 

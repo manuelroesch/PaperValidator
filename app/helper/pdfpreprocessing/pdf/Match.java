@@ -1,6 +1,7 @@
 package helper.pdfpreprocessing.pdf;
 
-import org.apache.pdfbox.util.TextPosition;
+
+import org.apache.pdfbox.text.TextPosition;
 
 import java.util.List;
 

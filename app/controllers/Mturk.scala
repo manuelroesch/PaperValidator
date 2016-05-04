@@ -13,22 +13,18 @@ import play.api.mvc._
 
 import scala.util.parsing.json.JSONObject
 
-object Application  {
+object Mturk {
 	val TEMPLATE_ID = 1L
 	val TURKER_ID_KEY: String = "TurkerId"
 }
 
-class Application @Inject() (configuration: Configuration, questionService: QuestionService, answerService: AnswerService, assetService: AssetService, userService: UserService, batchService: BatchService, log: Log) extends Controller {
-
-	def index = Action { request =>
-			Ok(views.html.index())
-	}
+class Mturk @Inject()(configuration: Configuration, questionService: QuestionService, answerService: AnswerService, assetService: AssetService, userService: UserService, batchService: BatchService, log: Log) extends Controller {
 
 	def showAsset(id: Long, secret: String) = Action { request =>
 		val parentQuestions = questionService.findByAssetId(id).filter(_.secret == secret)
-		val turkerId: Option[String] = request.session.get(Application.TURKER_ID_KEY)
+		val turkerId: Option[String] = request.session.get(Mturk.TURKER_ID_KEY)
 
-		val isAssetOfTemplate: Boolean = parentQuestions.exists(_.id.get == Application.TEMPLATE_ID)
+		val isAssetOfTemplate: Boolean = parentQuestions.exists(_.id.get == Mturk.TEMPLATE_ID)
 		if (!isAssetOfTemplate && logAccessAndCheckIfExceedsAccessCount(request, turkerId.orNull)) {
 			Unauthorized("We received too many requests by your IP address")
 		} else {
@@ -53,7 +49,7 @@ class Application @Inject() (configuration: Configuration, questionService: Ques
 		}
 	}
 
-	def sessionUser(request: Request[AnyContent]) = request.session.get(Application.TURKER_ID_KEY).filterNot(_.isEmpty)
+	def sessionUser(request: Request[AnyContent]) = request.session.get(Mturk.TURKER_ID_KEY).filterNot(_.isEmpty)
 
 	def showMTQuestion(uuid: String, secret: String, assignmentId: String, hitId: String, turkSubmitTo: String, workerId: String, target: String) = Action { request =>
 		if (workerId.length > 5 && userService.findByTurkerId(workerId).isEmpty) {
@@ -71,12 +67,12 @@ class Application @Inject() (configuration: Configuration, questionService: Ques
 				} else false
 			}
 
-			if (showAlreadyUsedMessage) Unauthorized(views.html.tooManyAnswersInBatch(true)) else Ok(views.html.question(workerId, questionService.findById(Application.TEMPLATE_ID).map(q => new QuestionHTMLFormatter(q.html).format).getOrElse("No Example page defined")))
+			if (showAlreadyUsedMessage) Unauthorized(views.html.tooManyAnswersInBatch(true)) else Ok(views.html.question(workerId, questionService.findById(Mturk.TEMPLATE_ID).map(q => new QuestionHTMLFormatter(q.html).format).getOrElse("No Example page defined")))
 
 		} else {
 			assert(!workerId.isEmpty)
 			//val newSession = request.session + ("TurkerID" -> workerId) + ("assignmentId" -> assignmentId) + ("target" -> target)
-			val newSession = request.session + (Application.TURKER_ID_KEY -> workerId) + ("assignmentId" -> assignmentId) + ("target" -> target)
+			val newSession = request.session + (Mturk.TURKER_ID_KEY -> workerId) + ("assignmentId" -> assignmentId) + ("target" -> target)
 
 			showQuestionAction(uuid, secret, request, Some(workerId), Some(newSession))
 		}
@@ -94,16 +90,16 @@ class Application @Inject() (configuration: Configuration, questionService: Ques
 	  * @return
 	  */
 	def showQuestion(uuid: String, secret: String = "") = Action { request =>
-		showQuestionAction(uuid, secret, request, request.session.get(Application.TURKER_ID_KEY))
+		showQuestionAction(uuid, secret, request, request.session.get(Mturk.TURKER_ID_KEY))
 	}
 
 	def showQuestionAction(uuid: String, secret: String, request: Request[AnyContent], turkerId: Option[String], _replaceSession: Option[Session] = None) = {
 		//dont allow session to be reset turker ID field
 		val replaceSession = _replaceSession.map(s => {
-			val t = s.get(Application.TURKER_ID_KEY)
+			val t = s.get(Mturk.TURKER_ID_KEY)
 			if (t.isDefined && t.get.length < 5) {
 				println("nasty removal")
-				s - Application.TURKER_ID_KEY
+				s - Mturk.TURKER_ID_KEY
 			} else s
 		})
 		if (!logAccessAndCheckIfExceedsAccessCount(request, turkerId.orNull)) {
@@ -169,7 +165,7 @@ class Application @Inject() (configuration: Configuration, questionService: Ques
 	  * @return
 	  */
 	def storeAnswer = Action { request =>
-		request.session.get(Application.TURKER_ID_KEY).map { user =>
+		request.session.get(Mturk.TURKER_ID_KEY).map { user =>
 			try {
 
 				val questionId = request.getQueryString("questionId").mkString.toLong
@@ -190,7 +186,7 @@ class Application @Inject() (configuration: Configuration, questionService: Ques
 					answerService.create(questionId, userId, new DateTime, isRelated, isCheckedBefore, extraAnswer, confidence, answer.toString(), outputCode)
 
 					if (request.session.get("assignmentId").isDefined) {
-						val newSessionInclUser: Session = Session() + (Application.TURKER_ID_KEY -> request.session.get(Application.TURKER_ID_KEY).get)
+						val newSessionInclUser: Session = Session() + (Mturk.TURKER_ID_KEY -> request.session.get(Mturk.TURKER_ID_KEY).get)
 						Ok(views.html.postToTurk(request.session.get("target").get, request.session.get("assignmentId").get, outputCode)).withSession(newSessionInclUser)
 					} else
 						Ok(views.html.code(user, outputCode)).withSession(request.session)

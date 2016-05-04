@@ -1,6 +1,6 @@
 package helper.pdfpreprocessing.pdf
 
-import java.io.FileInputStream
+import java.io.{File, FileInputStream}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.pdfbox.pdfparser.PDFParser
@@ -12,9 +12,7 @@ import org.apache.pdfbox.pdmodel.PDDocument
 class PDFTextExtractor(pdfPath: String) extends LazyLogging {
 	lazy val pages: List[String] = {
 		try {
-			val parser: PDFParser = new PDFParser(new FileInputStream(pdfPath))
-			parser.parse()
-			val pdDoc: PDDocument = new PDDocument(parser.getDocument)
+			val pdDoc: PDDocument = PDDocument.load(new File(pdfPath))
 
 			val pdfHighlight: TextHighlight = new TextHighlight("UTF-8")
 			pdfHighlight.setLineSeparator(" ")

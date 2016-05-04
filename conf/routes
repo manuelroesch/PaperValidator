@@ -2,11 +2,17 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Application
-GET        /                                        controllers.Application.index
-GET        /showQuestion                            controllers.Application.showQuestion(q: String, s:String)
-GET        /showMTQuestion                          controllers.Application.showMTQuestion(q:String, s:String, assignmentId:String, hitId:String, turkSubmitTo:String ?="", workerId:String?="", target:String)
-GET        /storeAnswer                             controllers.Application.storeAnswer
+# Home
+GET        /                                        controllers.Home.index
+
+#Mturk
+GET        /showQuestion                            controllers.Mturk.showQuestion(q: String, s:String)
+GET        /showMTQuestion                          controllers.Mturk.showMTQuestion(q:String, s:String, assignmentId:String, hitId:String, turkSubmitTo:String ?="", workerId:String?="", target:String)
+GET        /storeAnswer                             controllers.Mturk.storeAnswer
+GET        /assetsBallot/:id/:secret                controllers.Mturk.showAsset(id: Long, secret:String)
+
+#Account
+GET        /account/:id/:secret                     controllers.Account.account(id: Int, secret:String)
 
 # Upload
 GET        /upload                                  controllers.Upload.upload
@@ -43,8 +49,6 @@ GET        /impressum                               controllers.Footer.impressum
 # Login
 GET        /login                                   controllers.Login.login
 GET        /logout                                  controllers.Login.logout
-
-GET        /assetsBallot/:id/:secret                controllers.Application.showAsset(id: Long, secret:String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET        /assets/*file                            controllers.Assets.at(path="/public", file)

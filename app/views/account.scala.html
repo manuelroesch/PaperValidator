@@ -1,0 +1,37 @@
+@import play.Configuration
+
+@(email: String, papers: List[Papers], conferences: List[models.Conference])
+
+@baseUrl = {@Configuration.root().getString("hcomp.ballot.baseURL")}
+@urlPrefix = {@Configuration.root().getString("url.prefix")}
+@mainFrame("Account Overview") {
+    <div class="row text-center">
+        <h1>Your Account</h1>
+        <h4>@email</h4>
+        @if(papers.isEmpty && conferences.isEmpty) {
+            You haven't uploaded anything yet!
+        }
+        @if(papers.nonEmpty){
+            <h3>Papers</h3>
+        }
+        @for(paper <- papers) {
+            <p>
+                @paper.name<br>
+                <a href="@{urlPrefix + routes.Paper.show(paper.id.get,paper.secret).url}">
+                    @{baseUrl.toString() + urlPrefix + routes.Paper.show(paper.id.get,paper.secret).url}
+                </a>
+            </p>
+        }
+        @if(conferences.nonEmpty){
+            <h3>Conferences</h3>
+        }
+        @for(conference <- conferences) {
+            <p>
+                @conference.name<br>
+                <a href="@{urlPrefix + routes.Conference.conferenceEditor(conference.id.get,conference.secret).url}">
+                    @{baseUrl.toString() + urlPrefix + routes.Conference.conferenceEditor(conference.id.get,conference.secret).url}
+                </a>
+            </p>
+        }
+    </div>
+}

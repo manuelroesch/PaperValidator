@@ -1,7 +1,7 @@
 package helper.pdfpreprocessing.pdf;
 
 /*
- * Copyright 2014 J. Kuiper
+ * Copyright 2016 J. Kuiper and M. Roesch
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,14 @@ package helper.pdfpreprocessing.pdf;
  * limitations under the License.
  */
 
-import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.edit.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.graphics.PDExtendedGraphicsState;
+import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.util.Matrix;
-import org.apache.pdfbox.util.PDFTextStripper;
-import org.apache.pdfbox.util.TextPosition;
 
 import java.awt.*;
 import java.io.IOException;
@@ -42,6 +40,7 @@ import java.util.regex.Pattern;
  * derive bounding boxes (and quads) that can be used to write the annotations. See the main method for example usage
  *
  * @author J. Kuiper <me@joelkuiper.eu>
+ * @author manuel (modifications)
  */
 public class TextHighlight extends PDFTextStripper {
 
@@ -58,7 +57,7 @@ public class TextHighlight extends PDFTextStripper {
 	 * @throws IOException If there is an error reading the properties.
 	 */
 	public TextHighlight(final String encoding) throws IOException {
-		super(encoding);
+		//super(encoding);
 	}
 
 	/**
@@ -69,41 +68,40 @@ public class TextHighlight extends PDFTextStripper {
 	 * @throws IOException
 	 */
 	public List<PDRectangle> getTextBoundingBoxes(final List<TextPosition> positions) {
-		final List<PDRectangle> boundingBoxes = new ArrayList<PDRectangle>();
+		final List<PDRectangle> boundingBoxes = new ArrayList<>();
 
 		float lowerLeftX = -1, lowerLeftY = -1, upperRightX = -1, upperRightY = -1;
 		boolean first = true;
-		for (int i = 0; i < positions.size(); i++) {
-			final TextPosition position = positions.get(i);
+		for(final TextPosition position : positions) {
 			if (position == null) {
 				continue;
 			}
-			final Matrix textPos = position.getTextPos();
+			final Matrix textPos = position.getTextMatrix();
 			final float height = position.getHeight() * getHeightModifier();
 			if (first) {
-				lowerLeftX = textPos.getXPosition();
+				lowerLeftX = textPos.getTranslateX();
 				upperRightX = lowerLeftX + position.getWidth();
 
-				lowerLeftY = textPos.getYPosition();
+				lowerLeftY = textPos.getTranslateY();
 				upperRightY = lowerLeftY + height;
 				first = false;
 				continue;
 			}
 
 			// we are still on the same line
-			if (Math.abs(textPos.getYPosition() - lowerLeftY) <= getVerticalTolerance()) {
-				upperRightX = textPos.getXPosition() + position.getWidth();
-				upperRightY = textPos.getYPosition() + height;
+			if (Math.abs(textPos.getTranslateY() - lowerLeftY) <= getVerticalTolerance()) {
+				upperRightX = textPos.getTranslateX() + position.getWidth();
+				upperRightY = textPos.getTranslateY() + height;
 			} else {
 				final PDRectangle boundingBox = boundingBox(lowerLeftX, lowerLeftY, upperRightX,
 						upperRightY);
 				boundingBoxes.add(boundingBox);
 
 				// new line
-				lowerLeftX = textPos.getXPosition();
+				lowerLeftX = textPos.getTranslateX();
 				upperRightX = lowerLeftX + position.getWidth();
 
-				lowerLeftY = textPos.getYPosition();
+				lowerLeftY = textPos.getTranslateY();
 				upperRightY = lowerLeftY + height;
 			}
 		}
@@ -131,24 +129,16 @@ public class TextHighlight extends PDFTextStripper {
 			throw new IllegalArgumentException("TextCache was not initialized");
 		}
 
-		final List<PDPage> pages = document.getDocumentCatalog().getAllPages();
-
 		try {
 			boolean found = false;
 
-			final PDPage page = pages.get(pageNr - 1);
-			PDPageContentStream contentStream = new PDPageContentStream(document, page, true, true);
+			final PDPage page = document.getPages().get(pageNr - 1);
+			PDPageContentStream contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true);
 
 			PDExtendedGraphicsState graphicsState = new PDExtendedGraphicsState();
 			graphicsState.setNonStrokingAlphaConstant(0.5f);
-			PDResources resources = page.findResources();
-			Map graphicsStateDictionary = resources.getGraphicsStates();
-			if (graphicsStateDictionary == null) {
-				// There is no graphics state dictionary in the resources dictionary, create one.
-				graphicsStateDictionary = new TreeMap();
-			}
-			graphicsStateDictionary.put("highlights", graphicsState);
-			resources.setGraphicsStates(graphicsStateDictionary);
+
+            contentStream.setGraphicsStateParameters(graphicsState);
 
 			for (Match searchMatch : textCache.match(pageNr, searchText)) {
 				if (textCache.match(searchMatch.positions, markingPattern).size() > 0) {
@@ -178,11 +168,11 @@ public class TextHighlight extends PDFTextStripper {
 		final List<PDRectangle> textBoundingBoxes = getTextBoundingBoxes(markingMatch.positions);
 
 		if (textBoundingBoxes.size() > 0) {
-			contentStream.appendRawCommands("/highlights gs\n");
 			contentStream.setNonStrokingColor(color);
 			for (PDRectangle textBoundingBox : textBoundingBoxes) {
-				contentStream.fillRect(textBoundingBox.getLowerLeftX(), textBoundingBox.getLowerLeftY(),
+				contentStream.addRect(textBoundingBox.getLowerLeftX(), textBoundingBox.getLowerLeftY(),
 						Math.max(Math.abs(textBoundingBox.getUpperRightX() - textBoundingBox.getLowerLeftX()), 10), 10);
+                contentStream.fill();
 			}
 			return true;
 		}
@@ -219,21 +209,21 @@ public class TextHighlight extends PDFTextStripper {
 				setArticleEnd(getLineSeparator());
 			}
 			startDocument(pdf);
-			processPages(pdf.getDocumentCatalog().getAllPages());
+			processPages(pdf.getPages());
 			endDocument(pdf);
 		} catch (Exception e) {
 			e.printStackTrace();
-		} catch (Error e1) {
-			e1.printStackTrace();
+		} catch (Error e) {
+			e.printStackTrace();
 		}
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	@Override
+	//@Override
 	public void resetEngine() {
-		super.resetEngine();
+		//super.resetEngine();
 		textCache = null;
 	}
 
@@ -284,23 +274,12 @@ public class TextHighlight extends PDFTextStripper {
 	}
 
 	/**
-	 * Write the page separator value to the text cache.
-	 *
-	 * @throws IOException If there is a problem writing out the pageseparator to the document.
-	 */
-	@Override
-	protected void writePageSeperator() {
-		final String pageSeparator = getPageSeparator();
-		textCache.append(pageSeparator, null);
-	}
-
-	/**
 	 * Write the line separator value to the text cache.
 	 *
 	 * @throws IOException If there is a problem writing out the lineseparator to the document.
 	 */
 	@Override
-	protected void writeLineSeparator() {
+	protected void writeLineSeparator() throws IOException {
 		final String lineSeparator = getLineSeparator();
 		textCache.append(lineSeparator, null);
 	}
@@ -311,7 +290,7 @@ public class TextHighlight extends PDFTextStripper {
 	 * @throws IOException If there is a problem writing out the wordseparator to the document.
 	 */
 	@Override
-	protected void writeWordSeparator() {
+	protected void writeWordSeparator() throws IOException {
 		final String wordSeparator = getWordSeparator();
 		textCache.append(wordSeparator, null);
 	}
@@ -323,7 +302,7 @@ public class TextHighlight extends PDFTextStripper {
 	 */
 	@Override
 	protected void writeCharacters(final TextPosition text) {
-		final String character = text.getCharacter();
+		final String character = text.getUnicode();
 		textCache.append(character, text);
 
 	}
@@ -348,7 +327,7 @@ public class TextHighlight extends PDFTextStripper {
 	 * @throws IOException
 	 */
 	@Override
-	protected void writeParagraphSeparator() {
+	protected void writeParagraphSeparator() throws IOException {
 		writeParagraphEnd();
 		writeParagraphStart();
 	}
@@ -359,7 +338,7 @@ public class TextHighlight extends PDFTextStripper {
 	 * @throws IOException
 	 */
 	@Override
-	protected void writeParagraphStart() {
+	protected void writeParagraphStart() throws IOException {
 		if (inParagraph) {
 			writeParagraphEnd();
 			inParagraph = false;
@@ -376,7 +355,7 @@ public class TextHighlight extends PDFTextStripper {
 	 * @throws IOException
 	 */
 	@Override
-	protected void writeParagraphEnd() {
+	protected void writeParagraphEnd() throws IOException  {
 		final String paragraphEnd = getParagraphEnd();
 		textCache.append(paragraphEnd, null);
 
@@ -389,7 +368,7 @@ public class TextHighlight extends PDFTextStripper {
 	 * @throws IOException
 	 */
 	@Override
-	protected void writePageStart() {
+	protected void writePageStart() throws IOException  {
 		final String pageStart = getPageStart();
 		textCache.append(pageStart, null);
 	}
@@ -400,23 +379,13 @@ public class TextHighlight extends PDFTextStripper {
 	 * @throws IOException
 	 */
 	@Override
-	protected void writePageEnd() {
+	protected void writePageEnd() throws IOException  {
 		final String pageEnd = getPageEnd();
 		textCache.append(pageEnd, null);
 	}
 
 	@Override
 	public String getText(final PDDocument doc) throws IOException {
-		throw new IllegalArgumentException("Not applicable for TextHighlight");
-	}
-
-	@Override
-	public String getText(final COSDocument doc) throws IOException {
-		throw new IllegalArgumentException("Not applicable for TextHighlight");
-	}
-
-	@Override
-	public void writeText(final COSDocument doc, final Writer outputStream) throws IOException {
 		throw new IllegalArgumentException("Not applicable for TextHighlight");
 	}
 
@@ -430,8 +399,8 @@ public class TextHighlight extends PDFTextStripper {
 	 * compute bounding boxes. The data is stored on a per-page basis (keyed on the 1-based pageNo)
 	 */
 	public class TextCache {
-		private final Map<Integer, StringBuilder> texts = new HashMap<Integer, StringBuilder>();
-		private final Map<Integer, ArrayList<TextPosition>> positions = new HashMap<Integer, ArrayList<TextPosition>>();
+		private final Map<Integer, StringBuilder> texts = new HashMap<>();
+		private final Map<Integer, ArrayList<TextPosition>> positions = new HashMap<>();
 
 		private StringBuilder obtainStringBuilder(final Integer pageNo) {
 			StringBuilder sb = texts.get(pageNo);
@@ -445,7 +414,7 @@ public class TextHighlight extends PDFTextStripper {
 		private ArrayList<TextPosition> obtainTextPositions(final Integer pageNo) {
 			ArrayList<TextPosition> textPositions = positions.get(pageNo);
 			if (textPositions == null) {
-				textPositions = new ArrayList<TextPosition>();
+				textPositions = new ArrayList<>();
 				positions.put(pageNo, textPositions);
 			}
 			return textPositions;
@@ -485,7 +454,7 @@ public class TextHighlight extends PDFTextStripper {
 		public List<Match> match(List<TextPosition> textPositions, final Pattern pattern) {
 			StringBuilder sb = new StringBuilder(textPositions.size() * 2);
 			for (TextPosition textPosition : textPositions) {
-				if (textPosition != null) sb.append(textPosition.getCharacter());
+				if (textPosition != null) sb.append(textPosition.getUnicode());
 			}
 			return match(textPositions, sb.toString(), pattern);
 		}
@@ -493,7 +462,7 @@ public class TextHighlight extends PDFTextStripper {
 		public List<Match> match(List<TextPosition> textPositions, String text, final Pattern pattern) {
 			try {
 				final Matcher matcher = pattern.matcher(text);
-				final List<Match> matches = new ArrayList<Match>();
+				final List<Match> matches = new ArrayList<>();
 
 				while (matcher.find()) {
 					final List<TextPosition> elements = textPositions.subList(
@@ -504,12 +473,12 @@ public class TextHighlight extends PDFTextStripper {
 			} catch (Error e) {
 				System.out.println("An error occurred while searching for: " + pattern.toString());
 				e.printStackTrace();
-				final List<Match> emptyList = new ArrayList<Match>();
+				final List<Match> emptyList = new ArrayList<>();
 				return emptyList;
-			} catch (Exception e1) {
+			} catch (Exception e) {
 				System.out.println("An exception occurred while seraching for: " + pattern.toString());
-				e1.printStackTrace();
-				final List<Match> emptyList = new ArrayList<Match>();
+				e.printStackTrace();
+				final List<Match> emptyList = new ArrayList<>();
 				return emptyList;
 			}
 		}

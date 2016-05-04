@@ -1,10 +1,8 @@
 import java.io._
 
 import helper.statcheck.Statchecker
-import org.apache.pdfbox.pdfparser.PDFParser
 import org.apache.pdfbox.pdmodel.PDDocument
-import org.apache.pdfbox.util.PDFTextStripper
-import org.jboss.netty.logging.Log4JLoggerFactory
+import org.apache.pdfbox.text.PDFTextStripper
 import org.scalatestplus.play._
 
 
@@ -112,36 +110,38 @@ class StatcheckerTest extends PlaySpec {
     "complete" in {
       val testFiles = new File("C:\\Users\\manuel\\Desktop\\upload-all")
       val allFiles = testFiles.listFiles().toList
-      allFiles.foreach(file =>
-        if(file.getPath.contains(".txt")) {
-          val text = scala.io.Source.fromFile(file.getPath).mkString
+      allFiles.foreach({ file =>
+        var text = ""
+        val pdfOrTxt = "txt"
+        if (file.getPath.endsWith(".pdf") && pdfOrTxt == "pdf") {
           //val text = new PDFTextExtractor(file.getPath).pages.mkString("")//map(_.toLowerCase)
-          /*var text = ""
-          val doc = PDDocument.load(file.getAbsolutePath,true)
+
+          val doc = PDDocument.load(file)
           try {
             val pdfStripper = new PDFTextStripper()
-            text = pdfStripper.getText(doc);
+            text = pdfStripper.getText(doc).replaceAll("\0", " ")
           } catch {
             case e: IOException => {
-              //e.printStackTrace()
+              e.printStackTrace()
             }
           } finally {
             doc.close()
           }
 
-          //val text = contents.mkString(" ")
-          if(text!=""){
-            val pw = new PrintWriter(new File(file.getPath+".txt"))
+          if (text != "") {
+            val pw = new PrintWriter(new File(file.getPath + ".txt"))
             pw.write(text)
             pw.close()
-          }*/
-          val output = Statchecker.run(text.toLowerCase())
-          if(output!="") {
-            print(file.getPath)
-            println("\t"+output)
           }
+        } else if(file.getPath.endsWith(".txt") && pdfOrTxt=="txt") {
+          text = scala.io.Source.fromFile(file.getPath).mkString
         }
-      )
+        val output = Statchecker.run(text.toLowerCase())
+        if (output != "") {
+          print(file.getPath)
+          println("\t" + output)
+        }
+      })
       1 mustBe 1
     }
   }

@@ -5,11 +5,11 @@ import java.io._
 import helper.pdfpreprocessing.stats.PDFPermutation
 import helper.pdfpreprocessing.util.FileUtils
 import play.api.Logger
-import org.apache.pdfbox.pdfparser.PDFParser
 import org.apache.pdfbox.pdmodel.PDDocument
 
 /**
  * Created by pdeboer on 16/10/15.
+	* Edited by mroesch on 04/05/16
  */
 class PDFHighlighter(permutation: PDFPermutation, outputBaseFolder: String = "output/", filenamePrefix: String = "") {
 	def targetFolder = {
@@ -23,9 +23,7 @@ class PDFHighlighter(permutation: PDFPermutation, outputBaseFolder: String = "ou
 
 	def highlight(pdfToHighlight: File): Boolean = {
 		try {
-			val parser: PDFParser = new PDFParser(new FileInputStream(pdfToHighlight))
-			parser.parse()
-			val pdDoc: PDDocument = new PDDocument(parser.getDocument)
+			val pdDoc: PDDocument = PDDocument.load(pdfToHighlight)
 
 			val pdfHighlight: TextHighlight = new TextHighlight("UTF-8")
 			pdfHighlight.setLineSeparator(" ")
@@ -41,9 +39,6 @@ class PDFHighlighter(permutation: PDFPermutation, outputBaseFolder: String = "ou
 			if (pdDoc != null) {
 				pdDoc.save(byteArrayOutputStream)
 				pdDoc.close()
-			}
-			if (parser.getDocument != null) {
-				parser.getDocument.close()
 			}
 
 			Some(new BufferedOutputStream(new FileOutputStream(pdfToHighlight))).foreach(o => {

@@ -1,6 +1,7 @@
 package helper.statcheck
 
 import java.io._
+import java.util.regex.Pattern
 
 import breeze.numerics._
 import breeze.stats.distributions.FDistribution
@@ -57,8 +58,12 @@ object Statchecker {
     extractedStats ++= extractTValues(text)
     extractedStats ++= extractZValues(text)
     extractedStats.foreach({es =>
-      val resultDifference = es.pExtracted-es.pCalculated
-      if(round(abs(resultDifference)*100)>5) {
+      val resultDifference = es.pCalculated-es.pExtracted
+      if(es.pComp == ">" && resultDifference > 0) { //p>0.05
+        es.calcError = true
+      } else if(es.pComp == "<" && resultDifference < 0) { //p<0.05
+        es.calcError = true
+      } else if(es.pComp == "=" && round(abs(resultDifference)*100)>5) {
         es.calcError = true
       }
     })
@@ -132,9 +137,22 @@ object Statchecker {
       sv
     }).toList
   }
-  val REGEX_EXTRACT_CHI2 = new Regex("((\\[chi\\]|\\[delta\\]g)\\s?|(\\s[^trf ]\\s?)|([^trf]2\\s?))2?\\(\\s?(\\d*\\.?\\d+)\\s?(,\\s?n\\s?\\=\\s?(\\d*\\,?\\d*\\,?\\d+)\\s?)?\\)\\s?([<>=])\\s?\\s?(\\d*,?\\d*\\.?\\d+)\\s?,\\s?(([^a-z]ns)|(p\\s?([<>=])\\s?(\\d?\\.\\d+e?-?\\d*)))")
+
+  val REGEX_EXTRACT_CHI2 = new Regex("((χ.|\\[chi\\]|\\[delta\\]g)\\s?|(\\s[^trf ]\\s?)|([^trf]2\\s?))2?\\(\\s?(\\d*\\.?\\d+)\\s?(,\\s?n\\s?\\=\\s?(\\d*\\,?\\d*\\,?\\d+)\\s?)?\\)\\s?([<>=])\\s?\\s?(\\d*,?\\d*\\.?\\d+)\\s?,\\s?(([^a-z]ns)|(p\\s?([<>=])\\s?(\\d?\\.\\d+e?-?\\d*)))")
   def extractChi2Values(text: String): List[ExtractedStatValues] = {
-    REGEX_EXTRACT_CHI2.findAllIn(text).matchData.map({m =>
+    val regexExpr = Pattern.compile(REGEX_EXTRACT_CHI2.regex,Pattern.UNICODE_CASE).matcher(text)
+    val extractedStatValuesList = new ListBuffer[ExtractedStatValues]
+    while(regexExpr.find()) {
+      var input2 = 0.0
+      if(regexExpr.group(7)!=null){
+        input2 = regexExpr.group(7).toDouble
+      }
+      val sv = new ExtractedStatValues("chi2",regexExpr.group(5).toDouble,input2,regexExpr.group(8),regexExpr.group(9).toDouble,regexExpr.group(13),parsePValue(regexExpr.group(14)))
+      sv.pCalculated = 1 - new ChiSquaredDistribution(sv.input1).cumulativeProbability(sv.output)
+      extractedStatValuesList.append(sv)
+    }
+    extractedStatValuesList.toList
+    /*REGEX_EXTRACT_CHI2.findAllIn(text).matchData.map({m =>
       var input2 = 0.0
       if(m.group(7)!=null){
         input2 = m.group(7).toDouble
@@ -142,7 +160,7 @@ object Statchecker {
       val sv = new ExtractedStatValues("chi2",m.group(5).toDouble,input2,m.group(8),m.group(9).toDouble,m.group(13),parsePValue(m.group(14)))
       sv.pCalculated = 1 - new ChiSquaredDistribution(sv.input1).cumulativeProbability(sv.output)
       sv
-    }).toList
+    }).toList*/
   }
 
   val REGEX_E_DIGIT_TO_DOUBLE = new Regex("([^a-z]ns)|(p\\s?([<>=])\\s?((\\d?\\.\\d+)e?(-?\\d*)))")
