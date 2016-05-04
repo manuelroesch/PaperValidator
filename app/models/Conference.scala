@@ -1,6 +1,6 @@
 package models
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
 import anorm.SqlParser._
 import anorm._
@@ -35,6 +35,13 @@ class ConferenceService  @Inject()(db:Database) {
 				'id -> id,
 				'secret -> secret
 			).as(answerParser.singleOpt)
+		}
+
+	def findByEmail(email: String): List[Conference] =
+		db.withConnection { implicit c =>
+			SQL("SELECT * FROM conference WHERE email = {email}").on(
+				'email -> email
+			).as(answerParser *)
 		}
 
 	def findAll(): List[Conference] =

@@ -40,7 +40,7 @@ class ConferenceSettingsService @Inject()(db:Database) {
 
 	def findAllByConference(conferenceId : Int): List[ConferenceSettings] = {
 		db.withConnection { implicit c =>
-			SQL("SELECT cs.id, m2a.m2aid method2assumption_id, m2a.method_name, m2a.assumption_name, cs.flag " +
+			SQL("SELECT cs.id, m2a.m2aid method2assumption_id, m2a.method_name, m2a.assumption_name, IFNULL(cs.flag,1) flag " +
 						"FROM (SELECT m2a.id m2aid, m2a.method_id, m.name method_name, m2a.assumption_id, a.name assumption_name " +
 						"FROM methods2assumptions m2a,methods m,assumptions a " +
 						"WHERE m2a.method_id=m.id AND m2a.assumption_id=a.id AND m2a.conference_id={conference_id} " +

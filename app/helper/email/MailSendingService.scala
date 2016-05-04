@@ -5,7 +5,7 @@ import javax.mail._
 import javax.mail.internet._
 
 
-object MailService
+object MailSendingService
 {
   val FROM = "***REMOVED***"
   val PW = "***REMOVED***!"
@@ -25,8 +25,8 @@ object MailService
     def getPasswordAuthentication : Authenticator=
     {
       new Authenticator(){
-        override def getPasswordAuthentication():PasswordAuthentication = {
-          new PasswordAuthentication(FROM, PW);
+        override def getPasswordAuthentication:PasswordAuthentication = {
+          new PasswordAuthentication(FROM, PW)
         }}
     }
 
@@ -47,7 +47,7 @@ object MailService
       message.setSubject(subject)
 
       // Now set the actual message
-      message.setContent(content, "text/html");
+      message.setContent(content, "text/html")
       //message.setText(content)
 
 

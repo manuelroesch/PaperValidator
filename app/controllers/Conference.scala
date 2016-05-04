@@ -18,7 +18,8 @@ import scala.io.Source
   */
 class Conference @Inject() (configuration: Configuration, conferenceService: ConferenceService,
                             conferenceSettingsService: ConferenceSettingsService, methodService: MethodService,
-                            assumptionService: AssumptionService, method2AssumptionService: Method2AssumptionService
+                            assumptionService: AssumptionService, method2AssumptionService: Method2AssumptionService,
+                            emailService: EmailService
                            ) extends Controller {
 
   def conferenceCreator = Action {
@@ -33,6 +34,7 @@ class Conference @Inject() (configuration: Configuration, conferenceService: Con
     val secret = Commons.generateSecret()
     val id = conferenceService.create(name, email, secret)
     readTemplate(id,template)
+    MailTemplates.sendAccountMail(email,configuration,emailService)
     val conferenceLink = configuration.getString("hcomp.ballot.baseURL") + routes.Conference.conferenceEditor(id,secret).url
     MailTemplates.sendConferenceMail(name,conferenceLink,email)
     Ok(views.html.conference.conferenceCreated(name))

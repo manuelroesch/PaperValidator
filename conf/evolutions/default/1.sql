@@ -51,6 +51,13 @@ CREATE TABLE `conference_settings` (
   `flag` int(11) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE `email` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `email_address` varchar(1024) NOT NULL,
+  `secret` varchar(1024) NOT NULL,
+  `last_mail` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 CREATE TABLE `log` (
   `id` int(11) UNSIGNED NOT NULL,
   `accesstime` datetime NOT NULL,
@@ -144,6 +151,9 @@ ADD PRIMARY KEY (`id`);
 ALTER TABLE `conference_settings`
 ADD PRIMARY KEY (`id`);
 
+ALTER TABLE `email`
+ADD PRIMARY KEY (`id`);
+
 ALTER TABLE `log`
 ADD PRIMARY KEY (`id`),
 ADD KEY `accesstime` (`accesstime`);
@@ -187,6 +197,8 @@ MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `conference`
 MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 ALTER TABLE `conference_settings`
+MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+ALTER TABLE `email`
 MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 ALTER TABLE `log`
 MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
