@@ -25,11 +25,6 @@ import scala.io.Source
   * Created by manuel on 21.04.2016.
   */
 object PaperProcessingManager {
-  val PAPER_STATUS_NEW = 0
-  val PAPER_STATUS_ANALYZED = 1
-  val PAPER_STATUS_IN_PPLIB_QUEUE = 2
-  val PAPER_STATUS_COMPLETED = 3
-  val PAPER_STATUS_ERROR = 4
 
   var isRunning = false
 
@@ -52,14 +47,19 @@ object PaperProcessingManager {
 
   def processPaper(database: Database, configuration: Configuration, papersService: PapersService, questionService: QuestionService, method2AssumptionService: Method2AssumptionService, paper : Papers): Unit = {
     val paperLink = configuration.getString("hcomp.ballot.baseURL").get + routes.Paper.confirmPaper(paper.id.get,paper.secret).url
-    if(paper.status == PAPER_STATUS_NEW) {
+    if(paper.status == Papers.STATUS_NEW) {
       val statcheckerResult = "no"//Statchecker.run(paper)
       val permutations = PreprocessPDF.start(database,paper)
-      papersService.updateStatus(paper.id.get,PAPER_STATUS_ANALYZED)
+      if(permutations>0) {
+        papersService.updateStatus(paper.id.get,Papers.STATUS_AWAIT_CONFIRMATION)
+        papersService.updatePermutations(paper.id.get,permutations)
+      } else {
+        papersService.updateStatus(paper.id.get,Papers.STATUS_COMPLETED)
+      }
       MailTemplates.sendPaperAnalyzedMail(paper.name,paperLink,permutations,paper.email, statcheckerResult)
-    } else if(paper.status == PAPER_STATUS_IN_PPLIB_QUEUE) {
+    } else if(paper.status == Papers.STATUS_IN_PPLIB_QUEUE) {
       questionGenerator(questionService, method2AssumptionService, paper)
-      papersService.updateStatus(paper.id.get,PAPER_STATUS_COMPLETED)
+      papersService.updateStatus(paper.id.get,Papers.STATUS_COMPLETED)
       MailTemplates.sendPaperCompletedMail(paper.name,paperLink,paper.email)
     }
   }

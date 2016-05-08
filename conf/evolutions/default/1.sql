@@ -104,6 +104,7 @@ CREATE TABLE `papers` (
   `email` varchar(255) NOT NULL,
   `conference_id` int(11) NOT NULL,
   `status` int(11) NOT NULL,
+  `permutations` int(11) NOT NULL,
   `last_modified` datetime NOT NULL,
   `secret` varchar(1024) NOT NULL,
   `confirmed` boolean NOT NULL

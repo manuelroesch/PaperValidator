@@ -3,7 +3,7 @@ package controllers
 import javax.inject.Inject
 
 import helper.PaperProcessingManager
-import models.{Method2AssumptionService, QuestionService, PapersService}
+import models.{Papers, Method2AssumptionService, QuestionService, PapersService}
 import play.api.Configuration
 import play.api.db.Database
 import play.api.mvc.{Action, Controller}
@@ -25,7 +25,7 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
 
   def confirmPaper(id:Int, secret:String) = Action {
     if(papersService.findByIdAndSecret(id,secret).size > 0){
-      papersService.updateStatus(id,PaperProcessingManager.PAPER_STATUS_IN_PPLIB_QUEUE)
+      papersService.updateStatus(id,Papers.STATUS_IN_PPLIB_QUEUE)
       Future  {
         PaperProcessingManager.run(database, configuration, papersService, questionService, method2AssumptionService)
       }

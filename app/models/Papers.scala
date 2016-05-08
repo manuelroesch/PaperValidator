@@ -12,7 +12,16 @@ import play.api.db.Database
 /**
   * Created by manuel on 19.04.16.
   */
-case class Papers(id: Option[Int], name: String, email: String, conferenceId: Int, status: Int, lastModified: DateTime, secret: String) extends Serializable
+object Papers {
+	val STATUS_NEW = 0
+	val STATUS_AWAIT_CONFIRMATION = 1
+	val STATUS_IN_PPLIB_QUEUE = 2
+	val STATUS_COMPLETED = 3
+	val STATUS_ERROR = 4
+}
+
+case class Papers(id: Option[Int], name: String, email: String, conferenceId: Int, status: Int, permutations: Int,
+									lastModified: DateTime, secret: String) extends Serializable
 
 class PapersService @Inject()(db:Database) {
 
@@ -22,10 +31,11 @@ class PapersService @Inject()(db:Database) {
 				get[String]("email") ~
 				get[Int]("conference_id") ~
 				get[Int]("status") ~
+				get[Int]("permutations") ~
 				get[DateTime]("last_modified") ~
 				get[String]("secret") map {
-			case id ~ name ~ email ~ conference_id ~ status ~ last_modified ~ secret =>
-				Papers(id, name, email, conference_id, status, last_modified, secret)
+			case id ~ name ~ email ~ conference_id ~ status ~ permutations ~ last_modified ~ secret =>
+				Papers(id, name, email, conference_id, status, permutations, last_modified, secret)
 		}
 
 	def findById(id: Int): Option[Papers] =
@@ -67,19 +77,20 @@ class PapersService @Inject()(db:Database) {
 
 	def findProcessablePapers(): List[Papers] = {
 		db.withConnection { implicit c =>
-			SQL("SELECT * FROM papers WHERE status = " + PaperProcessingManager.PAPER_STATUS_NEW + " OR status = " +
-				PaperProcessingManager.PAPER_STATUS_IN_PPLIB_QUEUE + " ORDER BY last_modified DESC").as(answerParser *)
+			SQL("SELECT * FROM papers WHERE status = " + Papers.STATUS_NEW + " OR status = " +
+				Papers.STATUS_IN_PPLIB_QUEUE + " ORDER BY last_modified DESC").as(answerParser *)
 		}
 	}
 
 	def create(name: String, email: String, conferenceId: Int, secret: String) =
 		db.withConnection { implicit c =>
-			SQL("INSERT INTO papers(name, email, conference_id, status, last_modified, secret) " +
-				"VALUES ({name},{email},{conference_id},{status},{last_modified},{secret})").on(
+			SQL("INSERT INTO papers(name, email, conference_id, status, permutations, last_modified, secret) " +
+				"VALUES ({name},{email},{conference_id},{status},{permutations},{last_modified},{secret})").on(
 				'name -> name,
 				'email -> email,
-				'status -> PaperProcessingManager.PAPER_STATUS_NEW,
 				'conference_id -> conferenceId,
+				'status -> Papers.STATUS_NEW,
+				'permutations -> 0,
 				'last_modified -> DateTime.now(),
 				'secret -> secret
 			).executeInsert()
@@ -90,6 +101,15 @@ class PapersService @Inject()(db:Database) {
 			SQL("UPDATE papers SET status={status},last_modified={last_modified} WHERE id={id}").on(
 				'id -> id,
 				'status -> status,
+				'last_modified -> DateTime.now()
+			).executeUpdate()
+		}
+
+	def updatePermutations(id: Int, permutations: Int) =
+		db.withConnection { implicit c =>
+			SQL("UPDATE papers SET permutations={permutations},last_modified={last_modified} WHERE id={id}").on(
+				'id -> id,
+				'permutations -> permutations,
 				'last_modified -> DateTime.now()
 			).executeUpdate()
 		}
