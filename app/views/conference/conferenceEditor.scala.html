@@ -6,14 +6,45 @@
 @mainFrame("Conference Editor") {
 	<div class="row text-center">
 		<h1>Conference: @name</h1>
-		<div class="conference-editor">
-			<a href="@{urlPrefix + routes.Conference.flagEditor(id,secret).url}">Flag Editor</a><br>
-			<a href="@{urlPrefix + routes.StatTerms.showStatTerms(id,secret).url}">StatTerm Editor</a><br>
-			<a href="@{urlPrefix + routes.StatTerms.method2assumptions(id,secret).url}">Method to Assumptions Editor</a>
+		<h3>General Settings</h3>
+		Coming soon...
+		<h3>Methods & Assumptions</h3>
+		You can flag, edit or link the statistical methods and assumptions according to you needs:
+		<div class="row conf-editor">
+			<div class="col-md-3">
+
+			</div>
+			<div class="col-md-6">
+				<div class="col-md-4 text-center">
+					<a href="@{urlPrefix + routes.Conference.flagEditor(id,secret).url}">
+						<span class="glyphicon glyphicon-flag"></span><br>
+						<b>Flag</b><br>
+						Methods & Assumptions
+					</a>
+				</div>
+				<div class="col-md-4 text-center">
+					<a href="@{urlPrefix + routes.StatTerms.showStatTerms(id,secret).url}">
+						<span class="glyphicon glyphicon-list"></span><br>
+						<b>Edit</b><br>
+						Methods & Assumptions
+					</a>
+				</div>
+				<div class="col-md-4 text-center">
+					<a href="@{urlPrefix + routes.StatTerms.method2assumptions(id,secret).url}">
+						<span class="glyphicon glyphicon-link"></span><br>
+						<b>Link</b><br>
+						Methods & Assumptions
+					</a>
+
+				</div>
+			</div>
 		</div>
 	</div>
 	<style>
-
+		.conf-editor .glyphicon {
+			font-size:40px;
+			margin:15px;
+		}
 	</style>
 
 }

@@ -40,6 +40,11 @@
                     <input type="text" class="form-control synonyms" name="method-synonyms" placeholder="Method Synonyms (comma separated)">
                 </div>
 			</form>
+            <br><br>
+            <a href="@{urlPrefix + routes.Conference.conferenceEditor(conferenceId,secret).url}">
+                <button class="btn btn-primary">Go Back</button>
+            </a>
+            <br><br>
             <h1>Assumptions</h1>
             @for(assumption <- assumptions) {
                 <form action="@{urlPrefix + routes.StatTerms.editAssumption(conferenceId,secret).url}" method="post">
@@ -68,6 +73,10 @@
                     <input type="text" class="form-control synonyms" name="assumption-synonyms" placeholder="Assumption Synonyms (comma separated)">
                 </div>
             </form>
+            <br><br>
+            <a href="@{urlPrefix + routes.Conference.conferenceEditor(conferenceId,secret).url}">
+                <button class="btn btn-primary">Go Back</button>
+            </a>
 		</div>
 	</div>
 	<style>

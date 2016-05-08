@@ -1,11 +1,13 @@
 @import play.Configuration
 
-@(id: Long, secret: String, name: String, conferenceSettings: List[ConferenceSettings])
+@(id: Int, secret: String, name: String, conferenceSettings: List[ConferenceSettings])
 
 @urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Conference Editor") {
 	<div class="row text-center">
-		<h1>Conference: @name</h1>
+		<h1>Flag Editor: @name</h1>
+		Flag Methods &amp; Assumption Links according to your needs.<br>
+		All your changes are saved automatically!<br>
 		<div class="conference-editor">
 			<form id="conference-form" onsubmit="return false;">
 				@for((conferenceSetting,index) <- conferenceSettings.zipWithIndex) {
@@ -27,6 +29,10 @@
 					</div>
 				}
 			</form>
+			<br><br>
+			<a href="@{urlPrefix + routes.Conference.conferenceEditor(id,secret).url}">
+				<button class="btn btn-primary">Go Back</button>
+			</a>
 		</div>
 	</div>
 	<style>
