@@ -26,9 +26,8 @@ GET        /confirm-paper/:id/:secret               controllers.Paper.confirmPap
 # Conference
 GET        /conference-creator                      controllers.Conference.conferenceCreator
 POST       /conference-created                      controllers.Conference.conferenceCreated
-GET        /conference-editor/:id/:secret            controllers.Conference.conferenceEditor(id: Int, secret: String)
+GET        /conference-editor/:id/:secret           controllers.Conference.conferenceEditor(id: Int, secret: String)
 GET        /flag-editor/:id/:secret                 controllers.Conference.flagEditor(id: Int, secret: String)
-POST       /write-statterms                         controllers.Conference.writeMet2AssFile
 POST       /save-flags                              controllers.Conference.saveFlags
 
 # StatTerms

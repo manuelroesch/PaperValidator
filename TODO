@@ -1,7 +1,4 @@
 Pending high-priority:
-- Template für method-assumption ignore-flag-require auswahl
-- 3. frage ja/nein/unklar
-- Github, darf Kosten
 - Bei ZIP upload Email flood
 - Alle Statchecker tests implementieren
 - Stats zum eigenen Paper (Meth-Ass-Flag, Statchecker, einfache Stat-Fehler
@@ -12,12 +9,17 @@ Pending high-priority:
 - Method mapping
 - Riesen-PNG
 - M-A weit auseinander: cuf-off
-- Confirm Paper/Conference
 
 Pending low-priority:
 - Upload R-File + Data-File
+- Confirm Paper/Conference
 
 Done
+- Template für method-assumption ignore-flag-require Auswahl
+- 3. frage ja/nein/unklar
+- Github, darf Kosten ???
+
+
 - screencast statcheck 
 - 2-step upload 
 - 3-step Question mturk (e.g. normality of residuals) 

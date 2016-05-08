@@ -42,7 +42,6 @@ CREATE TABLE `conference` (
   `name` varchar(255) NOT NULL,
   `email` varchar(1024) NOT NULL,
   `secret` varchar(1024) NOT NULL,
-  `confirmed` boolean NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `conference_settings` (
@@ -107,7 +106,6 @@ CREATE TABLE `papers` (
   `permutations` int(11) NOT NULL,
   `last_modified` datetime NOT NULL,
   `secret` varchar(1024) NOT NULL,
-  `confirmed` boolean NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `question` (

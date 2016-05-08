@@ -1,6 +1,7 @@
 package controllers
 
-import java.io.{BufferedWriter, File, FileWriter}
+import java.io._
+import java.util.zip.{ZipEntry, ZipInputStream}
 import javax.inject.Inject
 
 import helper.pdfpreprocessing.PreprocessPDF
@@ -33,19 +34,59 @@ class Upload @Inject() (database: Database, configuration: Configuration, questi
     val conference = request.body.dataParts.get("conference").get.mkString("").toInt
     request.body.file("paper").map { paper =>
       val filename = paper.filename
-      val secret = Commons.generateSecret()
-      val tmpDirs: File = new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(secret))
-      if (!tmpDirs.exists()) tmpDirs.mkdir()
-      paper.ref.moveTo(new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(secret) + "/" + filename))
-      papersService.create(filename,email,conference,secret)
-      Future  {
-        PaperProcessingManager.run(database, configuration, papersService, questionService, method2AssumptionService)
+      Logger.debug(filename)
+      if(filename.toLowerCase().contains(".pdf") || filename.toLowerCase().contains(".zip")) {
+        val secret = Commons.generateSecret()
+        val tmpDirs: File = new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(secret))
+        if (!tmpDirs.exists()) tmpDirs.mkdir()
+        val file = paper.ref.moveTo(new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(secret) + "/" + filename))
+        if(filename.toLowerCase.contains(".zip")) {
+          Logger.debug("here2")
+          extractAndProcessZip(file,email,conference)
+        } else {
+          papersService.create(filename,email,conference,secret)
+        }
+        Future  {
+          PaperProcessingManager.run(database, configuration, papersService, questionService, method2AssumptionService)
+        }
+        Logger.info("done")
+        Ok("Ok")
+      } else {
+        Logger.debug("here")
+        Ok("Error")
       }
-      Logger.info("done")
-      Ok("Ok")
     }.getOrElse {
       Ok("Error")
     }
+  }
+
+  def extractAndProcessZip(file : File, email: String, conference: Int) = {
+    Logger.debug("here3")
+    val zis: ZipInputStream = new ZipInputStream(new FileInputStream(file))
+    val buffer = new Array[Byte](1024)
+    var ze: ZipEntry = zis.getNextEntry()
+    while (ze != null) {
+
+      val fileName = ze.getName()
+      Logger.debug(fileName)
+      val secret = Commons.generateSecret()
+      val newFile = new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(secret) + "/" + fileName)
+      new File(newFile.getParent()).mkdirs()
+      val fos = new FileOutputStream(newFile)
+      var len: Int = zis.read(buffer)
+
+      while (len > 0) {
+        fos.write(buffer, 0, len)
+        len = zis.read(buffer)
+      }
+
+      fos.close()
+      papersService.create(fileName,email,conference,secret)
+      ze = zis.getNextEntry()
+    }
+    zis.closeEntry()
+    zis.close()
+    file.delete()
   }
 
   def createDirs(): Unit = {

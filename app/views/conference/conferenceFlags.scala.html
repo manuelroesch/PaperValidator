@@ -92,38 +92,6 @@
 			saveFlag(settingId,m2aId,flag)
 		});
 
-		function submitConferenceForm() {
-			$('#save-button').css({display:"none"});
-			$('#loader').css({display:"inline-block"});
-			console.log("submitConferenceForm");
-			var methods = {};
-			$(".conference-method").each(function() {
-				var assumptions = {};
-				$(this).find(".conference-assumption").each(function(index, element){
-					var assumptionVal = $(element).find(".btn-group").attr('class').replace("btn-group","").replace(" ","");
-					if(assumptionVal=="") assumptionVal="ignore";
-					assumptions[$(element).find(".conference-assumption-name").attr("data-name")] = assumptionVal;
-				});
-				methods[$(this).find("h2").attr("data-name")] = assumptions;
-			});
-			$.ajax({
-				url: '@{urlPrefix + routes.Conference.writeMet2AssFile.url}',
-				type: 'POST',
-				data: JSON.stringify(methods),
-				contentType: 'application/json',
-				complete: function(data){
-					$('#loader').css({display:"none"});
-					$('#save-button').css({display:"inline-block"});
-					if(data.responseText == "Ok") {
-						console.log("success");
-					} else {
-						alert("Error, sorry!");
-					}
-				}
-			});
-			return false;
-		}
-
 		function saveFlag(settingid,m2aId,flag) {
 			var confSettings = {
 				settingId : settingid,
