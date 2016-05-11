@@ -1,7 +1,7 @@
 logs
 project/project
 project/target
-public/images/covers/*
+public/papers/*
 target
 tmp/*
 .history

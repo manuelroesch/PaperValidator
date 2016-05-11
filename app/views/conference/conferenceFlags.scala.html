@@ -22,9 +22,9 @@
 						</div>
 						<div class="btn-group" role="group" data-settingid="@conferenceSetting.id.getOrElse(-1)"
                             data-m2aid="@conferenceSetting.method2AssumptionId" data-flag="@conferenceSetting.flag">
-							<button type="button" data-flag="2" name="danger" class="btn btn-default">Require</button>
-							<button type="button" data-flag="1" name="warning" class="btn btn-default">Flag</button>
-							<button type="button" data-flag="0" name="ignore" class="btn btn-ignore">Ignore</button>
+							<button type="button" data-flag="@ConferenceSettings.FLAG_REQUIRE" name="danger" class="btn btn-default">Require</button>
+							<button type="button" data-flag="@ConferenceSettings.FLAG_EXPECT" name="warning" class="btn btn-default">Expect</button>
+							<button type="button" data-flag="@ConferenceSettings.FLAG_IGNORE" name="ignore" class="btn btn-ignore">Ignore</button>
 						</div>
 					</div>
 				}

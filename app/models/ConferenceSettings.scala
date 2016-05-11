@@ -9,8 +9,13 @@ import play.api.db.Database
 /**
   * Created by manuel on 19.04.16.
   */
-case class ConferenceSettings(id: Option[Int], method2AssumptionId: Int, methodName: String, assumptionName: String, flag: Option[Int]) extends Serializable
+object ConferenceSettings {
+	val FLAG_REQUIRE = 2
+	val FLAG_EXPECT = 1
+	val FLAG_IGNORE = 0
+}
 
+case class ConferenceSettings(id: Option[Int], method2AssumptionId: Int, methodName: String, assumptionName: String, flag: Option[Int]) extends Serializable
 
 class ConferenceSettingsService @Inject()(db:Database) {
 

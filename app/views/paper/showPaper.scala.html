@@ -1,7 +1,7 @@
 @import play.Configuration
 @import models.PaperResult
 
-@(id:Long,secret:String,hashedSecret:String,results: List[PaperResult])
+@(paper: Papers,hashedSecret:String,results: List[PaperResult])
 
 @urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Show Paper") {
@@ -9,12 +9,15 @@
         <div class="col-md-1"></div>
         <div class="col-md-2 text-center cover">
             <img class="cover-img" src="@{urlPrefix +
-                    routes.Assets.at("images/covers/"+id+"-"+hashedSecret+"/cover.jpg").url}" >
+                    routes.Assets.at("papers/"+hashedSecret+"/cover.jpg").url}" >
             <div class="text-right">
             <img src="@{urlPrefix + routes.Assets.at("images/pdf.png").url}" class="cover-ico text-right">
             </div>
             <button class="btn btn-primary">Update Paper</button>
             <button class="btn btn-danger">Delete Paper</button>
+            <a target="_blank" href="@{urlPrefix + routes.Assets.at("papers/"+hashedSecret+"/"+paper.name).url}">
+                <button class="btn btn-danger">Download Paper</button>
+            </a>
         </div>
         <div class="col-md-8">
             <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
@@ -104,6 +107,7 @@
             position: relative;
             top: -70px;
             margin-top: 7px;
+            width:135px;
         }
         .cover-img {
             width: 100%;
@@ -119,6 +123,10 @@
 
         .panel-body {
             padding-top: 0px;
+        }
+
+        .m2aFlag {
+            float:right;
         }
     </style>
 }

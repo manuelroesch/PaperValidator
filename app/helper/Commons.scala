@@ -30,8 +30,8 @@ object Commons {
     val paperDir = PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(paper.secret) + "/" + paper.name
     val pdfDoc = PDDocument.load(new File(paperDir))
     val pdfRenderer = new PDFRenderer(pdfDoc)
-    val image = pdfRenderer.renderImageWithDPI(1, 33, ImageType.RGB)
-    val newDir = new File("public/images/covers/"+paper.id.get+"-"+getSecretHash(paper.secret))
+    val image = pdfRenderer.renderImageWithDPI(0, 33, ImageType.RGB)
+    val newDir = new File("public/papers/"+getSecretHash(paper.secret))
     if(!newDir.exists()) newDir.mkdir()
     ImageIOUtil.writeImage(image, newDir.getPath+"/cover.jpg", 33)
   }
