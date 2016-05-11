@@ -108,11 +108,11 @@ class StatcheckerTest extends PlaySpec {
 
   "testAllPapers" should {
     "complete" in {
-      val testFiles = new File("C:\\Users\\manuel\\Desktop\\upload-all")
+      val testFiles = new File("C:\\Users\\manuel\\Desktop\\test")
       val allFiles = testFiles.listFiles().toList
       allFiles.foreach({ file =>
         var text = ""
-        val pdfOrTxt = "txt"
+        val pdfOrTxt = "pdf"
         if (file.getPath.endsWith(".pdf") && pdfOrTxt == "pdf") {
           //val text = new PDFTextExtractor(file.getPath).pages.mkString("")//map(_.toLowerCase)
 

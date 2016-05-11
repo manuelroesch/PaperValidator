@@ -63,7 +63,7 @@ class PapersService @Inject()(db:Database) {
 
 	def findAll(): List[Papers] = {
 		db.withConnection { implicit c =>
-			SQL("SELECT * FROM papers").as(answerParser *)
+			SQL("SELECT * FROM papers ORDER BY name").as(answerParser *)
 		}
 	}
 

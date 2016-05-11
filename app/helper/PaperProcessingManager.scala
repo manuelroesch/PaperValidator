@@ -14,7 +14,8 @@ import helper.email.{MailTemplates}
 import helper.pdfpreprocessing.PreprocessPDF
 import helper.questiongenerator.HCompNew
 import helper.statcheck.Statchecker
-import models.{Method2AssumptionService, Papers, PapersService, QuestionService}
+import models._
+import org.codehaus.plexus.util.FileUtils
 import play.api.{Configuration, Logger}
 import play.api.db.Database
 
@@ -29,26 +30,32 @@ object PaperProcessingManager {
   var isRunning = false
 
 
-  def run(database: Database, configuration: Configuration, papersService: PapersService, questionService: QuestionService, method2AssumptionService: Method2AssumptionService): Boolean = {
+  def run(database: Database, configuration: Configuration, papersService: PapersService,
+          questionService: QuestionService, method2AssumptionService: Method2AssumptionService,
+          paperResultService: PaperResultService): Boolean = {
     if(!isRunning) {
       isRunning = true
       val papersToProcess = papersService.findProcessablePapers()
       if(papersToProcess.nonEmpty) {
         papersToProcess.foreach(paper =>
-          processPaper(database, configuration, papersService, questionService, method2AssumptionService, paper)
+          processPaper(database, configuration, papersService, questionService, method2AssumptionService,
+            paperResultService, paper)
         )
         isRunning = false
-        run(database, configuration, papersService, questionService, method2AssumptionService)
+        run(database, configuration, papersService, questionService, method2AssumptionService, paperResultService)
       }
       isRunning = false
     }
     true
   }
 
-  def processPaper(database: Database, configuration: Configuration, papersService: PapersService, questionService: QuestionService, method2AssumptionService: Method2AssumptionService, paper : Papers): Unit = {
+  def processPaper(database: Database, configuration: Configuration, papersService: PapersService,
+                   questionService: QuestionService, method2AssumptionService: Method2AssumptionService,
+                   paperResultService: PaperResultService, paper : Papers): Unit = {
     val paperLink = configuration.getString("hcomp.ballot.baseURL").get + routes.Paper.confirmPaper(paper.id.get,paper.secret).url
     if(paper.status == Papers.STATUS_NEW) {
-      val statcheckerResult = "no"//Statchecker.run(paper)
+      Commons.generateCoverFile(paper)
+      Statchecker.run(paper, paperResultService)
       val permutations = PreprocessPDF.start(database,paper)
       if(permutations>0) {
         papersService.updateStatus(paper.id.get,Papers.STATUS_AWAIT_CONFIRMATION)
@@ -56,12 +63,18 @@ object PaperProcessingManager {
       } else {
         papersService.updateStatus(paper.id.get,Papers.STATUS_COMPLETED)
       }
-      MailTemplates.sendPaperAnalyzedMail(paper.name,paperLink,permutations,paper.email, statcheckerResult)
+      MailTemplates.sendPaperAnalyzedMail(paper.name,paperLink,permutations,paper.email)
     } else if(paper.status == Papers.STATUS_IN_PPLIB_QUEUE) {
       questionGenerator(questionService, method2AssumptionService, paper)
       papersService.updateStatus(paper.id.get,Papers.STATUS_COMPLETED)
       MailTemplates.sendPaperCompletedMail(paper.name,paperLink,paper.email)
+      cleanUpTmpDir(paper)
     }
+  }
+
+  def cleanUpTmpDir(paper: Papers): Unit = {
+    FileUtils.deleteDirectory(new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(paper.secret)))
+    FileUtils.deleteDirectory(new File(PreprocessPDF.OUTPUT_DIR + "/" + Commons.getSecretHash(paper.secret)))
   }
 
   def questionGenerator(questionService: QuestionService, method2AssumptionService: Method2AssumptionService , paper: Papers): Unit = {
@@ -82,7 +95,7 @@ object PaperProcessingManager {
       if (template.exists()) {
         val templatePermutations = Source.fromFile(template).getLines().drop(1).map(l => {
           val perm: Permutation = Permutation.fromCSVLine(l)
-          dao.createPermutation(perm)
+          dao.createPermutation(perm,paper.id.get)
         })
         Thread.sleep(1000)
         templatePermutations.foreach(permutationId => {
@@ -98,7 +111,8 @@ object PaperProcessingManager {
       questionGenerator(questionService, method2AssumptionService, paper)
     } else {
       Logger.info("Loading new permutations")
-      dao.loadPermutationsCSV(PreprocessPDF.OUTPUT_DIR + "/" + Commons.getSecretHash(paper.secret) + "/permutations.csv")
+      dao.loadPermutationsCSV(PreprocessPDF.OUTPUT_DIR + "/" + Commons.getSecretHash(paper.secret) + "/permutations.csv",
+        paper.id.get)
       Logger.info("Removing state information of previous runs")
       new File("state").listFiles().foreach(f => f.delete())
     }

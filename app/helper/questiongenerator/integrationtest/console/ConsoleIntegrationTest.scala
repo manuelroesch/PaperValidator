@@ -49,7 +49,7 @@ class ConsoleIntegrationTest @Inject()(questionService: QuestionService) extends
 			if (template.exists()) {
 				val templatePermutations = Source.fromFile(template).getLines().drop(1).map(l => {
 					val perm: Permutation = Permutation.fromCSVLine(l)
-					dao.createPermutation(perm)
+					dao.createPermutation(perm,0L)
 				})
 				Thread.sleep(1000)
 				templatePermutations.foreach(permutationId => {
@@ -65,7 +65,7 @@ class ConsoleIntegrationTest @Inject()(questionService: QuestionService) extends
 			System.exit(0)
 		} else {
 			logger.info("Loading new permutations")
-			dao.loadPermutationsCSV(PreprocessPDF.PERMUTATIONS_CSV_FILENAME)
+			dao.loadPermutationsCSV(PreprocessPDF.PERMUTATIONS_CSV_FILENAME,0L)
 			logger.info("Removing state information of previous runs")
 			new File("state").listFiles().foreach(f => f.delete())
 		}

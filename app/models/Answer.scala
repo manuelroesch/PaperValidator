@@ -6,13 +6,17 @@ import anorm.SqlParser._
 import anorm._
 import anorm.JodaParameterMetaData._
 import org.joda.time.DateTime
+import play.api.Logger
 import play.api.db.Database
 
 /**
   * Created by mattia on 02.07.15.
   */
-case class Answer(id: Option[Long], questionId: Long, userId: Long, time: DateTime, isRelated: Boolean, isCheckedBefore: Boolean, extraAnswer: Boolean, answerJson: String, expectedOutputCode: Long, accepted: Boolean) extends Serializable
-
+case class Answer(id: Option[Long], questionId: Long, userId: Long, time: DateTime, isRelated: Boolean,
+									isCheckedBefore: Boolean, extraAnswer: Boolean, answerJson: String, expectedOutputCode: Long,
+									accepted: Boolean) extends Serializable
+case class AnswerM2A(method: String, assumption: String, isRelated: Boolean, isCheckedBefore: Boolean,
+										 extraAnswer: Boolean, flag: Int) extends Serializable
 
 class AnswerService @Inject()(db:Database) {
 
@@ -27,10 +31,19 @@ class AnswerService @Inject()(db:Database) {
 				get[String]("answer_json") ~
 				get[Long]("expected_output_code") ~
 				get[Boolean]("accepted") map {
-			case id ~ question_id ~ user_id ~ time ~ is_related ~ is_checked_before ~ extra_answer ~ answer_json ~
-				expected_output_code ~ accepted =>
-				Answer(id, question_id, user_id, time, is_related, is_checked_before, extra_answer, answer_json,
-					expected_output_code, accepted)
+				case id ~ question_id ~ user_id ~ time ~ is_related ~ is_checked_before ~ extra_answer ~ answer_json ~ expected_output_code ~ accepted =>
+					Answer(id, question_id, user_id, time, is_related, is_checked_before, extra_answer, answer_json,expected_output_code, accepted)
+		}
+
+	private val answerM2AParser: RowParser[AnswerM2A] =
+		get[String]("method") ~
+			get[String]("assumption") ~
+			get[Boolean]("is_related") ~
+			get[Boolean]("is_checked_before") ~
+			get[Boolean]("extra_answer") ~
+			get[Int]("flag") map {
+			case method ~ assumption ~ isRelated ~ isCheckedBefore ~ extraAnswer ~ flag =>
+				AnswerM2A(method, assumption, isRelated, isCheckedBefore, extraAnswer, flag)
 		}
 
 	def findById(id: Long): Option[Answer] =
@@ -53,6 +66,21 @@ class AnswerService @Inject()(db:Database) {
 				'userId -> userId
 			).as(answerParser *)
 		}
+
+	def findByEmail(email: String): List[AnswerM2A] = {
+		db.withConnection { implicit c =>
+			val answers = SQL("SELECT method_index method,group_name assumption, a.is_related, is_checked_before, extra_answer, 0 flag " +
+				"FROM question q,answer a,permutations pe,papers pa " +
+				"WHERE q.id = a.question_id AND q.permutation = pe.id AND pe.paper_id = pa.id AND pa.email = {email}").on(
+				'email -> email
+			).as(answerM2AParser *)
+			answers.map(answer => {
+				val method = answer.method.split("_")(0)
+				val assumption = answer.assumption.split("/")(1)
+				new AnswerM2A(method, assumption, answer.isRelated, answer.isCheckedBefore, answer.extraAnswer, answer.flag)
+			})
+		}
+	}
 
 	def create(questionId: Long, userId: Long, time: DateTime, isRelated: Boolean, isCheckedBefore: Boolean,
 						 extraAnswer: Boolean, confidence: Int, answerJson: String, expected_output_code: Long, accepted: Boolean = false) =

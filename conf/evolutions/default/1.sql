@@ -2,7 +2,7 @@
 
 # --- !Ups
 
-CREATE TABLE `answer` (
+CREATE TABLE IF NOT EXISTS `answer` (
   `id` bigint(20) NOT NULL,
   `question_id` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE `answer` (
   `accepted` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `assets` (
+CREATE TABLE IF NOT EXISTS  `assets` (
   `id` bigint(20) NOT NULL,
   `hash_code` varchar(255) NOT NULL,
   `byte_array` longblob NOT NULL,
@@ -24,41 +24,41 @@ CREATE TABLE `assets` (
   `filename` varchar(300) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `assumptions` (
+CREATE TABLE IF NOT EXISTS  `assumptions` (
   `id` int(11) UNSIGNED NOT NULL,
   `conference_id` int(11) UNSIGNED NOT NULL,
   `name` varchar(255) NOT NULL,
   `synonyms` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `batch` (
+CREATE TABLE IF NOT EXISTS  `batch` (
   `id` bigint(20) NOT NULL,
   `allowed_answers_per_turker` int(11) NOT NULL,
   `uuid` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `conference` (
+CREATE TABLE IF NOT EXISTS  `conference` (
   `id` int(11) UNSIGNED NOT NULL,
   `name` varchar(255) NOT NULL,
   `email` varchar(1024) NOT NULL,
-  `secret` varchar(1024) NOT NULL,
+  `secret` varchar(1024) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `conference_settings` (
+CREATE TABLE IF NOT EXISTS  `conference_settings` (
   `id` int(11) UNSIGNED NOT NULL,
   `conference_id` int(11) UNSIGNED NOT NULL,
   `method2assumption_id` int(11) UNSIGNED NOT NULL,
   `flag` int(11) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `email` (
+CREATE TABLE IF NOT EXISTS  `email` (
   `id` int(11) UNSIGNED NOT NULL,
   `email_address` varchar(1024) NOT NULL,
   `secret` varchar(1024) NOT NULL,
   `last_mail` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `log` (
+CREATE TABLE IF NOT EXISTS  `log` (
   `id` int(11) UNSIGNED NOT NULL,
   `accesstime` datetime NOT NULL,
   `url` varchar(1024) NOT NULL DEFAULT '',
@@ -66,7 +66,7 @@ CREATE TABLE `log` (
   `users` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `methods` (
+CREATE TABLE IF NOT EXISTS  `methods` (
   `id` int(11) UNSIGNED NOT NULL,
   `conference_id` int(11) UNSIGNED NOT NULL,
   `name` varchar(255) NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE `methods` (
   `synonyms` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `methods2assumptions` (
+CREATE TABLE IF NOT EXISTS  `methods2assumptions` (
   `id` int(11) UNSIGNED NOT NULL,
   `conference_id` int(11) UNSIGNED NOT NULL,
   `method_id` int(11) UNSIGNED NOT NULL,
@@ -82,7 +82,7 @@ CREATE TABLE `methods2assumptions` (
   `question` varchar(512) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `permutations` (
+CREATE TABLE IF NOT EXISTS `permutations` (
   `id` bigint(20) NOT NULL,
   `create_time` datetime NOT NULL,
   `group_name` varchar(255) NOT NULL,
@@ -94,10 +94,11 @@ CREATE TABLE `permutations` (
   `excluded_step` int(11) DEFAULT '0',
   `relative_height_top` double(5,2) NOT NULL,
   `relative_height_bottom` double(5,2) NOT NULL,
-  `distanceMinIndexMax` bigint(20) NOT NULL DEFAULT '0'
+  `distanceMinIndexMax` bigint(20) NOT NULL DEFAULT '0',
+  `paper_id` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `papers` (
+CREATE TABLE IF NOT EXISTS  `papers` (
   `id` bigint(20) NOT NULL,
   `name` varchar(512) NOT NULL,
   `email` varchar(255) NOT NULL,
@@ -105,10 +106,19 @@ CREATE TABLE `papers` (
   `status` int(11) NOT NULL,
   `permutations` int(11) NOT NULL,
   `last_modified` datetime NOT NULL,
-  `secret` varchar(1024) NOT NULL,
+  `secret` varchar(1024) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `question` (
+CREATE TABLE IF NOT EXISTS  `paper_results` (
+  `id` bigint(20) NOT NULL,
+  `paper_id` bigint(20) NOT NULL,
+  `result_type` int(11) NOT NULL,
+  `descr` varchar(256) NOT NULL,
+  `result` varchar(256) NOT NULL,
+  `symbol` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS  `question` (
   `id` bigint(20) NOT NULL,
   `batch_id` bigint(20) NOT NULL,
   `html` longtext NOT NULL,
@@ -118,13 +128,13 @@ CREATE TABLE `question` (
   `secret` varchar(1024) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `question2assets` (
+CREATE TABLE IF NOT EXISTS  `question2assets` (
   `id` bigint(20) NOT NULL,
   `question_id` bigint(20) NOT NULL,
   `asset_id` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
   `id` bigint(20) NOT NULL,
   `turker_id` varchar(255) NOT NULL,
   `first_seen_date_time` datetime NOT NULL
@@ -173,6 +183,9 @@ ADD PRIMARY KEY (`id`);
 ALTER TABLE `papers`
 ADD PRIMARY KEY (`id`);
 
+ALTER TABLE `paper_results`
+ADD PRIMARY KEY (`id`);
+
 ALTER TABLE `question`
 ADD PRIMARY KEY (`id`),
 ADD KEY `batch_id` (`batch_id`),
@@ -208,6 +221,8 @@ MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 ALTER TABLE `methods2assumptions`
 MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 ALTER TABLE `papers`
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `paper_results`
 MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `permutations`
 MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;

@@ -1,9 +1,124 @@
-@(papers: List[Papers])
+@import play.Configuration
+@import models.PaperResult
 
+@(id:Long,secret:String,hashedSecret:String,results: List[PaperResult])
+
+@urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Show Paper") {
-	<div class="row">
-        @for(paper <- papers) {
-            @paper.name @paper.email @paper.status @paper.secret<br>
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-2 text-center cover">
+            <img class="cover-img" src="@{urlPrefix +
+                    routes.Assets.at("images/covers/"+id+"-"+hashedSecret+"/cover.jpg").url}" >
+            <div class="text-right">
+            <img src="@{urlPrefix + routes.Assets.at("images/pdf.png").url}" class="cover-ico text-right">
+            </div>
+            <button class="btn btn-primary">Update Paper</button>
+            <button class="btn btn-danger">Delete Paper</button>
+        </div>
+        <div class="col-md-8">
+            <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingOne">
+                        <h4 class="panel-title">
+                            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Statistics
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                        <div class="panel-body">
+                            @for((result,index) <- results.zipWithIndex) {
+                                @if(index == 0 || result.resultType/1000 != results(index-1).resultType/1000) {
+                                    @((result.resultType/1000)*1000) match {
+                                        case PaperResult.TYPE_M2A => {
+                                            <h3>Methods and Assumptions</h3>
+                                        }
+                                        case PaperResult.TYPE_STATCHECK => {
+                                            <h3>Statcheck</h3>
+                                        }
+                                    }
+                                }
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        @(result.symbol) match {
+                                            case PaperResult.SYMBOL_OK => {
+                                                <span class="glyphicon glyphicon-ok text-success"></span>
+                                            }
+                                            case PaperResult.SYMBOL_WARNING => {
+                                                <span class="glyphicon glyphicon-warning-sign text-warning"></span>
+                                            }
+                                            case PaperResult.SYMBOL_ERROR => {
+                                                <span class="glyphicon glyphicon-ban-circle text-danger"></span>
+                                            }
+                                        }
+                                        &nbsp;
+                                        @Html(result.descr)
+                                    </div>
+                                    <div class="col-md-6">
+                                        @Html(result.result)
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingTwo">
+                        <h4 class="panel-title">
+                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Layout & Style
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                        <div class="panel-body">
+                            <h3>Layout</h3>
+                            Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingThree">
+                        <h4 class="panel-title">
+                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Processing Log
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+                        <div class="panel-body">
+                            <h3>Log</h3>
+                            Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style>
+        .cover {
+            padding-right:30px;
         }
-	</div>
+        .cover button {
+            position: relative;
+            top: -70px;
+            margin-top: 7px;
+        }
+        .cover-img {
+            width: 100%;
+            border: 1px solid #e7e7e7;
+        }
+
+        .cover-ico {
+            height: 100px;
+            position: relative;
+            top: -85px;
+            left: 15px;
+        }
+
+        .panel-body {
+            padding-top: 0px;
+        }
+    </style>
 }

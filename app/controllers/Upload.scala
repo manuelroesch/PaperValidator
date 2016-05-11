@@ -22,7 +22,8 @@ import scala.concurrent.Future
   */
 class Upload @Inject() (database: Database, configuration: Configuration, questionService : QuestionService,
                         papersService: PapersService, conferenceService: ConferenceService,
-                        method2AssumptionService: Method2AssumptionService) extends Controller {
+                        method2AssumptionService: Method2AssumptionService, paperResultService: PaperResultService
+                       ) extends Controller {
   def upload = Action {
     val conferences = conferenceService.findAll()
     Ok(views.html.upload(conferences))
@@ -34,25 +35,23 @@ class Upload @Inject() (database: Database, configuration: Configuration, questi
     val conference = request.body.dataParts.get("conference").get.mkString("").toInt
     request.body.file("paper").map { paper =>
       val filename = paper.filename
-      Logger.debug(filename)
       if(filename.toLowerCase().contains(".pdf") || filename.toLowerCase().contains(".zip")) {
         val secret = Commons.generateSecret()
         val tmpDirs: File = new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(secret))
         if (!tmpDirs.exists()) tmpDirs.mkdir()
         val file = paper.ref.moveTo(new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(secret) + "/" + filename))
         if(filename.toLowerCase.contains(".zip")) {
-          Logger.debug("here2")
           extractAndProcessZip(file,email,conference)
         } else {
           papersService.create(filename,email,conference,secret)
         }
         Future  {
-          PaperProcessingManager.run(database, configuration, papersService, questionService, method2AssumptionService)
+          PaperProcessingManager.run(database, configuration, papersService, questionService, method2AssumptionService,
+            paperResultService)
         }
         Logger.info("done")
         Ok("Ok")
       } else {
-        Logger.debug("here")
         Ok("Error")
       }
     }.getOrElse {
@@ -61,14 +60,12 @@ class Upload @Inject() (database: Database, configuration: Configuration, questi
   }
 
   def extractAndProcessZip(file : File, email: String, conference: Int) = {
-    Logger.debug("here3")
     val zis: ZipInputStream = new ZipInputStream(new FileInputStream(file))
     val buffer = new Array[Byte](1024)
     var ze: ZipEntry = zis.getNextEntry()
     while (ze != null) {
 
       val fileName = ze.getName()
-      Logger.debug(fileName)
       val secret = Commons.generateSecret()
       val newFile = new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(secret) + "/" + fileName)
       new File(newFile.getParent()).mkdirs()

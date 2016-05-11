@@ -57,9 +57,9 @@ trait DAO {
 
 	def findAssetsIdByHashCode(hashCode: String): List[Long]
 
-	def loadPermutationsCSV(csv: String): Boolean
+	def loadPermutationsCSV(csv: String, paperId: Long): Boolean
 
-	def createPermutation(permutation: Permutation): Long
+	def createPermutation(permutation: Permutation, paperId: Long): Long
 
 	def getAllPermutations(): List[Permutation]
 

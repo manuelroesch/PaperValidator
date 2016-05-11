@@ -61,7 +61,7 @@ object MailTemplates {
     //MailSendingService.sendMail(toEmail,subject,content)
   }
 
-  def sendPaperAnalyzedMail(paperName: String, paperLink : String, permutations: Int, toEmail: String, comment: String): Unit = {
+  def sendPaperAnalyzedMail(paperName: String, paperLink : String, permutations: Int, toEmail: String, comment: String = ""): Unit = {
     val subject = "PaperValidator: " + paperName + " analyzed!"
     val content =
       s"""Dear user of PaperValidator,<br><br>

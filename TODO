@@ -1,5 +1,8 @@
+- change Flag -> expected
+- probless - occurence frequencey - time/way to solve
+
+
 Pending high-priority:
-- Bei ZIP upload Email flood
 - Alle Statchecker tests implementieren
 - Stats zum eigenen Paper (Meth-Ass-Flag, Statchecker, einfache Stat-Fehler
 - Prüf-Fortschritt
@@ -7,7 +10,6 @@ Pending high-priority:
 - PDF-Text extraktion
 - 2-Spalten cropping Bug
 - Method mapping
-- Riesen-PNG
 - M-A weit auseinander: cuf-off
 
 Pending low-priority:
@@ -15,6 +17,8 @@ Pending low-priority:
 - Confirm Paper/Conference
 
 Done
+- Riesen-PNG
+- Bei ZIP upload Email flood
 - Template für method-assumption ignore-flag-require Auswahl
 - 3. frage ja/nein/unklar
 - Github, darf Kosten ???

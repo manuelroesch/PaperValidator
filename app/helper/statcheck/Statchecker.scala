@@ -1,6 +1,7 @@
 package helper.statcheck
 
 import java.io._
+import java.text.DecimalFormat
 import java.util.regex.Pattern
 
 import breeze.numerics._
@@ -8,9 +9,10 @@ import breeze.stats.distributions.FDistribution
 import helper.Commons
 import helper.pdfpreprocessing.PreprocessPDF
 import helper.pdfpreprocessing.pdf.PDFTextExtractor
-import models.Papers
+import models.{PaperResult, PaperResultService, Papers}
 import org.apache.commons.math3.distribution.{ChiSquaredDistribution, TDistribution}
 import org.apache.commons.math3.stat.inference.{ChiSquareTest, TTest}
+import play.api.Logger
 
 import scala.collection.mutable.ListBuffer
 import scala.util.matching.Regex
@@ -29,48 +31,48 @@ object Statchecker {
   var oneTailedTxt=false
   //### Logical. If TRUE, the output will consist of a dataframe with all detected p values, also the ones that were not part of the full results in APA format
   var AllPValues=false
+  var numberOfpVals = 0
 
-  def run(paper: Papers): String = {
-    val text = convertPDFtoText(paper)
-    recalculateStats(text).mkString("\n")
+  def run(paper: Papers, paperResultService: PaperResultService) = {
+    val text = convertPDFtoText(paper).toLowerCase()
+    recalculateStats(paper,text,paperResultService)
   }
 
-  def run(text: String): String = {
-    try {
-      val stats = recalculateStats(text)
-      if(!stats.isEmpty) stats.mkString("\n\t")
-      else ""
-    } catch {
-      case e: IOException => {
-        e.printStackTrace()
-        "Error"
-      }
-    }
+  def run(text: String) : String = {
+    extractFValues(text).mkString(";")
   }
 
-  def recalculateStats(text: String): List[String] = {
-
+  def recalculateStats(paper:Papers, text: String, paperResultService: PaperResultService) = {
     oneTailedTxt = extractIsOneSided(text)
-    val numberOfpVals = extractPValues(text)
-    var extractedStats = extractChi2Values(text)
-    extractedStats ++= extractFValues(text)
-    extractedStats ++= extractRValues(text)
-    extractedStats ++= extractTValues(text)
-    extractedStats ++= extractZValues(text)
+    numberOfpVals = extractPValues(text)
+    writeResultsToDB(paper, extractChi2Values(text), PaperResult.TYPE_STATCHECK_CHI2, paperResultService)
+    writeResultsToDB(paper, extractFValues(text), PaperResult.TYPE_STATCHECK_F, paperResultService)
+    writeResultsToDB(paper, extractRValues(text), PaperResult.TYPE_STATCHECK_R, paperResultService)
+    writeResultsToDB(paper, extractTValues(text), PaperResult.TYPE_STATCHECK_T, paperResultService)
+    writeResultsToDB(paper, extractZValues(text), PaperResult.TYPE_STATCHECK_Z, paperResultService)
+  }
+
+  def writeResultsToDB(paper : Papers, extractedStats:List[ExtractedStatValues], resultType: Int,
+                       paperResultService: PaperResultService) = {
     extractedStats.foreach({es =>
       val resultDifference = es.pCalculated-es.pExtracted
-      if(es.pComp == ">" && resultDifference > 0) { //p>0.05
-        es.calcError = true
-      } else if(es.pComp == "<" && resultDifference < 0) { //p<0.05
-        es.calcError = true
-      } else if(es.pComp == "=" && round(abs(resultDifference)*100)>5) {
-        es.calcError = true
+      if(es.pComp == ">" && es.pCalculated <= es.pExtracted) {
+        es.error = true
+      } else if(es.pComp == "<" && es.pCalculated >= es.pExtracted) {
+        es.error = true
+      } else if(es.pComp == "=" && abs(resultDifference) > 0.05) {
+        es.error = true
+      }
+      val formattedpCalc = "%1.5f".format(es.pExtracted)
+      val resultDescr = es.statName+"-Stats: p calculated ="+formattedpCalc+", p claimed " + es.pComp+es.pExtracted
+      if(es.error){
+        paperResultService.create(paper.id.get,resultType,resultDescr,"",PaperResult.SYMBOL_ERROR)
+      } else {
+        paperResultService.create(paper.id.get,resultType,resultDescr,"",PaperResult.SYMBOL_OK)
       }
     })
-    extractedStats.map({es =>
-      es + " " + numberOfpVals
-    })
   }
+
 
   def convertPDFtoText(paper: Papers): String = {
     val paperLink = PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(paper.secret) + "/" + paper.name
@@ -180,10 +182,10 @@ object Statchecker {
 
 class ExtractedStatValues(val statName: String, val input1: Double, val input2: Double, val ioComp: String,
                           val output: Double, val pComp: String, val pExtracted: Double, var pCalculated: Double = 0,
-                          var calcError : Boolean = false, var decisionError : Boolean = false) {
+                          var error : Boolean = false) {
   override def toString(): String = {
     statName + " " + input1 + " " + input2 + " " + ioComp + " " + output + " " + pComp + " " + pExtracted +
-      " " + pCalculated + " " + calcError + " " + decisionError
+      " " + pCalculated + " " + error
   }
 }
 

@@ -39,14 +39,14 @@ class ConferenceService  @Inject()(db:Database) {
 
 	def findByEmail(email: String): List[Conference] =
 		db.withConnection { implicit c =>
-			SQL("SELECT * FROM conference WHERE email = {email}").on(
+			SQL("SELECT * FROM conference WHERE email = {email} ORDER BY name").on(
 				'email -> email
 			).as(answerParser *)
 		}
 
 	def findAll(): List[Conference] =
 		db.withConnection { implicit c =>
-			SQL("SELECT * FROM conference").as(answerParser *)
+			SQL("SELECT * FROM conference ORDER BY name").as(answerParser *)
 		}
 
 

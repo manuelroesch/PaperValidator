@@ -132,7 +132,7 @@ class BallotDAO extends DAO {
     }
   }
 
-  override def loadPermutationsCSV(csv: String): Boolean = {
+  override def loadPermutationsCSV(csv: String, paperId: Long): Boolean = {
     DB localTx { implicit session =>
 
       val time = new DateTime()
@@ -144,16 +144,16 @@ class BallotDAO extends DAO {
       LINES TERMINATED BY '\n'
       IGNORE 1 LINES
         (group_name, method_index, snippet_filename, pdf_path, method_on_top ,relative_height_top, relative_height_bottom)
-        SET create_time = $time""".update().apply()
+        SET create_time = $time, paper_id = $paperId""".update().apply()
     }
     true
   }
 
-  override def createPermutation(permutation: Permutation): Long = {
+  override def createPermutation(permutation: Permutation, paperId: Long): Long = {
     DB localTx { implicit session =>
-      sql"""INSERT INTO permutations(create_time, group_name, method_index, snippet_filename, pdf_path, method_on_top, relative_height_top, relative_height_bottom)
+      sql"""INSERT INTO permutations(create_time, group_name, method_index, snippet_filename, pdf_path, method_on_top, relative_height_top, relative_height_bottom, paper_id)
       VALUES(NOW(), ${permutation.groupName}, ${permutation.methodIndex}, ${permutation.snippetFilename}, ${permutation.pdfPath}, ${permutation.methodOnTop},
-      ${permutation.relativeHeightTop}, ${permutation.relativeHeightBottom})"""
+      ${permutation.relativeHeightTop}, ${permutation.relativeHeightBottom}, ${paperId})"""
           .updateAndReturnGeneratedKey().apply()
     }
   }
