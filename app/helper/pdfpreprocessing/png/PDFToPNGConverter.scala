@@ -36,9 +36,9 @@ class PDFToPNGConverter(pdfFile: File, perm: PDFPermutation, conversionCommand: 
 				try {
 					image = pdfRenderer.renderImageWithDPI(pageNumber, 150, ImageType.RGB)
 				} catch  {
-					case e : Error => e.printStackTrace()
-					case e : Exception => e.printStackTrace()
-					case _ => println("undef")
+					case error : Error => error.printStackTrace()
+					case exception : Exception => exception.printStackTrace()
+					case throwable : Throwable => throwable.printStackTrace()
 				}
 		}
 		if(image!=null)	ImageIOUtil.writeImage(image, destinationPath, 150)

@@ -32,7 +32,7 @@ object PaperProcessingManager {
 
   def run(database: Database, configuration: Configuration, papersService: PapersService,
           questionService: QuestionService, method2AssumptionService: Method2AssumptionService,
-          paperResultService: PaperResultService): Boolean = {
+          paperResultService: PaperResultService, paperMethodService: PaperMethodService): Boolean = {
     if(!isRunning) {
       isRunning = true
       val papersToProcess = papersService.findProcessablePapers()
@@ -40,7 +40,7 @@ object PaperProcessingManager {
         papersToProcess.foreach(paper =>
           try {
             processPaper(database, configuration, papersService, questionService, method2AssumptionService,
-              paperResultService, paper)
+              paperResultService, paperMethodService, paper)
           } catch {
             case error : Throwable => {
               val errorMsg = error.getStackTrace.mkString("\n")
@@ -49,7 +49,8 @@ object PaperProcessingManager {
           }
         )
         isRunning = false
-        run(database, configuration, papersService, questionService, method2AssumptionService, paperResultService)
+        run(database, configuration, papersService, questionService, method2AssumptionService,
+          paperResultService, paperMethodService)
       }
       isRunning = false
     }
@@ -58,7 +59,7 @@ object PaperProcessingManager {
 
   def processPaper(database: Database, configuration: Configuration, papersService: PapersService,
                    questionService: QuestionService, method2AssumptionService: Method2AssumptionService,
-                   paperResultService: PaperResultService, paper : Papers): Unit = {
+                   paperResultService: PaperResultService, paperMethodService: PaperMethodService, paper : Papers) = {
     val paperLink = configuration.getString("hcomp.ballot.baseURL").get + routes.Paper.confirmPaper(paper.id.get,paper.secret).url
     if(paper.status == Papers.STATUS_NEW) {
       writePaperLog("Start Analysis\n",paper.secret)
@@ -66,7 +67,7 @@ object PaperProcessingManager {
       writePaperLog("Run StatChecker\n",paper.secret)
       Statchecker.run(paper, paperResultService)
       writePaperLog("Run PreprocessPDF\n",paper.secret)
-      val permutations = PreprocessPDF.start(database,paper)
+      val permutations = PreprocessPDF.start(database,paperMethodService,paper)
       if(permutations>0) {
         writePaperLog(permutations + " Permutation(s) Found\n",paper.secret)
         papersService.updateStatus(paper.id.get,Papers.STATUS_AWAIT_CONFIRMATION)

@@ -169,12 +169,14 @@ class Mturk @Inject()(configuration: Configuration, questionService: QuestionSer
 			try {
 
 				val questionId = request.getQueryString("questionId").mkString.toLong
-				val isRelated = request.getQueryString("isRelated").mkString == ("yes")
-				val isCheckedBefore = request.getQueryString("isCheckedBefore").mkString == ("yes")
+				val isRelated = request.getQueryString("isRelated").mkString == ("Yes")
+				val isCheckedBefore = request.getQueryString("isCheckedBefore").mkString == ("Yes")
 				val confidence = request.getQueryString("confidence").mkString.toInt
-				val extraAnswer = request.getQueryString("extraAnswer").mkString == ("yes")
+				val extraAnswer = request.getQueryString("extraAnswer").mkString == ("Yes")
 				val secret = request.getQueryString("secret").mkString
 				val userId: Long = userService.findByTurkerId(user).get.id.get
+
+				Logger.debug(request.getQueryString("isRelated").mkString)
 
 				if (isUserAllowedToAnswer(questionId, userId, secret)) {
 					val outputCode = Math.abs(new SecureRandom().nextLong())

@@ -67,12 +67,12 @@ class AnswerService @Inject()(db:Database) {
 			).as(answerParser *)
 		}
 
-	def findByEmail(email: String): List[AnswerM2A] = {
+	def findByPaperId(paperId: Int): List[AnswerM2A] = {
 		db.withConnection { implicit c =>
 			val answers = SQL("SELECT method_index method,group_name assumption, a.is_related, is_checked_before, extra_answer, 0 flag " +
 				"FROM question q,answer a,permutations pe,papers pa " +
-				"WHERE q.id = a.question_id AND q.permutation = pe.id AND pe.paper_id = pa.id AND pa.email = {email}").on(
-				'email -> email
+				"WHERE q.id = a.question_id AND q.permutation = pe.id AND pe.paper_id = pa.id AND pa.id = {paper_id}").on(
+				'paper_id -> paperId
 			).as(answerM2AParser *)
 			answers.map(answer => {
 				val method = answer.method.split("_")(0)

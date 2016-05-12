@@ -24,8 +24,10 @@
 			"<b>"+stats("submittedPapers")+" Papers</b>")
 		@stat("Errors detected with <b>StatChecker</b>:",
 			"<b>"+stats("statcheckErrorsTotal")+
-				" Errors</b> in " + stats("statcheckErrorPapers")+" Papers")
-		@stat("<b>Methods and assumptions</b> pairs confirmed:",
+					" Errors</b> in " + stats("statcheckErrorPapers")+" Papers")
+		@stat("Detected <b>Statistical Methods</b>:",
+			"<b>"+stats("methodsTotal")+" Methods</b> in " + stats("methodsPapers")+" Papers")
+		@stat("Extracted <b>Methods and assumptions</b> pairs:",
 			"<b>"+stats("m2aTotal")+" Pairs</b> in "+stats("m2aPapers")+" Papers")
 		<!--stat("<span class='glyphicon glyphicon-flag text-warning'></span>Paper containing a <b>required</b> Flag: ",
 				stats("m2aRequired")+" Flags",true)

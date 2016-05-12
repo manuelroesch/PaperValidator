@@ -63,7 +63,7 @@ object Statchecker {
       } else if(es.pComp == "=" && abs(resultDifference) > 0.05) {
         es.error = true
       }
-      val formattedpCalc = "%1.5f".format(es.pExtracted)
+      val formattedpCalc = "%.5f".format(es.pCalculated)
       val resultDescr = es.statName+"-Stats: p calculated ="+formattedpCalc+", p claimed " + es.pComp+es.pExtracted
       if(es.error){
         paperResultService.create(paper.id.get,resultType,resultDescr,"",PaperResult.SYMBOL_ERROR)

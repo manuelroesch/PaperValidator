@@ -2,7 +2,7 @@
 
 # --- !Ups
 
-CREATE TABLE IF NOT EXISTS `answer` (
+CREATE TABLE `answer` (
   `id` bigint(20) NOT NULL,
   `question_id` bigint(20) NOT NULL,
   `user_id` bigint(20) NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `answer` (
   `accepted` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS  `assets` (
+CREATE TABLE `assets` (
   `id` bigint(20) NOT NULL,
   `hash_code` varchar(255) NOT NULL,
   `byte_array` longblob NOT NULL,
@@ -24,41 +24,41 @@ CREATE TABLE IF NOT EXISTS  `assets` (
   `filename` varchar(300) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS  `assumptions` (
+CREATE TABLE `assumptions` (
   `id` int(11) UNSIGNED NOT NULL,
   `conference_id` int(11) UNSIGNED NOT NULL,
   `name` varchar(255) NOT NULL,
   `synonyms` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS  `batch` (
+CREATE TABLE `batch` (
   `id` bigint(20) NOT NULL,
   `allowed_answers_per_turker` int(11) NOT NULL,
   `uuid` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS  `conference` (
+CREATE TABLE `conference` (
   `id` int(11) UNSIGNED NOT NULL,
   `name` varchar(255) NOT NULL,
   `email` varchar(1024) NOT NULL,
   `secret` varchar(1024) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS  `conference_settings` (
+CREATE TABLE `conference_settings` (
   `id` int(11) UNSIGNED NOT NULL,
   `conference_id` int(11) UNSIGNED NOT NULL,
   `method2assumption_id` int(11) UNSIGNED NOT NULL,
   `flag` int(11) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS  `email` (
+CREATE TABLE `email` (
   `id` int(11) UNSIGNED NOT NULL,
   `email_address` varchar(1024) NOT NULL,
   `secret` varchar(1024) NOT NULL,
   `last_mail` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS  `log` (
+CREATE TABLE `log` (
   `id` int(11) UNSIGNED NOT NULL,
   `accesstime` datetime NOT NULL,
   `url` varchar(1024) NOT NULL DEFAULT '',
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS  `log` (
   `users` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS  `methods` (
+CREATE TABLE `methods` (
   `id` int(11) UNSIGNED NOT NULL,
   `conference_id` int(11) UNSIGNED NOT NULL,
   `name` varchar(255) NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS  `methods` (
   `synonyms` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS  `methods2assumptions` (
+CREATE TABLE `methods2assumptions` (
   `id` int(11) UNSIGNED NOT NULL,
   `conference_id` int(11) UNSIGNED NOT NULL,
   `method_id` int(11) UNSIGNED NOT NULL,
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS  `methods2assumptions` (
   `question` varchar(512) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS `permutations` (
+CREATE TABLE `permutations` (
   `id` bigint(20) NOT NULL,
   `create_time` datetime NOT NULL,
   `group_name` varchar(255) NOT NULL,
@@ -98,18 +98,24 @@ CREATE TABLE IF NOT EXISTS `permutations` (
   `paper_id` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS  `papers` (
+CREATE TABLE `papers` (
   `id` bigint(20) NOT NULL,
   `name` varchar(512) NOT NULL,
   `email` varchar(255) NOT NULL,
-  `conference_id` int(11) NOT NULL,
+  `conference_id` int(11) UNSIGNED NOT NULL,
   `status` int(11) NOT NULL,
   `permutations` int(11) NOT NULL,
   `last_modified` datetime NOT NULL,
   `secret` varchar(1024) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS  `paper_results` (
+CREATE TABLE `paper_methods` (
+  `id` bigint(20) NOT NULL,
+  `paper_id` bigint(20) NOT NULL,
+  `method` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `paper_results` (
   `id` bigint(20) NOT NULL,
   `paper_id` bigint(20) NOT NULL,
   `result_type` int(11) NOT NULL,
@@ -118,7 +124,7 @@ CREATE TABLE IF NOT EXISTS  `paper_results` (
   `symbol` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS  `question` (
+CREATE TABLE `question` (
   `id` bigint(20) NOT NULL,
   `batch_id` bigint(20) NOT NULL,
   `html` longtext NOT NULL,
@@ -128,13 +134,13 @@ CREATE TABLE IF NOT EXISTS  `question` (
   `secret` varchar(1024) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS  `question2assets` (
+CREATE TABLE `question2assets` (
   `id` bigint(20) NOT NULL,
   `question_id` bigint(20) NOT NULL,
   `asset_id` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-CREATE TABLE IF NOT EXISTS `users` (
+CREATE TABLE `users` (
   `id` bigint(20) NOT NULL,
   `turker_id` varchar(255) NOT NULL,
   `first_seen_date_time` datetime NOT NULL
@@ -160,7 +166,9 @@ ALTER TABLE `conference`
 ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `conference_settings`
-ADD PRIMARY KEY (`id`);
+ADD PRIMARY KEY (`id`),
+ADD KEY `conference_settings_ibfk_1` (`conference_id`),
+ADD KEY `conference_settings_ibfk_2` (`method2assumption_id`);
 
 ALTER TABLE `email`
 ADD PRIMARY KEY (`id`);
@@ -170,7 +178,8 @@ ADD PRIMARY KEY (`id`),
 ADD KEY `accesstime` (`accesstime`);
 
 ALTER TABLE `methods`
-ADD PRIMARY KEY (`id`);
+ADD PRIMARY KEY (`id`),
+ADD KEY `conference_id` (`conference_id`);
 
 ALTER TABLE `methods2assumptions`
 ADD PRIMARY KEY (`id`),
@@ -178,13 +187,20 @@ ADD KEY `method_id` (`method_id`),
 ADD KEY `assumption_id` (`assumption_id`);
 
 ALTER TABLE `permutations`
-ADD PRIMARY KEY (`id`);
+ADD PRIMARY KEY (`id`),
+ADD KEY `paper_id` (`paper_id`);
 
 ALTER TABLE `papers`
-ADD PRIMARY KEY (`id`);
+ADD PRIMARY KEY (`id`),
+ADD KEY `conference_id` (`conference_id`);
+
+ALTER TABLE `paper_methods`
+ADD PRIMARY KEY (`id`),
+ADD KEY `paper_id` (`paper_id`);
 
 ALTER TABLE `paper_results`
-ADD PRIMARY KEY (`id`);
+ADD PRIMARY KEY (`id`),
+ADD KEY `paper_id` (`paper_id`);
 
 ALTER TABLE `question`
 ADD PRIMARY KEY (`id`),
@@ -198,7 +214,6 @@ ADD KEY `asset_id` (`asset_id`);
 
 ALTER TABLE `users`
 ADD PRIMARY KEY (`id`);
-
 
 ALTER TABLE `answer`
 MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
@@ -222,6 +237,8 @@ ALTER TABLE `methods2assumptions`
 MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 ALTER TABLE `papers`
 MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `paper_methods`
+MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `paper_results`
 MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `permutations`
@@ -237,9 +254,32 @@ ALTER TABLE `answer`
 ADD CONSTRAINT `answer_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`),
 ADD CONSTRAINT `answer_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
+ALTER TABLE `assumptions`
+ADD CONSTRAINT `assumptions_ibfk_1` FOREIGN KEY (`conference_id`) REFERENCES `conference` (`id`);
+
 ALTER TABLE `conference_settings`
 ADD CONSTRAINT `conference_settings_ibfk_1` FOREIGN KEY (`conference_id`) REFERENCES `conference` (`id`),
 ADD CONSTRAINT `conference_settings_ibfk_2` FOREIGN KEY (`method2assumption_id`) REFERENCES `methods2assumptions` (`id`);
+
+ALTER TABLE `methods`
+ADD CONSTRAINT `methods_ibfk_1` FOREIGN KEY (`conference_id`) REFERENCES `conference` (`id`);
+
+ALTER TABLE `methods2assumptions`
+ADD CONSTRAINT `methods2assumptions_ibfk_1` FOREIGN KEY (`conference_id`) REFERENCES `conference` (`id`),
+ADD CONSTRAINT `methods2assumptions_ibfk_2` FOREIGN KEY (`method_id`) REFERENCES `methods` (`id`),
+ADD CONSTRAINT `methods2assumptions_ibfk_3` FOREIGN KEY (`assumption_id`) REFERENCES `assumptions` (`id`);
+
+ALTER TABLE `papers`
+ADD CONSTRAINT `papers_ibfk_1` FOREIGN KEY (`conference_id`) REFERENCES `conference` (`id`);
+
+ALTER TABLE `paper_methods`
+ADD CONSTRAINT `paper_methods_ibfk_1` FOREIGN KEY (`paper_id`) REFERENCES `papers` (`id`);
+
+ALTER TABLE `paper_results`
+ADD CONSTRAINT `paper_results_ibfk_1` FOREIGN KEY (`paper_id`) REFERENCES `papers` (`id`);
+
+ALTER TABLE `permutations`
+ADD CONSTRAINT `permutations_ibfk_1` FOREIGN KEY (`paper_id`) REFERENCES `papers` (`id`);
 
 ALTER TABLE `question`
 ADD CONSTRAINT `question_ibfk_1` FOREIGN KEY (`batch_id`) REFERENCES `batch` (`id`),

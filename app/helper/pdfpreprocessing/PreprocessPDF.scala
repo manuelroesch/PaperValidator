@@ -9,7 +9,7 @@ import helper.pdfpreprocessing.png.{PNGProcessor, PDFToPNGConverter}
 import helper.pdfpreprocessing.stats._
 import helper.pdfpreprocessing.util.FileUtils
 import com.typesafe.config.ConfigFactory
-import models.Papers
+import models.{PaperMethodService, Papers}
 import play.api.Logger
 import play.api.db.Database
 
@@ -27,7 +27,7 @@ object PreprocessPDF {
 	val PERMUTATIONS_CSV_FILENAME = conf.getString("highlighter.permutationFilename")
 	val PNG_ERROR_OUTPUT_PATH = conf.getString("highlighter.pngErrorPath")
 
-	def start(database: Database, paper : Papers) : Int = {
+	def start(database: Database, paperMethodService: PaperMethodService, paper : Papers) : Int = {
 		Logger.debug("starting highlighting")
 
 
@@ -36,6 +36,11 @@ object PreprocessPDF {
 		val allPapers = new PDFLoader(new File(INPUT_DIR + "/" + secretHash)).papers
 		val snippets = allPapers.par.flatMap(snip => {
 			val searcher = new StatTermSearcher(snip,database,paper)
+			searcher.occurrences.foreach(occurence => {
+				if(occurence.term.isStatisticalMethod) {
+					paperMethodService.create(paper.id.get,occurence.term.name)
+				}
+			})
 			val statTermsInPaper = new StatTermPruning(List(new PruneTermsWithinOtherTerms)).prune(searcher.occurrences)
 			val combinationsOfMethodsAndAssumptions = new StatTermPermuter(statTermsInPaper).permutations
 
