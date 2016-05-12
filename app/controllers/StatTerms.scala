@@ -6,7 +6,7 @@ import javax.inject.Inject
 import com.typesafe.config.ConfigFactory
 import helper.Commons
 import helper.email.MailTemplates
-import models.{Method2AssumptionService, AssumptionService, MethodService, ConferenceService}
+import models._
 import play.Configuration
 import play.api.mvc.{Action, Controller}
 
@@ -16,7 +16,10 @@ import scala.io.Source
   * Created by manuel on 11.04.2016.
   */
 
-class StatTerms @Inject()(configuration: Configuration, methodService: MethodService, assumptionService: AssumptionService, method2AssumptionService: Method2AssumptionService, conferenceService: ConferenceService) extends Controller {
+class StatTerms @Inject()(configuration: Configuration, methodService: MethodService,
+                          assumptionService: AssumptionService, method2AssumptionService: Method2AssumptionService,
+                          conferenceService: ConferenceService, conferenceSettingsService: ConferenceSettingsService
+                         ) extends Controller {
   def showStatTerms(conferenceId: Int, secret: String) = Action {
     if(conferenceService.findByIdAndSecret(conferenceId,secret).isEmpty) {
       Unauthorized(views.html.error.unauthorized())
@@ -46,6 +49,8 @@ class StatTerms @Inject()(configuration: Configuration, methodService: MethodSer
     } else {
       if(request.body.get("delete-method-id").isDefined) {
         val id=request.body.get("method-id").get(0).toInt
+        conferenceSettingsService.deleteByMethodId(id)
+        method2AssumptionService.deleteByMethodId(id)
         methodService.delete(id,conferenceId)
       } else {
         val id=request.body.get("method-id").get(0).toInt
@@ -79,7 +84,9 @@ class StatTerms @Inject()(configuration: Configuration, methodService: MethodSer
     } else {
       if(request.body.get("delete-assumption-id").isDefined) {
         val id=request.body.get("assumption-id").get(0).toInt
-        methodService.delete(id,conferenceId)
+        conferenceSettingsService.deleteByAssumptionId(id)
+        method2AssumptionService.deleteByAssumptionId(id)
+        assumptionService.delete(id,conferenceId)
       } else {
         val id=request.body.get("assumption-id").get(0).toInt
         val name = request.body.get("assumption-name").get(0)
@@ -116,6 +123,7 @@ class StatTerms @Inject()(configuration: Configuration, methodService: MethodSer
     } else {
       if(request.body.get("delete-method2assumption-id").isDefined) {
         val id=request.body.get("method2assumption-id").get(0).toInt
+        conferenceSettingsService.deleteByM2AId(id)
         method2AssumptionService.delete(id,conferenceId)
       } else {
         val id=request.body.get("method2assumption-id").get(0).toInt

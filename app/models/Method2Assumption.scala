@@ -90,6 +90,20 @@ class Method2AssumptionService @Inject()(db:Database) {
 			).executeUpdate()
 		}
 
+	def deleteByMethodId(methodId: Int) =
+		db.withConnection { implicit c =>
+			SQL("DELETE FROM methods2assumptions WHERE method_id={method_id}").on(
+				'method_id -> methodId
+			).executeUpdate()
+		}
+
+	def deleteByAssumptionId(assumptionId: Int) =
+		db.withConnection { implicit c =>
+			SQL("DELETE FROM methods2assumptions WHERE assumption_id={assumption_id}").on(
+				'assumption_id -> assumptionId
+			).executeUpdate()
+		}
+
 	def delete(id: Int, conference_id: Int) =
 		db.withConnection { implicit c =>
 			SQL("DELETE FROM methods2assumptions WHERE id={id} AND conference_id={conference_id}").on(

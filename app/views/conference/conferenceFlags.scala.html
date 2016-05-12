@@ -72,7 +72,8 @@
 		}
 	</style>
 	<script>
-        $("#conference-form .btn-group").each(function(){
+		var confFormBtns = $("#conference-form").find(".btn-group");
+		confFormBtns.each(function(){
             var originalFlag = $(this).attr('data-flag');
             if(originalFlag!=-1) {
                 $(this).find("button").attr('class','btn btn-default')
@@ -82,7 +83,7 @@
                 $(activeButton).attr('class','btn btn-'+buttonName);
             }
         });
-		$("#conference-form .btn-group").click(function(event){
+		confFormBtns.click(function(event){
 			$(this).find("button").attr('class','btn btn-default')
 			var buttonName = $(event.target).attr('name');
 			$(event.target).attr('class','btn btn-'+buttonName);
@@ -92,10 +93,10 @@
 			saveFlag(settingId,m2aId,flag)
 		});
 
-		function saveFlag(settingid,m2aId,flag) {
+		function saveFlag(settingId,m2aId,flag) {
 			var confSettings = {
-				settingId : settingid,
-                m2aId, m2aId,
+				settingId : settingId,
+                m2aId : m2aId,
 				flag : flag,
 				conferenceId: '@id',
 				secret: '@secret'
