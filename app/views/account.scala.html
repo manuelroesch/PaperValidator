@@ -87,6 +87,10 @@
                         </div>
                         <div class="col-sm-3 text-right">
                             <a target="_blank" href="@{urlPrefix +
+                                    routes.Conference.conferenceEditor(conference.id.get,conference.secret).url}">
+                                <span class="glyphicon glyphicon-stats"></span>
+                            </a>
+                            <a target="_blank" href="@{urlPrefix +
                                     routes.Conference.flagEditor(conference.id.get,conference.secret).url}">
                                 <span class="glyphicon glyphicon-flag"></span>
                             </a>

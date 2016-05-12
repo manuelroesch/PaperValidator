@@ -82,6 +82,28 @@ class AnswerService @Inject()(db:Database) {
 		}
 	}
 
+	def countAnswersByConferenceTotal(conferenceId: Int): Int = {
+		db.withConnection { implicit c =>
+			SQL("SELECT count(*)" +
+				"FROM question q,answer a,permutations pe,papers pa " +
+				"WHERE q.id = a.question_id AND q.permutation = pe.id AND pe.paper_id = pa.id " +
+				"AND a.is_related AND pa.conference_id = {conference_id}").on(
+				'conference_id -> conferenceId
+			).as(scalar[Int].single)
+		}
+	}
+
+	def countAnswersByConferencePaper(conferenceId: Int): Int = {
+		db.withConnection { implicit c =>
+			SQL("SELECT count(DISTINCT pa.id)" +
+				"FROM question q,answer a,permutations pe,papers pa " +
+				"WHERE q.id = a.question_id AND q.permutation = pe.id AND pe.paper_id = pa.id " +
+				"AND a.is_related AND pa.conference_id = {conference_id}").on(
+				'conference_id -> conferenceId
+			).as(scalar[Int].single)
+		}
+	}
+
 	def create(questionId: Long, userId: Long, time: DateTime, isRelated: Boolean, isCheckedBefore: Boolean,
 						 extraAnswer: Boolean, confidence: Int, answerJson: String, expected_output_code: Long, accepted: Boolean = false) =
 		db.withConnection { implicit c =>

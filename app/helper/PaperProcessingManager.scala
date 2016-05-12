@@ -1,6 +1,6 @@
 package helper
 
-import java.io.File
+import java.io.{FileWriter, File}
 
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.dao.BallotDAO
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.integrationtest.console.ConsoleIntegrationTest
@@ -38,8 +38,15 @@ object PaperProcessingManager {
       val papersToProcess = papersService.findProcessablePapers()
       if(papersToProcess.nonEmpty) {
         papersToProcess.foreach(paper =>
-          processPaper(database, configuration, papersService, questionService, method2AssumptionService,
-            paperResultService, paper)
+          try {
+            processPaper(database, configuration, papersService, questionService, method2AssumptionService,
+              paperResultService, paper)
+          } catch {
+            case error : Throwable => {
+              val errorMsg = error.getStackTrace.mkString("\n")
+              PaperProcessingManager.writePaperLog(errorMsg,paper.secret)
+            }
+          }
         )
         isRunning = false
         run(database, configuration, papersService, questionService, method2AssumptionService, paperResultService)
@@ -54,26 +61,34 @@ object PaperProcessingManager {
                    paperResultService: PaperResultService, paper : Papers): Unit = {
     val paperLink = configuration.getString("hcomp.ballot.baseURL").get + routes.Paper.confirmPaper(paper.id.get,paper.secret).url
     if(paper.status == Papers.STATUS_NEW) {
+      writePaperLog("Start Analysis\n",paper.secret)
       Commons.generateCoverFile(paper)
+      writePaperLog("Run StatChecker\n",paper.secret)
       Statchecker.run(paper, paperResultService)
+      writePaperLog("Run PreprocessPDF\n",paper.secret)
       val permutations = PreprocessPDF.start(database,paper)
       if(permutations>0) {
+        writePaperLog(permutations + " Permutation(s) Found\n",paper.secret)
         papersService.updateStatus(paper.id.get,Papers.STATUS_AWAIT_CONFIRMATION)
         papersService.updatePermutations(paper.id.get,permutations)
       } else {
+        writePaperLog("No Permutations Found\n",paper.secret)
         papersService.updateStatus(paper.id.get,Papers.STATUS_COMPLETED)
       }
+      writePaperLog("Finish and Notify Analysis\n",paper.secret)
       MailTemplates.sendPaperAnalyzedMail(paper.name,paperLink,permutations,paper.email)
     } else if(paper.status == Papers.STATUS_IN_PPLIB_QUEUE) {
+      writePaperLog("Run Question Generator\n",paper.secret)
       questionGenerator(questionService, method2AssumptionService, paper)
       papersService.updateStatus(paper.id.get,Papers.STATUS_COMPLETED)
+      writePaperLog("Finish and Notify Crowdwork\n",paper.secret)
       MailTemplates.sendPaperCompletedMail(paper.name,paperLink,paper.email)
+      writePaperLog("Clean Up\n",paper.secret)
       cleanUpTmpDir(paper)
     }
   }
 
   def cleanUpTmpDir(paper: Papers): Unit = {
-    FileUtils.deleteDirectory(new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(paper.secret)))
     FileUtils.deleteDirectory(new File(PreprocessPDF.OUTPUT_DIR + "/" + Commons.getSecretHash(paper.secret)))
   }
 
@@ -131,6 +146,14 @@ object PaperProcessingManager {
 
     Report.writeCSVReport(dao)
     Report.writeCSVReportAllAnswers(dao)
+  }
+
+  def writePaperLog(logMsg:String,secret:String) = {
+    val fw = new FileWriter(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(secret) + "/log.txt",true)
+    try {
+      fw.write(logMsg)
+    }
+    finally fw.close()
   }
 
 }

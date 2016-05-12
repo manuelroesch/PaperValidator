@@ -1,6 +1,5 @@
-- change Flag -> expected
-- probless - occurence frequencey - time/way to solve
-
+- Change Flag Editor: Flag -> Expected
+- Create Table: Problems - Occurrence Frequency - time/way to solve
 
 Pending high-priority:
 - Alle Statchecker tests implementieren

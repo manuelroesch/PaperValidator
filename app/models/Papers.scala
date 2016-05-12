@@ -82,6 +82,14 @@ class PapersService @Inject()(db:Database) {
 		}
 	}
 
+	def countPapersByConference(conferenceId: Int): Int = {
+		db.withConnection { implicit c =>
+			SQL("SELECT count(*) FROM papers WHERE conference_id = {conference_id}").on(
+				'conference_id -> conferenceId
+			).as(scalar[Int].single)
+		}
+	}
+
 	def create(name: String, email: String, conferenceId: Int, secret: String) =
 		db.withConnection { implicit c =>
 			SQL("INSERT INTO papers(name, email, conference_id, status, permutations, last_modified, secret) " +

@@ -19,7 +19,8 @@ import scala.io.Source
 class Conference @Inject() (configuration: Configuration, conferenceService: ConferenceService,
                             conferenceSettingsService: ConferenceSettingsService, methodService: MethodService,
                             assumptionService: AssumptionService, method2AssumptionService: Method2AssumptionService,
-                            emailService: EmailService
+                            emailService: EmailService, papersService: PapersService, answerService: AnswerService,
+                            paperResultService: PaperResultService
                            ) extends Controller {
 
   def conferenceCreator = Action {
@@ -76,7 +77,13 @@ class Conference @Inject() (configuration: Configuration, conferenceService: Con
     if(conference.isEmpty) {
       Unauthorized(views.html.error.unauthorized())
     } else {
-      Ok(views.html.conference.conferenceEditor(conferenceId,secret,conference.get.name))
+      var stats : Map[String,String] = Map()
+      stats += ("submittedPapers"-> papersService.countPapersByConference(conferenceId).toString)
+      stats += ("statcheckErrorsTotal"->paperResultService.countByConferenceTotal(conferenceId).toString)
+      stats += ("statcheckErrorPapers"->paperResultService.countByConferencePapers(conferenceId).toString)
+      stats += ("m2aTotal"->answerService.countAnswersByConferenceTotal(conferenceId).toString)
+      stats += ("m2aPapers"->answerService.countAnswersByConferencePaper(conferenceId).toString)
+      Ok(views.html.conference.conferenceEditor(conferenceId,secret,conference.get.name,stats))
     }
   }
 

@@ -1,13 +1,37 @@
 @import play.Configuration
 
-@(id: Int, secret: String, name: String)
+@(id: Int, secret: String, name: String, stats: Map[String,String])
+
+@stat(descr: String, result:String, tabStart:Boolean = false) = {
+	<div class="row">
+		<div class="col-sm-3">&nbsp;</div>
+		<div class="col-sm-4 text-left tabStart-@tabStart">
+			@Html(descr)
+		</div>
+		<div class="col-sm-2 text-right">
+			@Html(result)
+		</div>
+		<div class="col-sm-3">&nbsp;</div>
+	</div>
+}
 
 @urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Conference Editor") {
 	<div class="row text-center">
-		<h1>Conference: @name</h1>
-		<h3>General Settings</h3>
-		Coming soon...
+		<h1>@name</h1>
+		<h3>Statistics</h3>
+		@stat("Number of papers <b>submitted</b> to the conference:",
+			"<b>"+stats("submittedPapers")+" Papers</b>")
+		@stat("Errors detected with <b>StatChecker</b>:",
+			"<b>"+stats("statcheckErrorsTotal")+
+				" Errors</b> in " + stats("statcheckErrorPapers")+" Papers")
+		@stat("<b>Methods and assumptions</b> pairs confirmed:",
+			"<b>"+stats("m2aTotal")+" Pairs</b> in "+stats("m2aPapers")+" Papers")
+		<!--stat("<span class='glyphicon glyphicon-flag text-warning'></span>Paper containing a <b>required</b> Flag: ",
+				stats("m2aRequired")+" Flags",true)
+			stat("<span class='glyphicon glyphicon-flag text-danger'></span>Paper containing a <b>expected</b> Flag: ",
+				stats("m2aExpected")+" Flags",true)-->
+
 		<h3>Methods & Assumptions</h3>
 		You can flag, edit or link the statistical methods and assumptions according to you needs:
 		<div class="row conf-editor">
@@ -41,6 +65,9 @@
 		</div>
 	</div>
 	<style>
+		.tabStart-true {
+			padding-left: 40px;
+		}
 		.conf-editor .glyphicon {
 			font-size:40px;
 			margin:15px;

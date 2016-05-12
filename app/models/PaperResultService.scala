@@ -30,11 +30,11 @@ class PaperResultService @Inject()(db:Database) {
 
 	private val answerParser: RowParser[PaperResult] =
 		get[Option[Long]]("id") ~
-				get[Int]("paper_id") ~
-				get[Int]("result_type") ~
-				get[String]("descr") ~
-				get[String]("result") ~
-				get[Int]("symbol") map {
+			get[Int]("paper_id") ~
+			get[Int]("result_type") ~
+			get[String]("descr") ~
+			get[String]("result") ~
+			get[Int]("symbol") map {
 			case id ~ paper_id ~ result_type ~ descr ~ result ~ symbol =>
 				PaperResult(id, paper_id, result_type, descr, result, symbol)
 		}
@@ -46,13 +46,30 @@ class PaperResultService @Inject()(db:Database) {
 			).as(answerParser.singleOpt)
 		}
 
-
 	def findByPaperId(paperId: Int): List[PaperResult] =
 		db.withConnection { implicit c =>
 			SQL("SELECT * FROM paper_results WHERE paper_id = {paper_id} ORDER BY result_type").on(
 				'paper_id -> paperId
 			).as(answerParser *)
 		}
+
+	def countByConferenceTotal(conferenceId: Int) : Int = {
+		db.withConnection { implicit c =>
+			SQL("SELECT count(*) FROM paper_results r, papers p " +
+				"WHERE r.paper_id = p.id AND p.conference_id = {conference_id}").on(
+				'conference_id -> conferenceId
+			).as(scalar[Int].single)
+		}
+	}
+
+	def countByConferencePapers(conferenceId: Int) : Int = {
+		db.withConnection { implicit c =>
+			SQL("SELECT count(DISTINCT r.paper_id) FROM paper_results r, papers p " +
+				"WHERE r.paper_id = p.id AND p.conference_id = {conference_id}").on(
+				'conference_id -> conferenceId
+			).as(scalar[Int].single)
+		}
+	}
 
 	def create(paperId: Int, resultType: Int, descr: String, result: String, symbol: Int) =
 		db.withConnection { implicit c =>
