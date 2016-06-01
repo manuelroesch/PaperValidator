@@ -1,6 +1,6 @@
 package helper.pdfpreprocessing
 
-import java.io.File
+import java.io.{FileWriter, File}
 
 import helper.Commons
 import helper.pdfpreprocessing.csv.{CSVExporter, Snippet}
@@ -56,6 +56,11 @@ object PreprocessPDF {
 			snippets.filter(_.isDefined).map(_.get)
 		}).toList
 
+		val permFile = new File(OUTPUT_DIR + "/" + secretHash + "/permutations.csv")
+		if(!permFile.exists()) {
+			permFile.getParentFile().mkdirs()
+			new FileWriter(permFile)
+		}
 		new CSVExporter(OUTPUT_DIR + "/" + secretHash + "/permutations.csv", snippets).persist()
 		snippets.length
 	}

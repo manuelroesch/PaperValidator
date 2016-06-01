@@ -3,12 +3,11 @@ package controllers
 import javax.inject.Inject
 
 import scala.collection.mutable.ListBuffer
-import scala.io.Source
 import scala.reflect.io.File
 import util.control.Breaks._
-import helper.{Commons, PaperProcessingManager}
+import helper.{SpellChecker, Commons, PaperProcessingManager}
 import models._
-import play.api.{Logger, Configuration}
+import play.api.Configuration
 import play.api.db.Database
 import play.api.mvc.{Action, Controller}
 
@@ -29,6 +28,7 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
     if(paper.size > 0) {
       var results = paperResultService.findByPaperId(id)
       results = addMethodsAndAssumptions(id,results)
+      val spellCheck = SpellChecker.check(paper.get)
       val filePath = configuration.getString("highlighter.pdfSourceDir").get+"/"+Commons.getSecretHash(secret)+"/log.txt"
       val fileLengh = File(filePath).length
       var log = ""
@@ -36,7 +36,7 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
         val source = scala.io.Source.fromFile(filePath)
         log = try source.mkString.replace("\n","\n<br>") finally source.close()
       }
-      Ok(views.html.paper.showPaper(paper.get,Commons.getSecretHash(secret),results,log))
+      Ok(views.html.paper.showPaper(paper.get,Commons.getSecretHash(secret),results,spellCheck,log))
     } else {
       Unauthorized(views.html.error.unauthorized())
     }
@@ -54,11 +54,12 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
             if(m2a.method.toLowerCase() == confSetting.methodName.toLowerCase() &&
               m2a.assumption.toLowerCase() == confSetting.assumptionName.toLowerCase()) {
               val m2aDescr = m2a.method+" <span class='glyphicon glyphicon-arrow-right'></span> "+m2a.assumption
-              var m2aResult = "Related: <b>"+ m2a.isRelated + "</b>, Checked before: <b>" + m2a.isCheckedBefore + "</b>"
+              var m2aResult = "Related: <b>"+ (m2a.isRelated > 0.5) + "</b>, " +
+                "Checked before: <b>" + (m2a.isCheckedBefore > 0.5) + "</b>"
               var symbol = PaperResult.SYMBOL_ERROR
-              if(m2a.isRelated && m2a.isCheckedBefore) {
+              if(m2a.isRelated > 0.5 && m2a.isCheckedBefore > 0.5) {
                 symbol = PaperResult.SYMBOL_OK
-              } else if(m2a.isRelated) {
+              } else if(m2a.isRelated > 0.5) {
                 symbol = PaperResult.SYMBOL_WARNING
                 m2aResult += getM2AFlagText(confSetting)
               } else {
@@ -72,7 +73,6 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
         }}
       }
     })
-    Logger.debug(conferenceSettings.mkString(";"))
     conferenceSettings.foreach(confSetting => {
       if(confSetting.flag.get != ConferenceSettings.FLAG_IGNORE){
         val m2aDescr = confSetting.methodName+" <span class='glyphicon glyphicon-arrow-right'></span> "+

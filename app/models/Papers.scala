@@ -23,6 +23,9 @@ object Papers {
 case class Papers(id: Option[Int], name: String, email: String, conferenceId: Int, status: Int, permutations: Int,
 									lastModified: DateTime, secret: String) extends Serializable
 
+case class PapersWithStats(id: Option[Int], name: String, status: Int, permutations: Int, secret: String,
+													 statsTotal: Map[Int,Int], statDetails: Map[String,Int])
+
 class PapersService @Inject()(db:Database) {
 
 	private val answerParser: RowParser[Papers] =
@@ -57,6 +60,14 @@ class PapersService @Inject()(db:Database) {
 		db.withConnection { implicit c =>
 			SQL("SELECT * FROM papers WHERE email = {email}").on(
 				'email -> email
+			).as(answerParser *)
+		}
+	}
+
+	def findByConference(conferenceId: Int): List[Papers] = {
+		db.withConnection { implicit c =>
+			SQL("SELECT * FROM papers WHERE conference_id = {conference_id}").on(
+				'conference_id -> conferenceId
 			).as(answerParser *)
 		}
 	}

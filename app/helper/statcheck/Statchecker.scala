@@ -35,6 +35,7 @@ object Statchecker {
 
   def run(paper: Papers, paperResultService: PaperResultService) = {
     val text = convertPDFtoText(paper).toLowerCase()
+    basicStats(paper,text,paperResultService)
     recalculateStats(paper,text,paperResultService)
   }
 
@@ -42,9 +43,30 @@ object Statchecker {
     extractFValues(text).mkString(";")
   }
 
-  def recalculateStats(paper:Papers, text: String, paperResultService: PaperResultService) = {
-    oneTailedTxt = extractIsOneSided(text)
+  def basicStats(paper:Papers, text: String, paperResultService: PaperResultService) {
     numberOfpVals = extractPValues(text)
+    val sampleSize = extractSampleSizeStated(text)
+    val sampleSizeDescr = "Sample size stated in Text"
+    if(sampleSize) {
+      paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_SAMPLE_SIZE, sampleSizeDescr,"<b>Detected!</b>",PaperResult.SYMBOL_OK)
+    } else {
+      paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_SAMPLE_SIZE, sampleSizeDescr,"Could <b>not</b> be <b>detected!</b>",PaperResult.SYMBOL_WARNING)
+    }
+    val statTermError = extractStatTermError(text)
+    val statTermErrorDescr = "Incorrect use of statistical terminology"
+    if(statTermError.isEmpty) {
+      paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_ERROR_TERMS, statTermErrorDescr,"<b>Nothing Detected!</b>",PaperResult.SYMBOL_OK)
+    } else {
+      paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_ERROR_TERMS, statTermErrorDescr,"Errorous terms: " + statTermError.mkString(", "),PaperResult.SYMBOL_OK)
+    }
+
+    oneTailedTxt = extractIsOneSided(text)
+    if(oneTailedTxt) {
+      paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_ONE_SIDED, "One-tailed statistics detected","<b>Detected!</b>",PaperResult.SYMBOL_WARNING)
+    }
+  }
+
+  def recalculateStats(paper:Papers, text: String, paperResultService: PaperResultService) = {
     writeResultsToDB(paper, extractChi2Values(text), PaperResult.TYPE_STATCHECK_CHI2, paperResultService)
     writeResultsToDB(paper, extractFValues(text), PaperResult.TYPE_STATCHECK_F, paperResultService)
     writeResultsToDB(paper, extractRValues(text), PaperResult.TYPE_STATCHECK_R, paperResultService)
@@ -77,7 +99,7 @@ object Statchecker {
   def convertPDFtoText(paper: Papers): String = {
     val paperLink = PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(paper.secret) + "/" + paper.name
     val contents = new PDFTextExtractor(paperLink).pages//map(_.toLowerCase)
-    val text = contents.mkString(" ")
+    val text = contents.mkString(" ").replaceAll("\0"," ")
     val pw = new PrintWriter(new File(paperLink+".txt"))
     pw.write(text)
     pw.close()
@@ -94,6 +116,19 @@ object Statchecker {
       }
     }).filter(_ < 1)
     pVals.length
+  }
+
+  val REGEX_SAMPLE_SIZE = new Regex("sample\\s?size|\\d*\\s?participants|\\d*\\s?subjects|n\\s?=\\s?\\d*")
+  def extractSampleSizeStated(text: String): Boolean = {
+    val sampleSize = REGEX_SAMPLE_SIZE.findFirstIn(text)
+    if(sampleSize.isDefined) true else false
+  }
+
+  val REGEX_STAT_TERM_ERROR = new Regex("(arc\\s?sinus\\s?transformation|impaired\\s?t-test|variance\\s?analysis|multivariate\\s?analysis)")
+  def extractStatTermError(text: String): List[String] = {
+    REGEX_STAT_TERM_ERROR.findAllIn(text).matchData.map(m =>
+      m.group(0)
+    ).toList
   }
 
   val REGEX_ONE_SIDED = new Regex("one.?sided|one.?tailed|directional")

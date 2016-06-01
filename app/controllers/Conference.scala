@@ -1,9 +1,8 @@
 package controllers
 
-import java.io.{BufferedWriter, FileWriter, File}
+import java.io.File
 import javax.inject.Inject
 
-import com.typesafe.config.ConfigFactory
 import helper.Commons
 import helper.email.MailTemplates
 import models._
@@ -77,16 +76,44 @@ class Conference @Inject() (configuration: Configuration, conferenceService: Con
     if(conference.isEmpty) {
       Unauthorized(views.html.error.unauthorized())
     } else {
-      var stats : Map[String,String] = Map()
-      stats += ("submittedPapers"-> papersService.countPapersByConference(conferenceId).toString)
-      stats += ("statcheckErrorsTotal"->paperResultService.countByConferenceTotal(conferenceId).toString)
-      stats += ("statcheckErrorPapers"->paperResultService.countByConferencePapers(conferenceId).toString)
-      stats += ("methodsTotal"->paperMethodService.countByConferenceTotal(conferenceId).toString)
-      stats += ("methodsPapers"->paperMethodService.countByConferenceTotal(conferenceId).toString)
-      stats += ("m2aTotal"->answerService.countAnswersByConferenceTotal(conferenceId).toString)
-      stats += ("m2aPapers"->answerService.countAnswersByConferencePaper(conferenceId).toString)
-      Ok(views.html.conference.conferenceEditor(conferenceId,secret,conference.get.name,stats))
+      val papers = papersService.findByConference(conferenceId)
+      val papersWithStats = PaperStats.getStats(papers, papersService, paperResultService,
+        answerService, conferenceSettingsService)
+      val stats = calculateConferenceStats(conferenceId,papersWithStats)
+      Ok(views.html.conference.conferenceEditor(conferenceId,secret,conference.get.name,stats,papersWithStats))
     }
+  }
+
+  def calculateConferenceStats(conferenceId:Int, papersWithStats:List[PapersWithStats]): Map[String,String] = {
+    var paperWithWarnings = 0
+    var paperWithErrors = 0
+    var paperWithWarningOrError = 0
+    var paperWarningErrorByType : Map[String,Int] = Map()
+
+    papersWithStats.foreach(p => {
+      if(p.statsTotal.getOrElse(PaperResult.SYMBOL_ERROR,0) > 0) paperWithErrors+=1
+      if(p.statsTotal.getOrElse(PaperResult.SYMBOL_WARNING,0) > 0) paperWithWarnings+=1
+      if(p.statsTotal.getOrElse(PaperResult.SYMBOL_WARNING,0) > 0 || p.statsTotal(PaperResult.SYMBOL_ERROR) > 0) {
+        paperWithWarningOrError+=1
+      }
+      p.statDetails.foreach(sd => {
+        paperWarningErrorByType += (sd._1 -> (paperWarningErrorByType.getOrElse(sd._1,0)+sd._2))
+      })
+    })
+
+    var stats : Map[String,String] = Map()
+    stats += ("paperTotal"-> papersService.countPapersByConference(conferenceId).toString)
+    stats += ("paperWithWarnings"-> paperWithWarnings.toString)
+    stats += ("paperWithErrors"-> paperWithErrors.toString)
+    stats += ("paperWithWarningsOrErrors"-> paperWithWarningOrError.toString)
+    stats += ("methodsTotal"->paperMethodService.countByConferenceTotal(conferenceId).toString)
+    stats += ("paperWithMethods"->paperMethodService.countByConferencePapers(conferenceId).toString)
+    stats += ("m2ATotal"->answerService.countAnswersByConferenceTotal(conferenceId).toString)
+    stats += ("paperWithM2A"->answerService.countAnswersByConferencePaper(conferenceId).toString)
+    paperWarningErrorByType.foreach(p => {
+      stats += (p._1->p._2.toString)
+    })
+    stats
   }
 
   def flagEditor(conferenceId: Int, secret: String) = Action {

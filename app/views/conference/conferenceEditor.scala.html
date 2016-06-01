@@ -1,38 +1,35 @@
 @import play.Configuration
 
-@(id: Int, secret: String, name: String, stats: Map[String,String])
 
-@stat(descr: String, result:String, tabStart:Boolean = false) = {
-	<div class="row">
-		<div class="col-sm-3">&nbsp;</div>
+@(id: Int, secret: String, name: String, stats: Map[String,String], papers: List[PapersWithStats])
+
+@stat(descr: String, result:String, tabStart:Boolean = false, title:Boolean = false) = {
+	<div class="row confStats">
+		<div class="col-sm-2">&nbsp;</div>
 		<div class="col-sm-4 text-left tabStart-@tabStart">
 			@Html(descr)
 		</div>
-		<div class="col-sm-2 text-right">
+		<div class="col-sm-4 text-right">
+		@if(tabStart && !title) {
+			<span class="statItem text-right">@stats.getOrElse(result+"-"+PaperResult.SYMBOL_OK,"0")</span>
+			<span class="glyphicon glyphicon-ok text-success"></span>
+			<span class="statItem text-right">@stats.getOrElse(result+"-"+PaperResult.SYMBOL_WARNING,"0")</span>
+			<span class="glyphicon glyphicon-warning-sign text-warning"></span>
+			<span class="statItem text-right">@stats.getOrElse(result+"-"+PaperResult.SYMBOL_ERROR,"0")</span>
+			<span class="glyphicon glyphicon-ban-circle text-danger"></span>
+		} else {
 			@Html(result)
+		}
 		</div>
-		<div class="col-sm-3">&nbsp;</div>
+		<div class="col-sm-2">&nbsp;</div>
 	</div>
 }
 
+@baseUrl = {@Configuration.root().getString("hcomp.ballot.baseURL")}
 @urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Conference Editor") {
 	<div class="row text-center">
 		<h1>@name</h1>
-		<h3>Statistics</h3>
-		@stat("Number of papers <b>submitted</b> to the conference:",
-			"<b>"+stats("submittedPapers")+" Papers</b>")
-		@stat("Errors detected with <b>StatChecker</b>:",
-			"<b>"+stats("statcheckErrorsTotal")+
-					" Errors</b> in " + stats("statcheckErrorPapers")+" Papers")
-		@stat("Detected <b>Statistical Methods</b>:",
-			"<b>"+stats("methodsTotal")+" Methods</b> in " + stats("methodsPapers")+" Papers")
-		@stat("Extracted <b>Methods and assumptions</b> pairs:",
-			"<b>"+stats("m2aTotal")+" Pairs</b> in "+stats("m2aPapers")+" Papers")
-		<!--stat("<span class='glyphicon glyphicon-flag text-warning'></span>Paper containing a <b>required</b> Flag: ",
-				stats("m2aRequired")+" Flags",true)
-			stat("<span class='glyphicon glyphicon-flag text-danger'></span>Paper containing a <b>expected</b> Flag: ",
-				stats("m2aExpected")+" Flags",true)-->
 
 		<h3>Methods & Assumptions</h3>
 		You can flag, edit or link the statistical methods and assumptions according to you needs:
@@ -65,6 +62,83 @@
 				</div>
 			</div>
 		</div>
+		<h3>Papers</h3>
+		@if(papers.isEmpty) {
+			No paper has been uploaded and completely processed so far.
+		}
+		@for(paper <- papers) {
+			<div class="row paper">
+				<div class="col-md-2"></div>
+				<div class="col-md-10">
+					<div class="col-xs-1" style="width: 3%"></div>
+					<div class="col-xs-1 text-center">
+							<!--<span class="glyphicon glyphicon-file"></span>-->
+						<img class="pdf-icon" src="@{urlPrefix + routes.Assets.at("images/pdf-small.png").url}">
+						<div class="paper-status">
+							@paper.status match {
+								case Papers.STATUS_COMPLETED => {
+									<span class="glyphicon glyphicon-ok text-success"></span>
+								}
+								case Papers.STATUS_ERROR => {
+									<span class="glyphicon glyphicon glyphicon-ban-circle text-danger"></span>
+								}
+								case _ => {
+									<span class="glyphicon glyphicon-refresh text-muted"></span>
+								}
+							}
+						</div>
+					</div>
+					<div class="col-xs-10">
+						<div class="row">
+							<div class="col-md-12 text-left">
+								<b>@paper.name</b>
+								<br>
+								<a href="@{urlPrefix + routes.Paper.show(paper.id.get,paper.secret).url}">
+									<span class="glyphicon glyphicon-share"></span>
+									@{baseUrl.toString() + urlPrefix + routes.Paper.show(paper.id.get,paper.secret).url}
+								</a><br>
+								<div class="paper-stats">
+									<span class="glyphicon glyphicon-ok text-success"></span>
+									<div class="statItem">@paper.statsTotal.getOrElse(PaperResult.SYMBOL_OK,0)</div>
+									<span class="glyphicon glyphicon-warning-sign text-warning"></span>
+									<div class="statItem">@paper.statsTotal.getOrElse(PaperResult.SYMBOL_WARNING,0)</div>
+									<span class="glyphicon glyphicon-ban-circle text-danger"></span>
+									<div class="statItem">@paper.statsTotal.getOrElse(PaperResult.SYMBOL_ERROR,0)</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		}
+		<h3>Statistics</h3>
+		@stat("Number of papers <b>submitted</b> to the conference:",
+			"<b>"+stats("paperTotal")+" Paper(s)</b>")
+		@stat("Number of papers containing <b>warnings</b>:",
+			"<b>"+stats("paperWithWarnings")+" Paper(s)</b>")
+		@stat("Number of papers containing <b>errors</b>:",
+			"<b>"+stats("paperWithErrors")+" Paper(s)</b>")
+		@stat("Number of papers containing <b>warning or errors</b>:",
+			"<b>"+stats("paperWithWarningsOrErrors")+" Paper(s)</b>")
+			@stat("<b>Basic Analysis</b>", "&nbsp;", true, true)
+				@stat("Sample size warning/erros:",PaperResult.TYPE_BASICS_SAMPLE_SIZE.toString,true)
+				@stat("Error terms warning/erros:", PaperResult.TYPE_BASICS_ERROR_TERMS.toString,true)
+				@stat("One-sided warning/erros:", PaperResult.TYPE_BASICS_ONE_SIDED.toString,true)
+			@stat("<b>Methods and Assumptions</b>", "&nbsp;", true, true)
+				@stat("Method to Assumption warning/erros:", PaperResult.TYPE_M2A.toString,true)
+			@stat("<b>Statcheck</b>", "&nbsp;", true, true)
+				@stat("Chi2 warning/erros:", PaperResult.TYPE_STATCHECK_CHI2.toString,true)
+				@stat("F warning/erros:", PaperResult.TYPE_STATCHECK_F.toString,true)
+				@stat("R warning/erros:", PaperResult.TYPE_STATCHECK_R.toString,true)
+				@stat("T warning/erros:", PaperResult.TYPE_STATCHECK_T.toString,true)
+				@stat("Z warning/erros:", PaperResult.TYPE_STATCHECK_Z.toString,true)
+			@stat("<b>Layout</b>", "&nbsp;", true, true)
+				@stat("Border warning/erros:", PaperResult.TYPE_LAYOUT_BORDER.toString,true)
+				@stat("Color warning/erros:", PaperResult.TYPE_LAYOUT_COLORS.toString,true)
+		@stat("Detected <b>statistical methods</b>:",
+			"<b>"+stats("methodsTotal")+" Method(s)</b> in " + stats("paperWithMethods")+" Paper(s)")
+		@stat("Detected <b>methods to assumption mappings</b>:",
+			"<b>"+stats("m2ATotal")+" Mapping(s)</b> in "+stats("paperWithM2A")+" Paper(s)")
 	</div>
 	<style>
 		.tabStart-true {
@@ -73,6 +147,62 @@
 		.conf-editor .glyphicon {
 			font-size:40px;
 			margin:15px;
+		}
+		.paper {
+			margin-top:12px;
+		}
+		.pdf-icon {
+			height: 36px;
+			position: relative;
+			left: 5px;
+			top: 12px;
+			padding: 2px;
+		}
+
+		.paper-status {
+			position: relative;
+		}
+
+		.paper-status .glyphicon-ok {
+			top: -9px;
+			left: 18px;
+		}
+
+		.paper-status .glyphicon-refresh {
+			top: -1px;
+			left: 19px;
+		}
+
+		.paper-status .glyphicon-ban-circle {
+			top: -9px;
+			left: 18px;
+		}
+
+		.confStats .col-sm-4 {
+			border-bottom: 1px dotted #e7e7e7;
+		}
+
+		.statItem {
+			display:inline-block ;
+			width: 30px ;
+			padding-right:5px ;
+		}
+
+		.glyphicon-refresh {
+		-webkit-animation: spin 1s infinite linear;
+		animation: spin 1s infinite linear;
+		}
+		@@-moz-keyframes spin {
+		from { -moz-transform: rotate(0deg); }
+		to { -moz-transform: rotate(360deg); }
+		}
+		@@-webkit-keyframes spin {
+		from { -webkit-transform: rotate(0deg); }
+		to { -webkit-transform: rotate(360deg); }
+		}
+		@@keyframes spin {
+		from {transform:rotate(0deg);}
+		to {transform:rotate(360deg);}
 		}
 	</style>
 

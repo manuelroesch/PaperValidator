@@ -26,6 +26,8 @@
 			}
 			.header {
 				margin-bottom: 20px;
+				border: 1px solid rgb(231, 231, 231);
+				background-color: rgb(250, 250, 250);
 			}
 			.header .logo {
 				width: 160px;
@@ -34,7 +36,7 @@
 			.header .btn-primary {
 				width: 150px;
 				margin-left:10px;
-				margin-top:30px;
+				margin-top:25px;
 			}
 
 			.header .input-group {
@@ -50,31 +52,28 @@
 				margin-bottom: 20px;
 			}
 			.footer {
-				margin-top: 50px;
+				margin-top: 100px;
 			}
 		</style>
 	</head>
 	<body ng-app="ballotApp">
-		<div class="container">
-			<div class="row header">
-				<div class="col-sm-2">
-					<a href="@{urlPrefix + routes.Home.index.url}">
-						<img src="@{urlPrefix + routes.Assets.at("images/papval_logo.jpg").url}" alt="Logo" class="logo">
-					</a>
-				</div>
-				<div class="col-sm-6">
-					<div class="input-group">
-						<input type="text" class="form-control" placeholder="Search for...">
-						<span class="input-group-btn">
-							<button class="btn btn-default" type="button"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
-						</span>
+			<div class="header">
+				<div class="container">
+					<div class="col-sm-1">
+					</div>
+					<div class="col-sm-3">
+						<a href="@{urlPrefix + routes.Home.index.url}">
+							<img src="@{urlPrefix + routes.Assets.at("images/papval_logo.png").url}" alt="Logo" class="logo">
+						</a>
+					</div>
+					<div class="col-sm-7 text-right">
+						<a href="@{urlPrefix + routes.Upload.upload.url}"><button class="btn btn-primary">Upload Paper</button></a>
+						<a href="@{urlPrefix + routes.Conference.conferenceCreator().url}"><button class="btn btn-primary">Create Conference</button></a>
+						<a href="@{urlPrefix + routes.Account.getAccess.url}"><button class="btn btn-primary">My Account</button></a>
 					</div>
 				</div>
-				<div class="col-sm-4">
-					<a href="@{urlPrefix + routes.Upload.upload.url}"><button class="btn btn-primary">Upload Paper</button></a>
-					<a href="@{urlPrefix + routes.Conference.conferenceCreator().url}"><button class="btn btn-primary">Create Conference</button></a>
-				</div>
 			</div>
+		<div class="container">
 			@content
 			<div class="row footer">
 				<div class="col-sm-12 text-center">

@@ -18,6 +18,7 @@ libraryDependencies ++= Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % "test",
   "org.apache.httpcomponents" % "httpclient" % "4.5",
   "com.typesafe" % "config" % "1.2.1",
+  "org.languagetool" % "language-en" % "3.3",
   "org.codehaus.plexus" % "plexus-utils" % "3.0.22",
   "com.sun.mail" % "javax.mail" % "1.5.5",
   "org.scalanlp" %% "breeze" % "0.12",

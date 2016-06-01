@@ -9,14 +9,16 @@ import org.joda.time.DateTime
 import play.api.Logger
 import play.api.db.Database
 
+import scala.collection.mutable.ListBuffer
+
 /**
   * Created by mattia on 02.07.15.
   */
 case class Answer(id: Option[Long], questionId: Long, userId: Long, time: DateTime, isRelated: Boolean,
 									isCheckedBefore: Boolean, extraAnswer: Boolean, answerJson: String, expectedOutputCode: Long,
 									accepted: Boolean) extends Serializable
-case class AnswerM2A(method: String, assumption: String, isRelated: Boolean, isCheckedBefore: Boolean,
-										 extraAnswer: Boolean, flag: Int) extends Serializable
+case class AnswerM2A(method: String, assumption: String, isRelated: Double, isCheckedBefore: Double,
+										 extraAnswer: Double, flag: Int) extends Serializable
 
 class AnswerService @Inject()(db:Database) {
 
@@ -38,9 +40,9 @@ class AnswerService @Inject()(db:Database) {
 	private val answerM2AParser: RowParser[AnswerM2A] =
 		get[String]("method") ~
 			get[String]("assumption") ~
-			get[Boolean]("is_related") ~
-			get[Boolean]("is_checked_before") ~
-			get[Boolean]("extra_answer") ~
+			get[Double]("is_related") ~
+			get[Double]("is_checked_before") ~
+			get[Double]("extra_answer") ~
 			get[Int]("flag") map {
 			case method ~ assumption ~ isRelated ~ isCheckedBefore ~ extraAnswer ~ flag =>
 				AnswerM2A(method, assumption, isRelated, isCheckedBefore, extraAnswer, flag)
@@ -68,17 +70,42 @@ class AnswerService @Inject()(db:Database) {
 		}
 
 	def findByPaperId(paperId: Int): List[AnswerM2A] = {
+		var m2aMap: Map[String, Map[String, List[Double]]] = null
 		db.withConnection { implicit c =>
-			val answers = SQL("SELECT method_index method,group_name assumption, a.is_related, is_checked_before, extra_answer, 0 flag " +
+			val answers = SQL("SELECT method_index method,group_name assumption, " +
+				"AVG(a.is_related) is_related, AVG(is_checked_before) is_checked_before, AVG(extra_answer) extra_answer, 0 flag " +
 				"FROM question q,answer a,permutations pe,papers pa " +
-				"WHERE q.id = a.question_id AND q.permutation = pe.id AND pe.paper_id = pa.id AND pa.id = {paper_id}").on(
+				"WHERE q.id = a.question_id AND q.permutation = pe.id AND pe.paper_id = pa.id AND pa.id = {paper_id} " +
+				"GROUP BY method_index, group_name").on(
 				'paper_id -> paperId
 			).as(answerM2AParser *)
-			answers.map(answer => {
-				val method = answer.method.split("_")(0)
-				val assumption = answer.assumption.split("/")(1)
-				new AnswerM2A(method, assumption, answer.isRelated, answer.isCheckedBefore, answer.extraAnswer, answer.flag)
-			})
+			if (answers.isEmpty) {
+				answers.foreach(answer => {
+					val method = answer.method.split("_")(0)
+					val assumption = answer.assumption.split("/")(1)
+					if (m2aMap == null) {
+						m2aMap = Map(method -> Map(assumption -> List(answer.isRelated, answer.isCheckedBefore)))
+					} else if (!m2aMap.isDefinedAt(method)) {
+						m2aMap += (method -> Map(assumption -> List(answer.isRelated, answer.isCheckedBefore)))
+					} else if (!m2aMap(method).isDefinedAt(assumption) || m2aMap(method)(assumption).head <= answer.isRelated
+						&& m2aMap(method)(assumption)(1) <= answer.isCheckedBefore) {
+						m2aMap += (method -> m2aMap.get(method).get.updated(assumption, List(answer.isRelated, answer.isCheckedBefore)))
+					}
+				})
+				if(m2aMap!=null){
+					var m2aList: ListBuffer[AnswerM2A] = ListBuffer()
+					m2aMap.foreach(m2a => {
+						m2aMap(m2a._1).foreach(a => {
+							m2aList += new AnswerM2A(m2a._1, a._1, a._2.head, a._2(1), 0.0, 0)
+						})
+					})
+					m2aList.toList
+				} else {
+					List[AnswerM2A]()
+				}
+			} else {
+				List[AnswerM2A]()
+			}
 		}
 	}
 

@@ -45,6 +45,7 @@ object PaperProcessingManager {
             case error : Throwable => {
               val errorMsg = error.getStackTrace.mkString("\n")
               PaperProcessingManager.writePaperLog(errorMsg,paper.secret)
+              papersService.updateStatus(paper.id.get,Papers.STATUS_ERROR)
             }
           }
         )
@@ -76,6 +77,8 @@ object PaperProcessingManager {
         writePaperLog("No Permutations Found\n",paper.secret)
         papersService.updateStatus(paper.id.get,Papers.STATUS_COMPLETED)
       }
+      writePaperLog("Run Layout Checker\n",paper.secret)
+      LayoutChecker.check(paper,paperResultService)
       writePaperLog("Finish and Notify Analysis\n",paper.secret)
       MailTemplates.sendPaperAnalyzedMail(paper.name,paperLink,permutations,paper.email)
     } else if(paper.status == Papers.STATUS_IN_PPLIB_QUEUE) {

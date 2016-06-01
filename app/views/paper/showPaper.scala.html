@@ -1,7 +1,7 @@
 @import play.Configuration
 @import models.PaperResult
 
-@(paper: Papers,hashedSecret:String,results: List[PaperResult], log: String)
+@(paper: Papers,hashedSecret:String,results: List[PaperResult], spellCheck: String, log: String)
 
 @urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Show Paper") {
@@ -16,7 +16,7 @@
             <a target="_blank" href="@{urlPrefix + routes.Assets.at("papers/"+hashedSecret+"/"+paper.name).url}">
                 <button class="btn btn-primary">Download Paper</button>
             </a>
-            <button class="btn btn-primary">Update Paper</button>
+            <!--<button class="btn btn-primary">Update Paper</button>-->
             <button class="btn btn-danger">Delete Paper</button>
         </div>
         <div class="col-md-8">
@@ -32,13 +32,61 @@
                     <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
                         <div class="panel-body">
                             @for((result,index) <- results.zipWithIndex) {
+                                @if(result.resultType < 3000) {
+                                    @if(index == 0 || result.resultType / 1000 != results(index - 1).resultType / 1000) {
+                                        @((result.resultType / 1000) * 1000) match {
+                                            case PaperResult.TYPE_BASICS => {
+                                                <h3>Basic Tests</h3>
+                                            }
+                                            case PaperResult.TYPE_M2A => {
+                                                <h3>Methods and Assumptions</h3>
+                                            }
+                                            case PaperResult.TYPE_STATCHECK => {
+                                                <h3>Statcheck</h3>
+                                            }
+                                        }
+                                    }
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            @(result.symbol) match {
+                                                case PaperResult.SYMBOL_OK => {
+                                                    <span class="glyphicon glyphicon-ok text-success"></span>
+                                                }
+                                                case PaperResult.SYMBOL_WARNING => {
+                                                    <span class="glyphicon glyphicon-warning-sign text-warning"></span>
+                                                }
+                                                case PaperResult.SYMBOL_ERROR => {
+                                                    <span class="glyphicon glyphicon-ban-circle text-danger"></span>
+                                                }
+                                            }
+                                                &nbsp;
+                                            @Html(result.descr)
+                                        </div>
+                                        <div class="col-md-6">
+                                        @Html(result.result)
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingTwo">
+                        <h4 class="panel-title">
+                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Layout & Style
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                        <div class="panel-body">
+                        @for((result,index) <- results.zipWithIndex) {
+                            @if(result.resultType > 3000) {
                                 @if(index == 0 || result.resultType/1000 != results(index-1).resultType/1000) {
                                     @((result.resultType/1000)*1000) match {
-                                        case PaperResult.TYPE_M2A => {
-                                            <h3>Methods and Assumptions</h3>
-                                        }
-                                        case PaperResult.TYPE_STATCHECK => {
-                                            <h3>Statcheck</h3>
+                                        case PaperResult.TYPE_LAYOUT => {
+                                            <h3>Basic Tests</h3>
                                         }
                                     }
                                 }
@@ -59,25 +107,11 @@
                                         @Html(result.descr)
                                     </div>
                                     <div class="col-md-6">
-                                        @Html(result.result)
+                                    @Html(result.result)
                                     </div>
                                 </div>
                             }
-                        </div>
-                    </div>
-                </div>
-                <div class="panel panel-default">
-                    <div class="panel-heading" role="tab" id="headingTwo">
-                        <h4 class="panel-title">
-                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                Layout & Style
-                            </a>
-                        </h4>
-                    </div>
-                    <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
-                        <div class="panel-body">
-                            <h3>Layout</h3>
-                            This section is still under construction. Please be patient.
+                        }
                         </div>
                     </div>
                 </div>
@@ -85,13 +119,26 @@
                     <div class="panel-heading" role="tab" id="headingThree">
                         <h4 class="panel-title">
                             <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                Processing Log
+                                Spellchecker
                             </a>
                         </h4>
                     </div>
                     <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
-                        <div class="panel-body">
-                            <h3>Log</h3>
+                        <div class="panel-body" style="padding-top:15px">
+                            @Html(spellCheck)
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingFour">
+                        <h4 class="panel-title">
+                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                Processing Log
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseFour" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
+                        <div class="panel-body" style="padding-top:15px">
                             @Html(log)
                         </div>
                     </div>

@@ -1,16 +1,11 @@
 package controllers
 
-import java.io.{BufferedWriter, File, FileWriter}
 import javax.inject.Inject
 
-import com.typesafe.config.ConfigFactory
-import helper.Commons
-import helper.email.MailTemplates
 import models._
 import play.Configuration
 import play.api.mvc.{Action, Controller}
 
-import scala.io.Source
 
 /**
   * Created by manuel on 11.04.2016.

@@ -13,6 +13,8 @@ GET        /assetsBallot/:id/:secret                controllers.Mturk.showAsset(
 
 #Account
 GET        /account/:id/:secret                     controllers.Account.account(id: Int, secret:String)
+GET        /account                                 controllers.Account.getAccess
+POST       /account                                 controllers.Account.sendAccessEmail
 
 # Upload
 GET        /upload                                  controllers.Upload.upload

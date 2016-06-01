@@ -1,12 +1,7 @@
-- Change Flag Editor: Flag -> Expected
-- Create Table: Problems - Occurrence Frequency - time/way to solve
-
 Pending high-priority:
+- Create Table: Problems - Occurrence Frequency - time/way to solve
 - Alle Statchecker tests implementieren
-- Stats zum eigenen Paper (Meth-Ass-Flag, Statchecker, einfache Stat-Fehler
-- Prüf-Fortschritt
 - Paper-Checker in eigener JVM
-- PDF-Text extraktion
 - 2-Spalten cropping Bug
 - Method mapping
 - M-A weit auseinander: cuf-off
@@ -14,6 +9,7 @@ Pending high-priority:
 Pending low-priority:
 - Upload R-File + Data-File
 - Confirm Paper/Conference
+- PDF-Text extraktion
 
 Done
 - Riesen-PNG
@@ -21,7 +17,9 @@ Done
 - Template für method-assumption ignore-flag-require Auswahl
 - 3. frage ja/nein/unklar
 - Github, darf Kosten ???
-
+- Change Flag Editor: Flag -> Expected
+- Stats zum eigenen Paper (Meth-Ass-Flag, Statchecker, einfache Stat-Fehler
+- Prüf-Fortschritt
 
 - screencast statcheck 
 - 2-step upload 

@@ -1,12 +1,12 @@
 @import play.Configuration
 
-@(email: String, papers: List[Papers], conferences: List[models.Conference])
+@(email: String, papers: List[PapersWithStats], conferences: List[models.Conference])
 
 @baseUrl = {@Configuration.root().getString("hcomp.ballot.baseURL")}
 @urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Account Overview") {
     <div class="row text-center">
-        <h1>Your Account</h1>
+        <h1>My Account</h1>
         <h4>@email</h4>
         @if(papers.isEmpty && conferences.isEmpty) {
             You haven't uploaded anything yet!
@@ -16,17 +16,36 @@
         }
         @for(paper <- papers) {
             <div class="row paper">
-                <div class="col-xs-2 text-right">
+                <div class="col-xs-3 text-right">
                     <!--<span class="glyphicon glyphicon-file"></span>-->
                     <img class="pdf-icon" src="@{urlPrefix + routes.Assets.at("images/pdf-small.png").url}">
                 </div>
-                <div class="col-xs-8">
+                <div class="col-xs-7">
                     <div class="row">
-
-                        <div class="col-sm-8 text-left paper-name">
+                        <div class="col-sm-12 text-left paper-name">
                             <b>@paper.name</b>
                         </div>
-                        <div class="col-sm-4 text-right">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 text-left">
+                            <a href="@{urlPrefix + routes.Paper.show(paper.id.get,paper.secret).url}">
+                            <span class="glyphicon glyphicon-share"></span>
+                            @{baseUrl.toString() + urlPrefix + routes.Paper.show(paper.id.get,paper.secret).url}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row" style="border-top:1px solid #e7e7e7">
+                        <div class="col-md-7">
+                            <div class="paper-stats text-left">
+                                <span class="glyphicon glyphicon-ok text-success"></span>
+                                <div class="statItem">@paper.statsTotal.getOrElse(PaperResult.SYMBOL_OK,0)</div>
+                                <span class="glyphicon glyphicon-warning-sign text-warning"></span>
+                                <div class="statItem">@paper.statsTotal.getOrElse(PaperResult.SYMBOL_WARNING,0)</div>
+                                <span class="glyphicon glyphicon-ban-circle text-danger"></span>
+                                <div class="statItem">@paper.statsTotal.getOrElse(PaperResult.SYMBOL_ERROR,0)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-5 text-right">
                             @paper.status match {
                                 case Papers.STATUS_NEW => {
                                     <span class="text-muted">
@@ -61,14 +80,6 @@
                             }
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-12 text-left">
-                            <a href="@{urlPrefix + routes.Paper.show(paper.id.get,paper.secret).url}">
-                            <span class="glyphicon glyphicon-share"></span>
-                            @{baseUrl.toString() + urlPrefix + routes.Paper.show(paper.id.get,paper.secret).url}
-                            </a>
-                        </div>
-                    </div>
                 </div>
             </div>
         }
@@ -77,15 +88,15 @@
         }
         @for(conference <- conferences) {
             <div class="row conference">
-                <div class="col-xs-2 text-right">
+                <div class="col-xs-3 text-right">
                     <img class="conf-icon" src="@{urlPrefix + routes.Assets.at("images/conference-small.jpg").url}">
                 </div>
-                <div class="col-xs-8">
+                <div class="col-xs-7">
                     <div class="row">
-                        <div class="col-sm-9 text-left paper-name">
+                        <div class="col-sm-10 text-left paper-name">
                             <b>@conference.name</b>
                         </div>
-                        <div class="col-sm-3 text-right">
+                        <div class="col-sm-2 text-right">
                             <a target="_blank" href="@{urlPrefix +
                                     routes.Conference.conferenceEditor(conference.id.get,conference.secret).url}">
                                 <span class="glyphicon glyphicon-stats"></span>
@@ -125,7 +136,7 @@
             height: 36px;
             position: relative;
             left: 12px;
-            top: 2px;
+            top: 12px;
             padding: 2px;
         }
 
@@ -140,12 +151,17 @@
             position:relative;
             left: 15px;
         }
+        .statItem {
+            display:inline-block ;
+            width: 30px ;
+            text-align: center;
+            padding-right:5px ;
+        }
 
         .glyphicon-refresh {
             -webkit-animation: spin 1s infinite linear;
             animation: spin 1s infinite linear;
         }
-
         @@-moz-keyframes spin {
         from { -moz-transform: rotate(0deg); }
         to { -moz-transform: rotate(360deg); }

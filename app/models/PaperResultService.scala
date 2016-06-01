@@ -15,13 +15,23 @@ object PaperResult {
 	val SYMBOL_WARNING = 1
 	val SYMBOL_ERROR = 2
 
-	val TYPE_M2A = 0
-	val TYPE_STATCHECK = 1000
-	val TYPE_STATCHECK_CHI2 = 1010
-	val TYPE_STATCHECK_F = 1020
-	val TYPE_STATCHECK_R = 1030
-	val TYPE_STATCHECK_T = 1040
-	val TYPE_STATCHECK_Z = 1050
+	val TYPE_BASICS = 0
+	val TYPE_BASICS_SAMPLE_SIZE = 10
+	val TYPE_BASICS_ERROR_TERMS = 20
+	val TYPE_BASICS_ONE_SIDED=30
+
+	val TYPE_M2A = 1000
+
+	val TYPE_STATCHECK = 2000
+	val TYPE_STATCHECK_CHI2 = 2010
+	val TYPE_STATCHECK_F = 2020
+	val TYPE_STATCHECK_R = 2030
+	val TYPE_STATCHECK_T = 2040
+	val TYPE_STATCHECK_Z = 2050
+
+	val TYPE_LAYOUT = 3000
+	val TYPE_LAYOUT_BORDER = 3010
+	val TYPE_LAYOUT_COLORS = 3020
 }
 
 case class PaperResult(id: Option[Long], paperId: Int, resultType: Int, descr: String, result: String, symbol: Int) extends Serializable
@@ -56,7 +66,8 @@ class PaperResultService @Inject()(db:Database) {
 	def countByConferenceTotal(conferenceId: Int) : Int = {
 		db.withConnection { implicit c =>
 			SQL("SELECT count(*) FROM paper_results r, papers p " +
-				"WHERE r.paper_id = p.id AND p.conference_id = {conference_id}").on(
+				"WHERE r.paper_id = p.id AND (symbol = " + PaperResult.SYMBOL_WARNING + " OR " +
+				"symbol = " + PaperResult.SYMBOL_ERROR + ") AND p.conference_id = {conference_id}").on(
 				'conference_id -> conferenceId
 			).as(scalar[Int].single)
 		}
@@ -65,7 +76,8 @@ class PaperResultService @Inject()(db:Database) {
 	def countByConferencePapers(conferenceId: Int) : Int = {
 		db.withConnection { implicit c =>
 			SQL("SELECT count(DISTINCT r.paper_id) FROM paper_results r, papers p " +
-				"WHERE r.paper_id = p.id AND p.conference_id = {conference_id}").on(
+				"WHERE r.paper_id = p.id AND (symbol = " + PaperResult.SYMBOL_WARNING + " OR " +
+				"symbol = " + PaperResult.SYMBOL_ERROR + ") AND p.conference_id = {conference_id}").on(
 				'conference_id -> conferenceId
 			).as(scalar[Int].single)
 		}

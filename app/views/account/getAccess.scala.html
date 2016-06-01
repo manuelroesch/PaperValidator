@@ -1,0 +1,45 @@
+@import play.Configuration
+
+@(email: String)
+
+@baseUrl = {@Configuration.root().getString("hcomp.ballot.baseURL")}
+@urlPrefix = {@Configuration.root().getString("url.prefix")}
+@mainFrame("My Account") {
+    <div class="row text-center account-get-access">
+        <span class="glyphicon glyphicon-user"></span>
+        <h1>My Account</h1>
+        @if(email.isEmpty) {
+            <b>Please enter your email address.</b><br>We will send you the the necessary link to access your account.
+            <br><br>
+            <form id="account-form" action="@{urlPrefix + routes.Account.sendAccessEmail.url}" method="post">
+                <div class="form-group">
+                    <label for="account-email">Email address</label><br>
+                    <input type="email" class="form-control" id="account-email" name="email" placeholder="Your Email Address">
+                </div>
+                <div class="row text-center">
+                    <button type="submit" class="btn btn-primary" id="save-button">Send Account Link</button>
+                </div>
+            </form>
+        } else {
+            We've sent you the link to access your account to:<br>
+            <h3>@email</h3>
+            <br><br>
+            Notice that you won't receive more than one mail per day to prevent spam. <br>
+            <b>Please keep your email in your mailbox.</b>
+        }
+    </div>
+    <style>
+        .account-get-access .glyphicon-user {
+            font-size:100px;
+            padding:30px;
+        }
+        #account-email {
+            display: inline-block;
+            width: 350px;
+            text-align: center;
+        }
+        .account-form .btn {
+            width: 100px;
+        }
+    </style>
+}
