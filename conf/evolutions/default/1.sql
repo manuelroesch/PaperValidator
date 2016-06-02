@@ -289,5 +289,11 @@ ALTER TABLE `question2assets`
 ADD CONSTRAINT `question2assets_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`),
 ADD CONSTRAINT `question2assets_ibfk_2` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`);
 
+INSERT INTO `users` (`id`, `turker_id`, `first_seen_date_time`) VALUES
+  (1, 'SkipUser', '2016-06-01 10:10:10');
+
+INSERT INTO `batch` (`id`, `allowed_answers_per_turker`, `uuid`) VALUES
+  (1, 1, 'SkipBatch');
+
 # --- !Downs
 

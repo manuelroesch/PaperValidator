@@ -23,7 +23,8 @@ import scala.concurrent.Future
 class Upload @Inject() (database: Database, configuration: Configuration, questionService : QuestionService,
                         papersService: PapersService, conferenceService: ConferenceService,
                         method2AssumptionService: Method2AssumptionService, paperResultService: PaperResultService,
-                        paperMethodService: PaperMethodService
+                        paperMethodService: PaperMethodService, permutationsServcie: PermutationsServcie,
+                        answerService: AnswerService
                        ) extends Controller {
   def upload = Action {
     val conferences = conferenceService.findAll()
@@ -48,7 +49,7 @@ class Upload @Inject() (database: Database, configuration: Configuration, questi
         }
         Future  {
           PaperProcessingManager.run(database, configuration, papersService, questionService, method2AssumptionService,
-            paperResultService,paperMethodService)
+            paperResultService,paperMethodService, permutationsServcie, answerService)
         }
         Logger.info("done")
         Ok("Ok")

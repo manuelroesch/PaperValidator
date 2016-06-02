@@ -1,10 +1,9 @@
 package models
 
-import javax.inject.{Singleton, Inject}
+import javax.inject.Inject
 
 import anorm.SqlParser._
 import anorm._
-import helper.PaperProcessingManager
 import org.joda.time.DateTime
 import anorm.JodaParameterMetaData._
 import play.api.db.Database

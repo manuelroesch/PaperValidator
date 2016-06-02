@@ -108,30 +108,30 @@ object Statchecker {
     val resultPrevSize = 15
     if(meanWithoutVariance.nonEmpty) {
         val result = meanWithoutVariance.map(m => "e.g. ..."+text.substring(max(0,m.head-resultPrevSize),min(text.length,m(1)+resultPrevSize))+"...<br>")
-        paperResultService.create(paper.id.get, PaperResult.TYPE_MEAN_WITHOUT_VARIANCE, meanWithoutVarianceDescr,"<b>Detected!</b><br>"+result.head,PaperResult.SYMBOL_WARNING)
+        paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_MEAN_WITHOUT_VARIANCE, meanWithoutVarianceDescr,"<b>Detected!</b><br>"+result.head,PaperResult.SYMBOL_WARNING)
     } else {
-        paperResultService.create(paper.id.get, PaperResult.TYPE_MEAN_WITHOUT_VARIANCE, meanWithoutVarianceDescr,"<b>Nothing Detected!</b>",PaperResult.SYMBOL_OK)
+        paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_MEAN_WITHOUT_VARIANCE, meanWithoutVarianceDescr,"<b>Nothing Detected!</b>",PaperResult.SYMBOL_OK)
     }
 
     val varianceIfNotNormalDescr = "Variance if not normal"
     if(extractVarianceIfNotNormal(text)) {
-      paperResultService.create(paper.id.get, PaperResult.TYPE_VARIANCE_IFNOT_NORMAL, varianceIfNotNormalDescr,"<b>Detected!</b><br>",PaperResult.SYMBOL_WARNING)
+      paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_VARIANCE_IFNOT_NORMAL, varianceIfNotNormalDescr,"<b>Detected!</b><br>",PaperResult.SYMBOL_WARNING)
     } else {
-      paperResultService.create(paper.id.get, PaperResult.TYPE_VARIANCE_IFNOT_NORMAL, varianceIfNotNormalDescr,"<b>Nothing Detected!</b><br>",PaperResult.SYMBOL_OK)
+      paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_VARIANCE_IFNOT_NORMAL, varianceIfNotNormalDescr,"<b>Nothing Detected!</b><br>",PaperResult.SYMBOL_OK)
     }
 
     val goodnessOfFitDescr = "Fit without goodness of fit"
     if(extractGoodnessOfFit(text)) {
-      paperResultService.create(paper.id.get, PaperResult.TYPE_VARIANCE_IFNOT_NORMAL, goodnessOfFitDescr,"<b>Detected!</b><br>",PaperResult.SYMBOL_WARNING)
+      paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_FIT_WITHOUT_GOF, goodnessOfFitDescr,"<b>Detected!</b><br>",PaperResult.SYMBOL_WARNING)
     } else {
-      paperResultService.create(paper.id.get, PaperResult.TYPE_VARIANCE_IFNOT_NORMAL, goodnessOfFitDescr,"<b>Nothing Detected!</b><br>",PaperResult.SYMBOL_OK)
+      paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_FIT_WITHOUT_GOF, goodnessOfFitDescr,"<b>Nothing Detected!</b><br>",PaperResult.SYMBOL_OK)
     }
 
     val powerEffectDescr = "Power/effect size stated"
     if(extractPowerEffectSize(text)) {
-      paperResultService.create(paper.id.get, PaperResult.TYPE_POWER_EFFECT, powerEffectDescr,"Power and/or effect size is <b>not stated!</b><br>",PaperResult.SYMBOL_WARNING)
+      paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_POWER_EFFECT, powerEffectDescr,"Power and/or effect size is <b>not stated!</b><br>",PaperResult.SYMBOL_WARNING)
     } else {
-      paperResultService.create(paper.id.get, PaperResult.TYPE_POWER_EFFECT, powerEffectDescr,"Power/effect size<b></b>detected!<br>",PaperResult.SYMBOL_OK)
+      paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_POWER_EFFECT, powerEffectDescr,"Power/effect size<b></b>detected!<br>",PaperResult.SYMBOL_OK)
     }
 
   }

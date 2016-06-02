@@ -16,6 +16,7 @@ import helper.questiongenerator.HCompNew
 import helper.statcheck.Statchecker
 import models._
 import org.codehaus.plexus.util.FileUtils
+import org.joda.time.DateTime
 import play.api.{Configuration, Logger}
 import play.api.db.Database
 
@@ -27,12 +28,15 @@ import scala.io.Source
   */
 object PaperProcessingManager {
 
+  var BYPASS_CROWD_PROCESSING = true
+
   var isRunning = false
 
 
   def run(database: Database, configuration: Configuration, papersService: PapersService,
           questionService: QuestionService, method2AssumptionService: Method2AssumptionService,
-          paperResultService: PaperResultService, paperMethodService: PaperMethodService): Boolean = {
+          paperResultService: PaperResultService, paperMethodService: PaperMethodService,
+          permutationsServcie: PermutationsServcie, answerService: AnswerService): Boolean = {
     if(!isRunning) {
       isRunning = true
       val papersToProcess = papersService.findProcessablePapers()
@@ -40,7 +44,7 @@ object PaperProcessingManager {
         papersToProcess.foreach(paper =>
           try {
             processPaper(database, configuration, papersService, questionService, method2AssumptionService,
-              paperResultService, paperMethodService, paper)
+              paperResultService, paperMethodService, permutationsServcie, answerService, paper)
           } catch {
             case error : Throwable => {
               val errorMsg = error.getStackTrace.mkString("\n")
@@ -51,7 +55,7 @@ object PaperProcessingManager {
         )
         isRunning = false
         run(database, configuration, papersService, questionService, method2AssumptionService,
-          paperResultService, paperMethodService)
+          paperResultService, paperMethodService, permutationsServcie, answerService)
       }
       isRunning = false
     }
@@ -60,25 +64,30 @@ object PaperProcessingManager {
 
   def processPaper(database: Database, configuration: Configuration, papersService: PapersService,
                    questionService: QuestionService, method2AssumptionService: Method2AssumptionService,
-                   paperResultService: PaperResultService, paperMethodService: PaperMethodService, paper : Papers) = {
+                   paperResultService: PaperResultService, paperMethodService: PaperMethodService,
+                   permutationsServcie: PermutationsServcie,answerService: AnswerService,paper : Papers) = {
     val paperLink = configuration.getString("hcomp.ballot.baseURL").get + routes.Paper.confirmPaper(paper.id.get,paper.secret).url
     if(paper.status == Papers.STATUS_NEW) {
       writePaperLog("Start Analysis\n",paper.secret)
       Commons.generateCoverFile(paper)
       writePaperLog("Run StatChecker\n",paper.secret)
       Statchecker.run(paper, paperResultService)
+      writePaperLog("Run Layout Checker\n",paper.secret)
+      LayoutChecker.check(paper,paperResultService)
       writePaperLog("Run PreprocessPDF\n",paper.secret)
       val permutations = PreprocessPDF.start(database,paperMethodService,paper)
-      if(permutations>0) {
+      if(permutations > 0) {
         writePaperLog(permutations + " Permutation(s) Found\n",paper.secret)
         papersService.updateStatus(paper.id.get,Papers.STATUS_AWAIT_CONFIRMATION)
         papersService.updatePermutations(paper.id.get,permutations)
+        if(BYPASS_CROWD_PROCESSING){
+          skipCrowdWork(paper.id.get,paper.secret,questionService,permutationsServcie,answerService)
+          papersService.updateStatus(paper.id.get,Papers.STATUS_COMPLETED)
+        }
       } else {
         writePaperLog("No Permutations Found\n",paper.secret)
         papersService.updateStatus(paper.id.get,Papers.STATUS_COMPLETED)
       }
-      writePaperLog("Run Layout Checker\n",paper.secret)
-      LayoutChecker.check(paper,paperResultService)
       writePaperLog("Finish and Notify Analysis\n",paper.secret)
       MailTemplates.sendPaperAnalyzedMail(paper.name,paperLink,permutations,paper.email)
     } else if(paper.status == Papers.STATUS_IN_PPLIB_QUEUE) {
@@ -89,6 +98,7 @@ object PaperProcessingManager {
       MailTemplates.sendPaperCompletedMail(paper.name,paperLink,paper.email)
       writePaperLog("Clean Up\n",paper.secret)
       cleanUpTmpDir(paper)
+      writePaperLog("Completet!\n",paper.secret)
     }
   }
 
@@ -158,6 +168,20 @@ object PaperProcessingManager {
       fw.write(logMsg)
     }
     finally fw.close()
+  }
+
+  def skipCrowdWork(paperId: Int,secret:String, questionService: QuestionService,
+                    permutationsServcie: PermutationsServcie, answerService: AnswerService): Unit = {
+    val src = Source.fromFile(PreprocessPDF.OUTPUT_DIR + "/" + Commons.getSecretHash(secret) + "/permutations.csv")
+    val perms = src.getLines().drop(1).map(_.split(",")).toList
+    perms.foreach(p => {
+      val permutationId = permutationsServcie.create(p(0),p(1),paperId)
+      val questionId = questionService.create("",1,"",permutationId,"")
+      answerService.create(questionId, 1, new DateTime, true, true, true, 10, "", 123)
+      writePaperLog("Completet!\n",secret)
+    })
+    writePaperLog("Skipped Crowd Processing",secret)
+
   }
 
 }

@@ -1,10 +1,23 @@
 @import play.Configuration
 
+@(crowdCheck: Boolean)
+
 @urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Paper Confirmed") {
 	<div class="row text-center">
-        <img src="@{urlPrefix + routes.Assets.at("images/pdf.png").url}">
-        <h3>Paper confirmed! <span class="glyphicon glyphicon-ok"></span></h3>
-        Your paper will be processed soon.
+        <img id="pdf-ico-big" src="@{urlPrefix + routes.Assets.at("images/pdf.png").url}">
+        @if(crowdCheck) {
+            <h3>Paper confirmed! <span class="glyphicon glyphicon-ok"></span></h3>
+            Your paper will be processed soon.
+        } else {
+            <h3>Crowdcheck skipped! <span class="glyphicon glyphicon-ok"></span></h3>
+            Your paper is now finished without using crowd workers.<br>
+            Notice: Your result is less reliable without crowd support!
+        }
 	</div>
+    <style>
+        #pdf-ico-pig {
+            margin-top: 50px;
+        }
+    </style>
 }

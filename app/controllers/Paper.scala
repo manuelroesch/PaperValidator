@@ -20,7 +20,8 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 class Paper @Inject()(database: Database, configuration: Configuration, papersService: PapersService,
                       questionService: QuestionService, method2AssumptionService: Method2AssumptionService,
                       paperResultService: PaperResultService, answerService: AnswerService,
-                      conferenceSettingsService: ConferenceSettingsService, paperMethodService: PaperMethodService
+                      conferenceSettingsService: ConferenceSettingsService, paperMethodService: PaperMethodService,
+                      permutationsServcie: PermutationsServcie
                      ) extends Controller {
 
   def show(id:Int, secret:String) = Action {
@@ -104,13 +105,23 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
   }
 
   def confirmPaper(id:Int, secret:String) = Action {
-    if(papersService.findByIdAndSecret(id,secret).size > 0){
+    if(papersService.findByIdAndSecret(id,secret).nonEmpty){
       papersService.updateStatus(id,Papers.STATUS_IN_PPLIB_QUEUE)
       Future  {
         PaperProcessingManager.run(database, configuration, papersService, questionService,
-          method2AssumptionService, paperResultService, paperMethodService)
+          method2AssumptionService, paperResultService, paperMethodService, permutationsServcie, answerService)
       }
-      Ok(views.html.paper.confirmPaper())
+      Ok(views.html.paper.confirmPaper(true))
+    } else {
+      Unauthorized(views.html.error.unauthorized())
+    }
+  }
+
+  def skipPaper(id:Int, secret:String) = Action {
+    if(papersService.findByIdAndSecret(id,secret).nonEmpty){
+      PaperProcessingManager.skipCrowdWork(id,secret, questionService, permutationsServcie, answerService)
+      papersService.updateStatus(id,Papers.STATUS_COMPLETED)
+      Ok(views.html.paper.confirmPaper(false))
     } else {
       Unauthorized(views.html.error.unauthorized())
     }

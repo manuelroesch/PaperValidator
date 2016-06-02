@@ -1,10 +1,11 @@
 package models
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
-import anorm.SqlParser._
 import anorm._
+import anorm.SqlParser._
 import org.joda.time.DateTime
+import anorm.JodaParameterMetaData._
 import play.api.db.Database
 
 /**
@@ -56,4 +57,16 @@ class QuestionService @Inject()(db:Database) {
 		}
 	}
 
+	def create(html: String, batchId: Long, uuid: String, permutation: Long, secret: String) : Long =
+		db.withConnection { implicit c =>
+			SQL("INSERT INTO question(batch_id, html, create_time, uuid, permutation, secret) " +
+				"VALUES ({batch_id},{html},{create_time},{uuid},{permutation},{secret})").on(
+				'batch_id -> batchId,
+				'html -> html,
+				'create_time -> DateTime.now(),
+				'uuid -> uuid,
+				'permutation -> permutation,
+				'secret -> secret
+			).executeInsert(scalar[Long].single)
+		}
 }

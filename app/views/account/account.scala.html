@@ -35,7 +35,7 @@
                         </div>
                     </div>
                     <div class="row paper-stat">
-                        <div class="col-md-7">
+                        <div class="col-md-5">
                             <div class="paper-stats text-left">
                                 <span class="glyphicon glyphicon-ok text-success"></span>
                                 <div class="statItem">@paper.statsTotal.getOrElse(PaperResult.SYMBOL_OK,0)</div>
@@ -45,7 +45,7 @@
                                 <div class="statItem">@paper.statsTotal.getOrElse(PaperResult.SYMBOL_ERROR,0)</div>
                             </div>
                         </div>
-                        <div class="col-md-5 text-right">
+                        <div class="col-md-7 text-right">
                             @paper.status match {
                                 case Papers.STATUS_NEW => {
                                     <span class="text-muted">
@@ -55,6 +55,10 @@
                                 }
                                 case Papers.STATUS_AWAIT_CONFIRMATION => {
                                     @paper.permutations permutation(s) found.
+                                    <a href="@{baseUrl + routes.Paper.skipPaper(paper.id.get, paper.secret).url}" class="text-muted">
+                                        Skip <span class="glyphicon glyphicon-step-forward"></span>
+                                    </a>
+                                     or
                                     <a href="@{baseUrl + routes.Paper.confirmPaper(paper.id.get, paper.secret).url}" class="text-info">
                                         Confirm <span class="glyphicon glyphicon-ok"></span>
                                     </a>

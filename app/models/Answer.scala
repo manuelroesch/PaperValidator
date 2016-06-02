@@ -79,7 +79,6 @@ class AnswerService @Inject()(db:Database) {
 				"GROUP BY method_index, group_name").on(
 				'paper_id -> paperId
 			).as(answerM2AParser *)
-			if (answers.isEmpty) {
 				answers.foreach(answer => {
 					val method = answer.method.split("_")(0)
 					val assumption = answer.assumption.split("/")(1)
@@ -103,9 +102,6 @@ class AnswerService @Inject()(db:Database) {
 				} else {
 					List[AnswerM2A]()
 				}
-			} else {
-				List[AnswerM2A]()
-			}
 		}
 	}
 

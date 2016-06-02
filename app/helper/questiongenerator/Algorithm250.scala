@@ -13,8 +13,7 @@ import ch.uzh.ifi.pdeboer.pplib.process.entities.DefaultParameters._
 import ch.uzh.ifi.pdeboer.pplib.process.entities.IndexedPatch
 import ch.uzh.ifi.pdeboer.pplib.process.stdlib.ContestWithBeatByKVotingProcess
 import ch.uzh.ifi.pdeboer.pplib.process.stdlib.ContestWithBeatByKVotingProcess._
-import models.{Method2Assumption, Method2AssumptionService}
-import play.api.Logger
+import models.Method2AssumptionService
 
 import scala.xml.NodeSeq
 
