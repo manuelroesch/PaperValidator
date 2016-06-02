@@ -4,6 +4,7 @@ import java.io._
 import java.text.DecimalFormat
 import java.util.regex.Pattern
 
+import breeze.linalg.{min, max}
 import breeze.numerics._
 import breeze.stats.distributions.FDistribution
 import helper.Commons
@@ -47,7 +48,7 @@ object Statchecker {
   def convertPDFtoText(paper: Papers): String = {
     val paperLink = PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(paper.secret) + "/" + paper.name
     val contents = new PDFTextExtractor(paperLink).pages//map(_.toLowerCase)
-    val text = contents.mkString(" ").replaceAll("\0"," ")
+    val text = contents.mkString(" ").replaceAll("\u0000"," ")
     val pw = new PrintWriter(new File(paperLink+".txt"))
     pw.write(text)
     pw.close()
@@ -77,13 +78,13 @@ object Statchecker {
       paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_P_VALUES, pInTextDescr,"<b>No p-values</b> found in text",PaperResult.SYMBOL_OK)
     } else {
       paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_P_VALUES, pInTextDescr,"Text contains <b>"+pVals.size+" p-values</b>",PaperResult.SYMBOL_WARNING)
-      val wrongPDescr = "&nbsp;&nbsp;&nbsp;Wrong p-values (out of range [0,1])"
+      val wrongPDescr = "- Wrong p-values (out of range [0,1])"
       if(pVals.exists(_ < 0) || pVals.exists(_ > 1)) {
         paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_RANGE_P_VALUES, wrongPDescr,"Some of the <b>p-values are out of range</b>",PaperResult.SYMBOL_WARNING)
       } else {
         paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_RANGE_P_VALUES, wrongPDescr,"All <b>p-values are in range [0,1]</b>)",PaperResult.SYMBOL_OK)
       }
-      val imprecisePDescr = "&nbsp;&nbsp;&nbsp;Imprecise or unnecessary precise p-values"
+      val imprecisePDescr = "- Imprecise or unnecessary precise p-values"
       val wrongDoubles = evaluateTooHighDoublePrecision(pVals)
       if(extractPValuesNs(text) || wrongDoubles.nonEmpty) {
         paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_PRECISION_P_VALUES, imprecisePDescr,"<b>Detected!</b> "+wrongDoubles.mkString(","),PaperResult.SYMBOL_WARNING)
@@ -102,6 +103,36 @@ object Statchecker {
       }
     }
 
+    val meanWithoutVariance = extractMeanWithoutVariance(text)
+    val meanWithoutVarianceDescr = "Mean without Variance"
+    val resultPrevSize = 15
+    if(meanWithoutVariance.nonEmpty) {
+        val result = meanWithoutVariance.map(m => "e.g. ..."+text.substring(max(0,m.head-resultPrevSize),min(text.length,m(1)+resultPrevSize))+"...<br>")
+        paperResultService.create(paper.id.get, PaperResult.TYPE_MEAN_WITHOUT_VARIANCE, meanWithoutVarianceDescr,"<b>Detected!</b><br>"+result.head,PaperResult.SYMBOL_WARNING)
+    } else {
+        paperResultService.create(paper.id.get, PaperResult.TYPE_MEAN_WITHOUT_VARIANCE, meanWithoutVarianceDescr,"<b>Nothing Detected!</b>",PaperResult.SYMBOL_OK)
+    }
+
+    val varianceIfNotNormalDescr = "Variance if not normal"
+    if(extractVarianceIfNotNormal(text)) {
+      paperResultService.create(paper.id.get, PaperResult.TYPE_VARIANCE_IFNOT_NORMAL, varianceIfNotNormalDescr,"<b>Detected!</b><br>",PaperResult.SYMBOL_WARNING)
+    } else {
+      paperResultService.create(paper.id.get, PaperResult.TYPE_VARIANCE_IFNOT_NORMAL, varianceIfNotNormalDescr,"<b>Nothing Detected!</b><br>",PaperResult.SYMBOL_OK)
+    }
+
+    val goodnessOfFitDescr = "Fit without goodness of fit"
+    if(extractGoodnessOfFit(text)) {
+      paperResultService.create(paper.id.get, PaperResult.TYPE_VARIANCE_IFNOT_NORMAL, goodnessOfFitDescr,"<b>Detected!</b><br>",PaperResult.SYMBOL_WARNING)
+    } else {
+      paperResultService.create(paper.id.get, PaperResult.TYPE_VARIANCE_IFNOT_NORMAL, goodnessOfFitDescr,"<b>Nothing Detected!</b><br>",PaperResult.SYMBOL_OK)
+    }
+
+    val powerEffectDescr = "Power/effect size stated"
+    if(extractPowerEffectSize(text)) {
+      paperResultService.create(paper.id.get, PaperResult.TYPE_POWER_EFFECT, powerEffectDescr,"Power and/or effect size is <b>not stated!</b><br>",PaperResult.SYMBOL_WARNING)
+    } else {
+      paperResultService.create(paper.id.get, PaperResult.TYPE_POWER_EFFECT, powerEffectDescr,"Power/effect size<b></b>detected!<br>",PaperResult.SYMBOL_OK)
+    }
 
   }
 
@@ -141,6 +172,47 @@ object Statchecker {
   def extractSidedDistribution(text: String): Boolean = {
     val isSidedDist = REGEX_SIDED_DIST.findFirstIn(text)
     if(isSidedDist.isDefined) true else false
+  }
+
+  val REGEX_MEAN = new Regex("(mean|average|µ|⌀)")
+  val REGEX_VARIANCE = new Regex("(±|var|variance|standard\\s?deviation|standard\\s?error|sd|se|SE|SD)")
+  val REGEX_NO_DIGIT = new Regex("\\d[.,]\\d")
+  val MEAN_VARIANCE_TRES = 200
+  def extractMeanWithoutVariance(text: String): List[List[Int]] = {
+    REGEX_MEAN.findAllMatchIn(text).map(m => {
+      val varClose = REGEX_VARIANCE.findFirstIn(text.substring(max(m.start(0)-MEAN_VARIANCE_TRES,0)
+        ,min(text.length,m.end(0)+MEAN_VARIANCE_TRES))).isDefined
+      val varDigit = REGEX_NO_DIGIT.findFirstIn(text.substring(max(m.start(0)-MEAN_VARIANCE_TRES,0)
+        ,min(text.length,m.end(0)+MEAN_VARIANCE_TRES))).isDefined
+      if(!varClose && varDigit) {
+        List(m.start(0),m.end(0))
+      } else {
+        null
+      }
+    }).toList.filter(_ != null)
+  }
+
+  val REGEX_CONTAINS_NORMAL = new Regex("normal")
+  def extractVarianceIfNotNormal(text:String): Boolean = {
+    val containsNormal = REGEX_VARIANCE.findFirstIn(text).isDefined
+    val containsVariance = REGEX_VARIANCE.findFirstIn(text).isDefined
+    !containsNormal && containsVariance
+  }
+
+  val REGEX_CONTAINS_FIT = new Regex("fit")
+  val REGEX_CONTAINS_GOF = new Regex("goodness\\s?of\\s?fit|GoF|GFI")
+  def extractGoodnessOfFit(text:String): Boolean = {
+    val containsFit = REGEX_CONTAINS_FIT.findFirstIn(text).isDefined
+    val containsGoF = REGEX_CONTAINS_GOF.findFirstIn(text).isDefined
+    !containsGoF && containsFit
+  }
+
+  val REGEX_CONTAINS_POWER_EFFECT_METHODS = new Regex("regression|t.?test|Wilcoxon.?rank-sum|Mann-Whitney|Wilcoxon.?signed-rank|ANOVA")
+  val REGEX_CONTAINS_POWER_EFFECT = new Regex("power|effect\\s?size")
+  def extractPowerEffectSize(text:String): Boolean = {
+    val containsPowerEffectMethods = REGEX_CONTAINS_POWER_EFFECT_METHODS.findFirstIn(text).isDefined
+    val containsPowerEffect = REGEX_CONTAINS_POWER_EFFECT.findFirstIn(text).isDefined
+    !containsPowerEffect && containsPowerEffectMethods
   }
 
   def recalculateStats(paper:Papers, text: String, paperResultService: PaperResultService) = {
