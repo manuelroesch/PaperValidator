@@ -35,6 +35,7 @@ object Statchecker {
 
   def run(paper: Papers, paperResultService: PaperResultService) = {
     val text = convertPDFtoText(paper).toLowerCase()
+    oneTailedTxt = extractIsOneSided(text)
     basicStats(paper,text,paperResultService)
     recalculateStats(paper,text,paperResultService)
   }
@@ -43,15 +44,25 @@ object Statchecker {
     extractFValues(text).mkString(";")
   }
 
+  def convertPDFtoText(paper: Papers): String = {
+    val paperLink = PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(paper.secret) + "/" + paper.name
+    val contents = new PDFTextExtractor(paperLink).pages//map(_.toLowerCase)
+    val text = contents.mkString(" ").replaceAll("\0"," ")
+    val pw = new PrintWriter(new File(paperLink+".txt"))
+    pw.write(text)
+    pw.close()
+    text
+  }
+
   def basicStats(paper:Papers, text: String, paperResultService: PaperResultService) {
-    numberOfpVals = extractPValues(text)
     val sampleSize = extractSampleSizeStated(text)
-    val sampleSizeDescr = "Sample size stated in Text"
+    val sampleSizeDescr = "Sample size stated in text"
     if(sampleSize) {
       paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_SAMPLE_SIZE, sampleSizeDescr,"<b>Detected!</b>",PaperResult.SYMBOL_OK)
     } else {
       paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_SAMPLE_SIZE, sampleSizeDescr,"Could <b>not</b> be <b>detected!</b>",PaperResult.SYMBOL_WARNING)
     }
+
     val statTermError = extractStatTermError(text)
     val statTermErrorDescr = "Incorrect use of statistical terminology"
     if(statTermError.isEmpty) {
@@ -60,21 +71,87 @@ object Statchecker {
       paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_ERROR_TERMS, statTermErrorDescr,"Errorous terms: " + statTermError.mkString(", "),PaperResult.SYMBOL_OK)
     }
 
-    oneTailedTxt = extractIsOneSided(text)
-    if(oneTailedTxt) {
-      paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_ONE_SIDED, "One-tailed statistics detected","<b>Detected!</b>",PaperResult.SYMBOL_WARNING)
+    val pVals = extractPValues(text)
+    val pInTextDescr = "Text contains p-values"
+    if(pVals.isEmpty){
+      paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_P_VALUES, pInTextDescr,"<b>No p-values</b> found in text",PaperResult.SYMBOL_OK)
+    } else {
+      paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_P_VALUES, pInTextDescr,"Text contains <b>"+pVals.size+" p-values</b>",PaperResult.SYMBOL_WARNING)
+      val wrongPDescr = "&nbsp;&nbsp;&nbsp;Wrong p-values (out of range [0,1])"
+      if(pVals.exists(_ < 0) || pVals.exists(_ > 1)) {
+        paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_RANGE_P_VALUES, wrongPDescr,"Some of the <b>p-values are out of range</b>",PaperResult.SYMBOL_WARNING)
+      } else {
+        paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_RANGE_P_VALUES, wrongPDescr,"All <b>p-values are in range [0,1]</b>)",PaperResult.SYMBOL_OK)
+      }
+      val imprecisePDescr = "&nbsp;&nbsp;&nbsp;Imprecise or unnecessary precise p-values"
+      val wrongDoubles = evaluateTooHighDoublePrecision(pVals)
+      if(extractPValuesNs(text) || wrongDoubles.nonEmpty) {
+        paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_PRECISION_P_VALUES, imprecisePDescr,"<b>Detected!</b> "+wrongDoubles.mkString(","),PaperResult.SYMBOL_WARNING)
+      } else {
+        paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_PRECISION_P_VALUES, imprecisePDescr,"All <b>p-values are ok</b>",PaperResult.SYMBOL_OK)
+
+      }
     }
+
+    if(extractHasTTest(text)) {
+      val sidedDistDescr = "Information about distribution direction"
+      if(extractSidedDistribution(text)) {
+        paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_SIDED_DISTRIBUTION, sidedDistDescr,"<b>Detected!</b>",PaperResult.SYMBOL_OK)
+      } else {
+        paperResultService.create(paper.id.get, PaperResult.TYPE_BASICS_SIDED_DISTRIBUTION, sidedDistDescr,"<b>Direction is not stated</b> in text",PaperResult.SYMBOL_WARNING)
+      }
+    }
+
+
+  }
+
+  val MAX_DOUBLE_PRECISION = 3
+  def evaluateTooHighDoublePrecision(doubles: List[Double]) : List[Double] = {
+    var tooPreciseDouble : ListBuffer[Double] = ListBuffer()
+    doubles.foreach(d => {
+        val numbers = d.toString.replace("0","").replace(".","").replace(",","").replace("-","")
+        if(numbers.size > MAX_DOUBLE_PRECISION) {
+          tooPreciseDouble += d
+        }
+    })
+    tooPreciseDouble.toList
+  }
+
+
+  val REGEX_SAMPLE_SIZE = new Regex("sample\\s?size|\\d*\\s?participants|\\d*\\s?subjects|n\\s?=\\s?\\d*")
+  def extractSampleSizeStated(text: String): Boolean = {
+    val sampleSize = REGEX_SAMPLE_SIZE.findFirstIn(text)
+    if(sampleSize.isDefined) true else false
+  }
+
+  val REGEX_STAT_TERM_ERROR = new Regex("(arc\\s?sinus\\s?transformation|impaired\\s?t-test|variance\\s?analysis|multivariate\\s?analysis)")
+  def extractStatTermError(text: String): List[String] = {
+    REGEX_STAT_TERM_ERROR.findAllIn(text).matchData.map(m =>
+      m.group(0)
+    ).toList
+  }
+
+  val REGEX_CONTAINS_T_TEST = new Regex("t.?test")
+  def extractHasTTest(text: String): Boolean = {
+    val hasTTest = REGEX_CONTAINS_T_TEST.findFirstIn(text)
+    if(hasTTest.isDefined) true else false
+  }
+
+  val REGEX_SIDED_DIST = new Regex("one.?sided|one.?tailed|directional|two.?sided|two.?tailed")
+  def extractSidedDistribution(text: String): Boolean = {
+    val isSidedDist = REGEX_SIDED_DIST.findFirstIn(text)
+    if(isSidedDist.isDefined) true else false
   }
 
   def recalculateStats(paper:Papers, text: String, paperResultService: PaperResultService) = {
-    writeResultsToDB(paper, extractChi2Values(text), PaperResult.TYPE_STATCHECK_CHI2, paperResultService)
-    writeResultsToDB(paper, extractFValues(text), PaperResult.TYPE_STATCHECK_F, paperResultService)
-    writeResultsToDB(paper, extractRValues(text), PaperResult.TYPE_STATCHECK_R, paperResultService)
-    writeResultsToDB(paper, extractTValues(text), PaperResult.TYPE_STATCHECK_T, paperResultService)
-    writeResultsToDB(paper, extractZValues(text), PaperResult.TYPE_STATCHECK_Z, paperResultService)
+    writeRecalcStatResultsToDB(paper, extractChi2Values(text), PaperResult.TYPE_STATCHECK_CHI2, paperResultService)
+    writeRecalcStatResultsToDB(paper, extractFValues(text), PaperResult.TYPE_STATCHECK_F, paperResultService)
+    writeRecalcStatResultsToDB(paper, extractRValues(text), PaperResult.TYPE_STATCHECK_R, paperResultService)
+    writeRecalcStatResultsToDB(paper, extractTValues(text), PaperResult.TYPE_STATCHECK_T, paperResultService)
+    writeRecalcStatResultsToDB(paper, extractZValues(text), PaperResult.TYPE_STATCHECK_Z, paperResultService)
   }
 
-  def writeResultsToDB(paper : Papers, extractedStats:List[ExtractedStatValues], resultType: Int,
+  def writeRecalcStatResultsToDB(paper : Papers, extractedStats:List[ExtractedStatValues], resultType: Int,
                        paperResultService: PaperResultService) = {
     extractedStats.foreach({es =>
       val resultDifference = es.pCalculated-es.pExtracted
@@ -95,40 +172,22 @@ object Statchecker {
     })
   }
 
-
-  def convertPDFtoText(paper: Papers): String = {
-    val paperLink = PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(paper.secret) + "/" + paper.name
-    val contents = new PDFTextExtractor(paperLink).pages//map(_.toLowerCase)
-    val text = contents.mkString(" ").replaceAll("\0"," ")
-    val pw = new PrintWriter(new File(paperLink+".txt"))
-    pw.write(text)
-    pw.close()
-    text
+  val REGEX_EXTRACT_P_NS = new Regex("([^a-z]ns)")
+  def extractPValuesNs(text: String): Boolean = {
+    val pVals = REGEX_EXTRACT_P_NS.findFirstIn(text)
+    if(pVals.isDefined) true else false
   }
 
-  val REGEX_EXTRACT_P = new Regex("([^a-z]ns)|(p\\s?[<>=]\\s?(\\d?\\.\\d+e?-?\\d*))")
-  def extractPValues(text: String): Int = {
+  val REGEX_EXTRACT_P = new Regex("([^a-z]ns)|(p\\s?[<>=]\\s?-?\\s?(\\d?\\.\\d+e?-?\\d*))")
+  def extractPValues(text: String): List[Double] = {
     val pVals = REGEX_EXTRACT_P.findAllIn(text).matchData.map({m =>
       try {
         parsePValue(m.group(3))
       } catch {
-        case _:Throwable => {1.1}
+        case _:Throwable => {1.0}
       }
-    }).filter(_ < 1)
-    pVals.length
-  }
-
-  val REGEX_SAMPLE_SIZE = new Regex("sample\\s?size|\\d*\\s?participants|\\d*\\s?subjects|n\\s?=\\s?\\d*")
-  def extractSampleSizeStated(text: String): Boolean = {
-    val sampleSize = REGEX_SAMPLE_SIZE.findFirstIn(text)
-    if(sampleSize.isDefined) true else false
-  }
-
-  val REGEX_STAT_TERM_ERROR = new Regex("(arc\\s?sinus\\s?transformation|impaired\\s?t-test|variance\\s?analysis|multivariate\\s?analysis)")
-  def extractStatTermError(text: String): List[String] = {
-    REGEX_STAT_TERM_ERROR.findAllIn(text).matchData.map(m =>
-      m.group(0)
-    ).toList
+    })
+    pVals.toList
   }
 
   val REGEX_ONE_SIDED = new Regex("one.?sided|one.?tailed|directional")
