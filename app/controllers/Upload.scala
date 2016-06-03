@@ -23,10 +23,14 @@ import scala.concurrent.Future
 class Upload @Inject() (database: Database, configuration: Configuration, questionService : QuestionService,
                         papersService: PapersService, conferenceService: ConferenceService,
                         method2AssumptionService: Method2AssumptionService, paperResultService: PaperResultService,
-                        paperMethodService: PaperMethodService, permutationsServcie: PermutationsServcie,
+                        paperMethodService: PaperMethodService, permutationsServcie: PermutationsService,
                         answerService: AnswerService
                        ) extends Controller {
   def upload = Action {
+    Future  {
+      PaperProcessingManager.run(database, configuration, papersService, questionService, method2AssumptionService,
+        paperResultService,paperMethodService, permutationsServcie, answerService)
+    }
     val conferences = conferenceService.findAll()
     Ok(views.html.upload(conferences))
   }
@@ -66,21 +70,22 @@ class Upload @Inject() (database: Database, configuration: Configuration, questi
     val buffer = new Array[Byte](1024)
     var ze: ZipEntry = zis.getNextEntry()
     while (ze != null) {
+      if(ze.getName().contains(".pdf")) {
+        val fileName = ze.getName()
+        val secret = Commons.generateSecret()
+        val newFile = new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(secret) + "/" + fileName)
+        new File(newFile.getParent()).mkdirs()
+        val fos = new FileOutputStream(newFile)
+        var len: Int = zis.read(buffer)
 
-      val fileName = ze.getName()
-      val secret = Commons.generateSecret()
-      val newFile = new File(PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(secret) + "/" + fileName)
-      new File(newFile.getParent()).mkdirs()
-      val fos = new FileOutputStream(newFile)
-      var len: Int = zis.read(buffer)
+        while (len > 0) {
+          fos.write(buffer, 0, len)
+          len = zis.read(buffer)
+        }
 
-      while (len > 0) {
-        fos.write(buffer, 0, len)
-        len = zis.read(buffer)
+        fos.close()
+        papersService.create(fileName,email,conference,secret)
       }
-
-      fos.close()
-      papersService.create(fileName,email,conference,secret)
       ze = zis.getNextEntry()
     }
     zis.closeEntry()

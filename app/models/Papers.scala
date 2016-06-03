@@ -88,7 +88,7 @@ class PapersService @Inject()(db:Database) {
 	def findProcessablePapers(): List[Papers] = {
 		db.withConnection { implicit c =>
 			SQL("SELECT * FROM papers WHERE status = " + Papers.STATUS_NEW + " OR status = " +
-				Papers.STATUS_IN_PPLIB_QUEUE + " ORDER BY last_modified DESC").as(answerParser *)
+				Papers.STATUS_IN_PPLIB_QUEUE + " ORDER BY last_modified ASC").as(answerParser *)
 		}
 	}
 

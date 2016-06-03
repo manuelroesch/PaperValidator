@@ -1,0 +1,17 @@
+linear regression;auto-correlation
+linear regression;normality
+linear regression;multicollinearity
+linear regression;homoscedasticity
+MANOVA;normality
+MANOVA;variance-covariance
+MANOVA;multicollinearity
+multiple regression;auto-correlation
+multiple regression;normality
+multiple regression;multicollinearity
+multiple regression;homoscedasticity
+ANOVA;normality
+ANOVA;homoscedasticity
+ANOVA;multicollinearity
+t-test;normality
+t-test;same variance
+t-test;homoscedasticity

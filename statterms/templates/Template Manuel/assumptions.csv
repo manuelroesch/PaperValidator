@@ -1,0 +1,6 @@
+homoscedasticity;homogeneity of variance,same variance,equal variance,sphericity,constant variance,heteroscedasticity,Breusch–Pagan,Koenker–Basset,Könker–Basset,Goldfeld–Quandt,Levene
+normality;normal distribution,normally distributed,Q-Q plot,skewness,kurtosis,Shapiro-Wilk,Kolmogorov-Smirnov,Q-Q plot,gaussian,normal error
+multicollinearity
+auto-correlation;auto correlation
+variance-covariance;var-covar
+same variance;equal variance,f-test,f test,Bartlett,Brown–Forsythe,Welch

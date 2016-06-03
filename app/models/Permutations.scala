@@ -15,7 +15,7 @@ case class Permutations(id: Option[Long], createTime: DateTime, groupName: Strin
 												snippetFilename: String, pdfPath: String, methodOnTop: Boolean, state: Long, excludedStep: Int,
 												relHeightTop: Double, relHeightBottom: Double, distanceMinIndexMax: Long, paperId: Int)
 
-class PermutationsServcie @Inject()(db:Database) {
+class PermutationsService @Inject()(db:Database) {
 
 	def create(groupName: String, methodIndex: String, paperId: Int) : Long =
 		db.withConnection { implicit c =>

@@ -93,7 +93,7 @@ class Conference @Inject() (configuration: Configuration, conferenceService: Con
     papersWithStats.foreach(p => {
       if(p.statsTotal.getOrElse(PaperResult.SYMBOL_ERROR,0) > 0) paperWithErrors+=1
       if(p.statsTotal.getOrElse(PaperResult.SYMBOL_WARNING,0) > 0) paperWithWarnings+=1
-      if(p.statsTotal.getOrElse(PaperResult.SYMBOL_WARNING,0) > 0 || p.statsTotal(PaperResult.SYMBOL_ERROR) > 0) {
+      if(p.statsTotal.getOrElse(PaperResult.SYMBOL_WARNING,0) > 0 || p.statsTotal.getOrElse(PaperResult.SYMBOL_ERROR, 0) > 0) {
         paperWithWarningOrError+=1
       }
       p.statDetails.foreach(sd => {

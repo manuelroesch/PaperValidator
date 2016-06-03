@@ -21,7 +21,7 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
                       questionService: QuestionService, method2AssumptionService: Method2AssumptionService,
                       paperResultService: PaperResultService, answerService: AnswerService,
                       conferenceSettingsService: ConferenceSettingsService, paperMethodService: PaperMethodService,
-                      permutationsServcie: PermutationsServcie
+                      permutationsServcie: PermutationsService
                      ) extends Controller {
 
   def show(id:Int, secret:String) = Action {
@@ -33,7 +33,7 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
       val filePath = configuration.getString("highlighter.pdfSourceDir").get+"/"+Commons.getSecretHash(secret)+"/log.txt"
       val fileLengh = File(filePath).length
       var log = ""
-      if(fileLengh < 9999999) {
+      if(fileLengh < 9999999 && fileLengh > 0) {
         val source = scala.io.Source.fromFile(filePath)
         log = try source.mkString.replace("\n","\n<br>") finally source.close()
       }

@@ -192,7 +192,7 @@ object Statchecker {
     }).toList.filter(_ != null)
   }
 
-  val REGEX_CONTAINS_NORMAL = new Regex("normal")
+  val REGEX_CONTAINS_NORMAL = new Regex("normality|normal\\s?distribution|normally\\s?distributed|Q-Q plot|skewness|kurtosis|Shapiro-Wilk|Kolmogorov-Smirnov|Q-Q plot|gaussian|normal\\s?error")
   def extractVarianceIfNotNormal(text:String): Boolean = {
     val containsNormal = REGEX_VARIANCE.findFirstIn(text).isDefined
     val containsVariance = REGEX_VARIANCE.findFirstIn(text).isDefined

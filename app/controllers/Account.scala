@@ -4,7 +4,7 @@ import java.io.{BufferedWriter, File, FileWriter}
 import javax.inject.Inject
 
 import com.typesafe.config.ConfigFactory
-import helper.Commons
+import helper.{PaperProcessingManager, Commons}
 import helper.email.MailTemplates
 import models._
 import play.Configuration

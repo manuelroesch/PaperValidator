@@ -36,7 +36,7 @@ object PaperProcessingManager {
   def run(database: Database, configuration: Configuration, papersService: PapersService,
           questionService: QuestionService, method2AssumptionService: Method2AssumptionService,
           paperResultService: PaperResultService, paperMethodService: PaperMethodService,
-          permutationsServcie: PermutationsServcie, answerService: AnswerService): Boolean = {
+          permutationsService: PermutationsService, answerService: AnswerService): Boolean = {
     if(!isRunning) {
       isRunning = true
       val papersToProcess = papersService.findProcessablePapers()
@@ -44,7 +44,7 @@ object PaperProcessingManager {
         papersToProcess.foreach(paper =>
           try {
             processPaper(database, configuration, papersService, questionService, method2AssumptionService,
-              paperResultService, paperMethodService, permutationsServcie, answerService, paper)
+              paperResultService, paperMethodService, permutationsService, answerService, paper)
           } catch {
             case error : Throwable => {
               val errorMsg = error.getStackTrace.mkString("\n")
@@ -55,7 +55,7 @@ object PaperProcessingManager {
         )
         isRunning = false
         run(database, configuration, papersService, questionService, method2AssumptionService,
-          paperResultService, paperMethodService, permutationsServcie, answerService)
+          paperResultService, paperMethodService, permutationsService, answerService)
       }
       isRunning = false
     }
@@ -65,7 +65,7 @@ object PaperProcessingManager {
   def processPaper(database: Database, configuration: Configuration, papersService: PapersService,
                    questionService: QuestionService, method2AssumptionService: Method2AssumptionService,
                    paperResultService: PaperResultService, paperMethodService: PaperMethodService,
-                   permutationsServcie: PermutationsServcie,answerService: AnswerService,paper : Papers) = {
+                   permutationsServcie: PermutationsService, answerService: AnswerService, paper : Papers) = {
     val paperLink = configuration.getString("hcomp.ballot.baseURL").get + routes.Paper.confirmPaper(paper.id.get,paper.secret).url
     if(paper.status == Papers.STATUS_NEW) {
       writePaperLog("Start Analysis\n",paper.secret)
@@ -75,7 +75,8 @@ object PaperProcessingManager {
       writePaperLog("Run Layout Checker\n",paper.secret)
       LayoutChecker.check(paper,paperResultService)
       writePaperLog("Run PreprocessPDF\n",paper.secret)
-      val permutations = PreprocessPDF.start(database,paperMethodService,paper)
+      //val permutations = PreprocessPDF.start(database,paperMethodService,paper)
+      val permutations = 0
       if(permutations > 0) {
         writePaperLog(permutations + " Permutation(s) Found\n",paper.secret)
         papersService.updateStatus(paper.id.get,Papers.STATUS_AWAIT_CONFIRMATION)
@@ -170,17 +171,17 @@ object PaperProcessingManager {
     finally fw.close()
   }
 
-  def skipCrowdWork(paperId: Int,secret:String, questionService: QuestionService,
-                    permutationsServcie: PermutationsServcie, answerService: AnswerService): Unit = {
+  def skipCrowdWork(paperId: Int, secret:String, questionService: QuestionService,
+                    permutationsServcie: PermutationsService, answerService: AnswerService): Unit = {
+    writePaperLog("Skipped Crowd Processing\n",secret)
     val src = Source.fromFile(PreprocessPDF.OUTPUT_DIR + "/" + Commons.getSecretHash(secret) + "/permutations.csv")
     val perms = src.getLines().drop(1).map(_.split(",")).toList
     perms.foreach(p => {
       val permutationId = permutationsServcie.create(p(0),p(1),paperId)
       val questionId = questionService.create("",1,"",permutationId,"")
       answerService.create(questionId, 1, new DateTime, true, true, true, 10, "", 123)
-      writePaperLog("Completet!\n",secret)
     })
-    writePaperLog("Skipped Crowd Processing",secret)
+    writePaperLog("Completet!\n",secret)
 
   }
 
