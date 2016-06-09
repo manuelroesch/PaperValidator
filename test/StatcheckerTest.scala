@@ -114,7 +114,7 @@ class StatcheckerTest extends PlaySpec {
     "complete" in {
       val testFiles = new File("C:\\Users\\manuel\\Desktop\\test")
       val allFiles = testFiles.listFiles().toList
-      allFiles.foreach({ file =>
+      allFiles.par.foreach({ file =>
         var text = ""
         val pdfOrTxt = "pdf"
         if (file.getPath.endsWith(".pdf") && pdfOrTxt == "pdf") {
@@ -150,7 +150,7 @@ class StatcheckerTest extends PlaySpec {
     }
   }
 
-  val REGEX_TERMS = new Regex("error")
+  val REGEX_TERMS = new Regex("sd|se|var")
   //val REGEX_TERMS = new Regex("(MANOVA|multivariate\\s?Analysis\\s?of\\s?variance|ANOVA|Analysis\\s?of\\s?variance|ANCOVA|Analysis\\s?of\\s?covariance|Linear\\s?regression|Multiple\\s?regression|Logistic\\s?regression|Correlation:|Pearson|Spearman|U\\s?test|U-test|U\\s?-\\s?test|Mann-Whitney|Mann\\s?-\\s?Whitney|Mann\\s?Whitney\\s?=\\s?Wilcoxon\\s?Rank\\s?sum\\s?test|Wilcoxon\\s?Signed-Ranks\\s?test|Wilcoxon\\s?test|Wilcoxon-test|Wilcoxon\\s?Signed\\s?Rank|Wilcoxon\\s?Signed-Rank|Kruskal-Wallis|Kruskal\\s?Wallis|Kruskal\\s?-\\s?Wallis|McNemar|Mc\\s?Nemar|Friedman's\\s?test|Friedman\\s?test|chi\\s?square|chi-square|Fisher.s\\s?Exact|t-test|t\\s?test\\s?for\\s?independent\\s?samples\\s?(as\\s?opposed\\s?to\\s?paired\\s?t\\s?test?)|paired\\s?t\\s?test|Dum's\\s?test|Dum\\s?test\\s?never\\s?heard\\s?of\\s?that\\s?test\\s?before\\s?so\\s?don't\\s?know|Receiver\\s?Operating\\s?Characteristic\\s?Curve|ROC|C-statistic|Hosmer–Lemeshow|Hosmer\\s?–\\s?Lemeshow|Odds\\s?ratio|Relative\\s?risk|Likelihood\\s?ratio|Kappa|\\s?Kendall\\s?Tau|Bland–Altman|Youden\\s?J|Bland\\s?Altman|Youden-J|Kendall-Tau|Survival\\s?analysis|Life\\s?tables|Log\\s?rank\\s?test|Sensitivity|Specificity|Positive\\s?predictive\\s?value|Negative\\s?predictive\\s?value|Post\\s?hoc\\s?analysis|Tukey|Newman–Kuels|Duncan|Cluster\\s?analysis|Factor\\s?analysis|Classification\\s?and\\s?regression\\s?tree\\s?analysis|tree\\s?analysis|Mantel–Haenszel|Mantel\\s?–\\s?Haenszel|Mantel\\s?Haenszel|Miettine|Decision\\s?tree\\s?analysis|Meta-analysis|Meta\\s?analysis|Content\\s?analysis|Content-analysis|Confidence\\s?interval|CI|Confidence-interval|Random\\s?effect|Random-effect|Cronbach's\\s?alpha|Cronbachs\\s?alpha|Cronbach\\s?alpha|linearity|normal|homogenity\\s?of|homoscedasticity|homogeneity\\s?of\\s?variance|same\\s?variance|equal\\s?variance|sphericity|constant\\s?variance|heteroscedasticity|Breusch–Pagan|Koenker–Basset|Könker–Basset|Goldfeld–Quandt|Levene|normality|normal\\s?distribution|normally\\s?distributed|Q-Q\\s?plot|skewness|kurtosis|Shapiro-Wilk|Kolmogorov-Smirnov|Q-Q\\s?plot|gaussian|normal\\s?error|multicollinearity|auto-correlation|auto\\s?correlation|variance-covariance|var-covar|same\\s?variance|equal\\s?variance|f-test|f\\s?test|Bartlett|Brown–Forsythe|Welch|independen|randomly|homoscedasticity|homogeneity\\s?of\\s?variance|same\\s?variance|equal\\s?variance|sphericity|Constant\\s?variance|homogeneity\\s?of\\s?regression\\s?slopes|normal|gaussian|bell|normal\\s?error|multivariate\\s?normality|interval|ratio|multicollinearity|linearity|linearity\\s?of\\s?dependent\\s?variable|categorical|dichotomous|homogenity\\s?of\\s?variance-covariance|homogenity\\s?of\\s?variance-covariance|homogenity\\s?of\\s?var-covar)")
 
   "extractAllTerms" should {
@@ -160,7 +160,7 @@ class StatcheckerTest extends PlaySpec {
       val allFiles = testFiles.listFiles().toList
       var mapStatTermCount : Map[String,Int] = Map()
       var mapStatTerms : Map[String,String] = Map()
-      allFiles.foreach(file => {
+      allFiles.par.foreach(file => {
         i += 1
         println(i)
         var text = ""

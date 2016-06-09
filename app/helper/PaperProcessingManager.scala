@@ -28,7 +28,7 @@ import scala.io.Source
   */
 object PaperProcessingManager {
 
-  var BYPASS_CROWD_PROCESSING = true
+  var BYPASS_CROWD_PROCESSING = false
 
   var isRunning = false
 
@@ -75,8 +75,8 @@ object PaperProcessingManager {
       writePaperLog("Run Layout Checker\n",paper.secret)
       LayoutChecker.check(paper,paperResultService)
       writePaperLog("Run PreprocessPDF\n",paper.secret)
-      //val permutations = PreprocessPDF.start(database,paperMethodService,paper)
-      val permutations = 0
+      val permutations = PreprocessPDF.start(database,paperMethodService,paper)
+      //val permutations = 0
       if(permutations > 0) {
         writePaperLog(permutations + " Permutation(s) Found\n",paper.secret)
         papersService.updateStatus(paper.id.get,Papers.STATUS_AWAIT_CONFIRMATION)

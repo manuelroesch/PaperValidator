@@ -46,9 +46,9 @@ case class Algorithm250(dao: DAO, ballotPortalAdapter: HCompPortalAdapter, metho
 		val description: String = "Can you grasp some of the main concepts in the field of statistics without necessary prior knowledge in the field - just by basic text understanding?"
 		val title: String = s"Are these two words related? {Batch ${properties.permutationId}}"
 		val process = new ContestWithBeatByKVotingProcess(Map(
-			K.key -> 4,
+			K.key -> 2,
 			PORTAL_PARAMETER.key -> ballotPortalAdapter,
-			MAX_ITERATIONS.key -> 30,
+			MAX_ITERATIONS.key -> 10,
 			MEMOIZER_NAME.key -> Some("bbk_mem_" + properties.permutationId),
 			QUESTION_PRICE.key -> properties,
 			QUERY_BUILDER_KEY -> new SnippetHTMLQueryBuilder(ballotHtmlPage, description, title)

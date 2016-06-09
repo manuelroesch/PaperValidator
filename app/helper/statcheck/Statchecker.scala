@@ -1,7 +1,6 @@
 package helper.statcheck
 
 import java.io._
-import java.text.DecimalFormat
 import java.util.regex.Pattern
 
 import breeze.linalg.{min, max}
@@ -12,8 +11,6 @@ import helper.pdfpreprocessing.PreprocessPDF
 import helper.pdfpreprocessing.pdf.PDFTextExtractor
 import models.{PaperResult, PaperResultService, Papers}
 import org.apache.commons.math3.distribution.{ChiSquaredDistribution, TDistribution}
-import org.apache.commons.math3.stat.inference.{ChiSquareTest, TTest}
-import play.api.Logger
 
 import scala.collection.mutable.ListBuffer
 import scala.util.matching.Regex
@@ -149,33 +146,33 @@ object Statchecker {
   }
 
 
-  val REGEX_SAMPLE_SIZE = new Regex("sample\\s?size|\\d*\\s?participants|\\d*\\s?subjects|n\\s?=\\s?\\d*")
+  val REGEX_SAMPLE_SIZE = new Regex("sample\\s?size|\\d+\\s?participants|\\d+\\s?subjects|n\\s?=\\s?\\d+")
   def extractSampleSizeStated(text: String): Boolean = {
     val sampleSize = REGEX_SAMPLE_SIZE.findFirstIn(text)
     if(sampleSize.isDefined) true else false
   }
 
-  val REGEX_STAT_TERM_ERROR = new Regex("(arc\\s?sinus\\s?transformation|impaired\\s?t-test|variance\\s?analysis|multivariate\\s?analysis)")
+  val REGEX_STAT_TERM_ERROR = new Regex("(arc\\s?sinus\\s?transformation|impaired\\s?t.?test|variance\\s?analysis|multivariate\\s?analysis)")
   def extractStatTermError(text: String): List[String] = {
     REGEX_STAT_TERM_ERROR.findAllIn(text).matchData.map(m =>
       m.group(0)
     ).toList
   }
 
-  val REGEX_CONTAINS_T_TEST = new Regex("t.?test")
+  val REGEX_CONTAINS_T_TEST = new Regex("\\s?t.?test")
   def extractHasTTest(text: String): Boolean = {
     val hasTTest = REGEX_CONTAINS_T_TEST.findFirstIn(text)
     if(hasTTest.isDefined) true else false
   }
 
-  val REGEX_SIDED_DIST = new Regex("one.?sided|one.?tailed|directional|two.?sided|two.?tailed")
+  val REGEX_SIDED_DIST = new Regex("one.?sided|one.?tailed|two.?sided|two.?tailed")
   def extractSidedDistribution(text: String): Boolean = {
     val isSidedDist = REGEX_SIDED_DIST.findFirstIn(text)
     if(isSidedDist.isDefined) true else false
   }
 
   val REGEX_MEAN = new Regex("(mean|average|µ|⌀)")
-  val REGEX_VARIANCE = new Regex("(±|var|variance|standard\\s?deviation|standard\\s?error|sd|se|SE|SD)")
+  val REGEX_VARIANCE = new Regex("(±|[^a-z]var[^a-z]|variance|standard\\s?deviation|standard\\s?error|[^a-z]sd[^a-z]|[^a-z]se[^a-z]|[^a-z]SE[^a-z]|[^a-z]SD[^a-z])")
   val REGEX_NO_DIGIT = new Regex("\\d[.,]\\d")
   val MEAN_VARIANCE_TRES = 200
   def extractMeanWithoutVariance(text: String): List[List[Int]] = {
@@ -192,7 +189,7 @@ object Statchecker {
     }).toList.filter(_ != null)
   }
 
-  val REGEX_CONTAINS_NORMAL = new Regex("normality|normal\\s?distribution|normally\\s?distributed|Q-Q plot|skewness|kurtosis|Shapiro-Wilk|Kolmogorov-Smirnov|Q-Q plot|gaussian|normal\\s?error")
+  val REGEX_CONTAINS_NORMAL = new Regex("normality|normal\\s?distribution|normally\\s?distributed|Q.?Q\\s?plot|skewness|kurtosis|Shapiro.?Wilk|Kolmogorov.?Smirnov|gaussian|normal\\s?error")
   def extractVarianceIfNotNormal(text:String): Boolean = {
     val containsNormal = REGEX_VARIANCE.findFirstIn(text).isDefined
     val containsVariance = REGEX_VARIANCE.findFirstIn(text).isDefined
@@ -207,7 +204,7 @@ object Statchecker {
     !containsGoF && containsFit
   }
 
-  val REGEX_CONTAINS_POWER_EFFECT_METHODS = new Regex("regression|t.?test|Wilcoxon.?rank-sum|Mann-Whitney|Wilcoxon.?signed-rank|ANOVA")
+  val REGEX_CONTAINS_POWER_EFFECT_METHODS = new Regex("regression|\\s?t.?test|Wilcoxon.?rank.?sum|Mann.?Whitney|Wilcoxon.?signed-rank|ANOVA")
   val REGEX_CONTAINS_POWER_EFFECT = new Regex("power|effect\\s?size")
   def extractPowerEffectSize(text:String): Boolean = {
     val containsPowerEffectMethods = REGEX_CONTAINS_POWER_EFFECT_METHODS.findFirstIn(text).isDefined
@@ -262,7 +259,7 @@ object Statchecker {
     pVals.toList
   }
 
-  val REGEX_ONE_SIDED = new Regex("one.?sided|one.?tailed|directional")
+  val REGEX_ONE_SIDED = new Regex("one.?sided|one.?tailed")
   def extractIsOneSided(text: String): Boolean = {
     val isOneSided = REGEX_ONE_SIDED.findFirstIn(text)
     if(isOneSided.isDefined) true else false
