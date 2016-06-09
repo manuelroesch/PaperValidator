@@ -14,3 +14,4 @@ dist
 /.project
 /RUNNING_PID
 /.settings
+/custom_lib/pdeboer/pplib_2.11/0.2-SNAPSHOT
