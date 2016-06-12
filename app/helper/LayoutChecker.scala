@@ -31,14 +31,12 @@ object LayoutChecker {
           val rgb = new Color(image.getRGB(w,h))
           if(checkBorderOk && (h < BORDER_SIZE || w < BORDER_SIZE || h > image.getHeight-BORDER_SIZE || w > image.getWidth-BORDER_SIZE)) {
             if(rgb.getRed < 250 || rgb.getBlue < 250 || rgb.getGreen < 250) {
-              Logger.debug("Layout Border Error: " + w + "," + h + ": " + rgb.getRed + " " + rgb.getBlue + " " + rgb.getGreen)
               checkBorderOk = false
             }
           }
           if(checkColorsOk && (Math.abs(rgb.getRed - rgb.getBlue) > COLOR_SENSITIVITY ||
             Math.abs(rgb.getRed - rgb.getGreen) > COLOR_SENSITIVITY ||
             Math.abs(rgb.getBlue - rgb.getGreen) > COLOR_SENSITIVITY)) {
-            Logger.debug("" + w + "," + h + ": " + rgb.getRed + " " + rgb.getBlue + " " + rgb.getGreen)
             checkColorsOk = false
           }
         }

@@ -176,8 +176,6 @@ class Mturk @Inject()(configuration: Configuration, questionService: QuestionSer
 				val secret = request.getQueryString("secret").mkString
 				val userId: Long = userService.findByTurkerId(user).get.id.get
 
-				Logger.debug(request.getQueryString("isRelated").mkString)
-
 				if (isUserAllowedToAnswer(questionId, userId, secret)) {
 					val outputCode = Math.abs(new SecureRandom().nextLong())
 

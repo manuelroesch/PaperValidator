@@ -14,6 +14,7 @@ import ch.uzh.ifi.pdeboer.pplib.process.entities.IndexedPatch
 import ch.uzh.ifi.pdeboer.pplib.process.stdlib.ContestWithBeatByKVotingProcess
 import ch.uzh.ifi.pdeboer.pplib.process.stdlib.ContestWithBeatByKVotingProcess._
 import models.Method2AssumptionService
+import play.api.Logger
 
 import scala.xml.NodeSeq
 
@@ -62,6 +63,7 @@ case class Algorithm250(dao: DAO, ballotPortalAdapter: HCompPortalAdapter, metho
 	}
 
 	def buildQuestion(conferenceId: Int, permutation: Permutation, isTemplate: Boolean = false): (BallotProperties, NodeSeq) = {
+		Logger.debug(permutation.snippetFilename)
 		val snippetFile: File = new File(permutation.snippetFilename)
 		val snippetInputStream: InputStream = new FileInputStream(snippetFile)
 		val snippetByteArray = Stream.continually(snippetInputStream.read()).takeWhile(-1 !=).map(_.toByte).toArray

@@ -58,7 +58,6 @@ class Conference @Inject() (configuration: Configuration, conferenceService: Con
       }
     })
     Source.fromFile("statterms/templates/" + templateName + "/met2ass.csv", "UTF-8").getLines().foreach(line => {
-      Logger.debug(line)
       val cols = line.split(";")
       val methodId = methodService.findByName(conferenceId,cols(0)).get.id.get
       val assumptionId = assumptionService.findByName(conferenceId,cols(1)).get.id.get

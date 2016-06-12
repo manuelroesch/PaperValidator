@@ -48,9 +48,7 @@ object HCompNew {
 
 		val classes = U.findClassesInPackageWithProcessAnnotation("ch.uzh.ifi.pdeboer.pplib.hcomp", classOf[HCompPortal])
 			.asInstanceOf[Set[Class[HCompPortalAdapter]]]
-		Logger.debug(classes.toList.toString)
 		val annotations = classes.map(_.getAnnotation(classOf[HCompPortal])).filter(a => a != null && a.autoInit)
-		Logger.debug(annotations.toList.toString)
 		val builders = annotations.map(_.builder().newInstance())
 		builders.toList.sortBy(_.order).foreach(b => {
 			try {
@@ -61,8 +59,7 @@ object HCompNew {
 			catch {
 				case e: Throwable => {
 					val errorMessage: String = s"Skipped automatic initialization of ${b.getClass.getSimpleName} due to missing / invalid configuration."
-					//logger.error(errorMessage, e)
-					Logger.debug(errorMessage, e)
+					Logger.error(errorMessage, e)
 				}
 			}
 		})
