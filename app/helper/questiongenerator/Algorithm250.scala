@@ -84,8 +84,8 @@ case class Algorithm250(dao: DAO, ballotPortalAdapter: HCompPortalAdapter, metho
 		val properties = new BallotProperties(Batch(allowedAnswersPerTurker = 1), List(
 			snippetAsset, jsAsset), permutation.id, propertiesForDecoratedPortal = new HCompQueryProperties(50, qualifications = Nil)) //TODO put in qualifications
 
-		val method = permutation.methodIndex.substring(0,permutation.methodIndex.indexOf("_"))
-		val assumption = permutation.groupName.substring(permutation.groupName.indexOf("/")+1,permutation.groupName.lastIndexOf("/"))
+		val method = permutation.methodIndex.substring(0,permutation.methodIndex.indexOf("_")).toLowerCase()
+		val assumption = permutation.groupName.substring(permutation.groupName.indexOf("/")+1,permutation.groupName.lastIndexOf("/")).toLowerCase()
 		val m2a = method2AssumptionService.findByMethodAndAssumptionName(method,assumption,conferenceId).get
 		val ballotHtmlPage: NodeSeq =
 			SnippetHTMLTemplate.generateHTMLPage(snippetAsset.url, jsAsset.url, m2a.question, isTemplate)

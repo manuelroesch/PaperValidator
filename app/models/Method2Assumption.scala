@@ -44,11 +44,14 @@ class Method2AssumptionService @Inject()(db:Database) {
 				"m2a.question  " +
 				"FROM methods2assumptions m2a,methods m,assumptions a " +
 				"WHERE m2a.method_id=m.id AND m2a.assumption_id=a.id AND " +
-				" m.name = {method} AND a.name = {assumption}" +
+				"(m.name = {method} OR m.synonyms LIKE {method_syn}) AND " +
+				"(a.name = {assumption} OR a.synonyms LIKE {assumption_syn}) " +
         "AND m2a.conference_id = {conference_id} AND m.conference_id = {conference_id} " +
         "AND a.conference_id = {conference_id}").on(
 				'method -> method,
+				'method_syn -> ("%[^ ]"+method+"[^ ]%"),
 				'assumption -> assumption,
+				'assumption_syn -> ("%[^ ]"+assumption+"[^ ]%"),
         'conference_id -> conferenceId
 			).as(answerParser.singleOpt)
 		}

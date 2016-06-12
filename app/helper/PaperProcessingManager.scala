@@ -21,7 +21,7 @@ import play.api.{Configuration, Logger}
 import play.api.db.Database
 
 import scala.concurrent.Future
-//import play.api.libs.concurrent.Execution.Implicits._
+import play.api.libs.concurrent.Execution.Implicits._
 import scala.io.Source
 
 
@@ -41,7 +41,7 @@ object PaperProcessingManager {
           permutationsService: PermutationsService, answerService: AnswerService): Boolean = {
     if(!isRunning) {
       isRunning = true
-      //val processPapers : Future[Int] = Future  {
+      val processPapers : Future[Int] = Future  {
         val papersToProcess = papersService.findProcessablePapers()
         if(papersToProcess.nonEmpty) {
           papersToProcess.foreach(paper =>
@@ -57,7 +57,6 @@ object PaperProcessingManager {
             }
           )
         }
-      /*
         papersService.findProcessablePapers().length
       }
       processPapers onComplete  {
@@ -69,14 +68,7 @@ object PaperProcessingManager {
           }
         }
       }
-    */
-      isRunning = false
-      if(papersService.findProcessablePapers().length > 0) {
-        run(database, configuration, papersService, questionService, method2AssumptionService,
-          paperResultService, paperMethodService, permutationsService, answerService)
-      }
     }
-
     true
   }
 
