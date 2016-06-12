@@ -7,10 +7,10 @@ import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.integrationtest.console.ConsoleInte
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.persistence.{DBSettings, Permutation}
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.report.Report
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.{Algorithm250, BallotPortalAdapter}
-import ch.uzh.ifi.pdeboer.pplib.hcomp.{HComp, HTMLQuery}
+import ch.uzh.ifi.pdeboer.pplib.hcomp.HTMLQuery
 import ch.uzh.ifi.pdeboer.pplib.util.CollectionUtils._
 import controllers.routes
-import helper.email.{MailTemplates}
+import helper.email.MailTemplates
 import helper.pdfpreprocessing.PreprocessPDF
 import helper.questiongenerator.HCompNew
 import helper.statcheck.Statchecker
@@ -20,6 +20,8 @@ import org.joda.time.DateTime
 import play.api.{Configuration, Logger}
 import play.api.db.Database
 
+import scala.concurrent.Future
+//import play.api.libs.concurrent.Execution.Implicits._
 import scala.io.Source
 
 
@@ -39,26 +41,42 @@ object PaperProcessingManager {
           permutationsService: PermutationsService, answerService: AnswerService): Boolean = {
     if(!isRunning) {
       isRunning = true
-      val papersToProcess = papersService.findProcessablePapers()
-      if(papersToProcess.nonEmpty) {
-        papersToProcess.foreach(paper =>
-          try {
-            processPaper(database, configuration, papersService, questionService, method2AssumptionService,
-              paperResultService, paperMethodService, permutationsService, answerService, paper)
-          } catch {
-            case error : Throwable => {
-              val errorMsg = error.getStackTrace.mkString("\n")
-              PaperProcessingManager.writePaperLog(errorMsg,paper.secret)
-              papersService.updateStatus(paper.id.get,Papers.STATUS_ERROR)
+      //val processPapers : Future[Int] = Future  {
+        val papersToProcess = papersService.findProcessablePapers()
+        if(papersToProcess.nonEmpty) {
+          papersToProcess.foreach(paper =>
+            try {
+              processPaper(database, configuration, papersService, questionService, method2AssumptionService,
+                paperResultService, paperMethodService, permutationsService, answerService, paper)
+            } catch {
+              case error: Throwable => {
+                val errorMsg = error.getStackTrace.mkString("\n")
+                PaperProcessingManager.writePaperLog(errorMsg, paper.secret)
+                papersService.updateStatus(paper.id.get, Papers.STATUS_ERROR)
+              }
             }
+          )
+        }
+      /*
+        papersService.findProcessablePapers().length
+      }
+      processPapers onComplete  {
+        case newPapers => {
+          isRunning = false
+          if(newPapers.get > 0) {
+            run(database, configuration, papersService, questionService, method2AssumptionService,
+              paperResultService, paperMethodService, permutationsService, answerService)
           }
-        )
-        isRunning = false
+        }
+      }
+    */
+      isRunning = false
+      if(papersService.findProcessablePapers().length > 0) {
         run(database, configuration, papersService, questionService, method2AssumptionService,
           paperResultService, paperMethodService, permutationsService, answerService)
       }
-      isRunning = false
     }
+
     true
   }
 

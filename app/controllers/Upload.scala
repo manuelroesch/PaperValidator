@@ -27,10 +27,8 @@ class Upload @Inject() (database: Database, configuration: Configuration, questi
                         answerService: AnswerService
                        ) extends Controller {
   def upload = Action {
-    Future  {
-      PaperProcessingManager.run(database, configuration, papersService, questionService, method2AssumptionService,
-        paperResultService,paperMethodService, permutationsServcie, answerService)
-    }
+    PaperProcessingManager.run(database, configuration, papersService, questionService, method2AssumptionService,
+      paperResultService,paperMethodService, permutationsServcie, answerService)
     val conferences = conferenceService.findAll()
     Ok(views.html.upload(conferences))
   }
@@ -51,10 +49,8 @@ class Upload @Inject() (database: Database, configuration: Configuration, questi
         } else {
           papersService.create(filename,email,conference,secret)
         }
-        Future  {
-          PaperProcessingManager.run(database, configuration, papersService, questionService, method2AssumptionService,
-            paperResultService,paperMethodService, permutationsServcie, answerService)
-        }
+        PaperProcessingManager.run(database, configuration, papersService, questionService, method2AssumptionService,
+          paperResultService,paperMethodService, permutationsServcie, answerService)
         Logger.info("done")
         Ok("Ok")
       } else {
