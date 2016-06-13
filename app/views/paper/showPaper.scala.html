@@ -9,11 +9,11 @@
         <div class="col-md-1"></div>
         <div class="col-md-2 text-center cover">
             <img class="cover-img" src="@{urlPrefix +
-                    routes.Assets.at("papers/"+hashedSecret+"/cover.jpg").url}" >
+                    routes.Paper.getFile("papers/"+hashedSecret+"/cover.jpg").url}" >
             <div class="text-right">
             <img src="@{urlPrefix + routes.Assets.at("images/pdf.png").url}" class="cover-ico text-right">
             </div>
-            <a target="_blank" href="@{urlPrefix + routes.Assets.at("papers/"+hashedSecret+"/"+paper.name).url}">
+            <a target="_blank" href="@{urlPrefix + routes.Paper.getFile("papers/"+hashedSecret+"/"+paper.name).url}">
                 <button class="btn btn-primary">Download Paper</button>
             </a>
             <!--<button class="btn btn-primary">Update Paper</button>-->

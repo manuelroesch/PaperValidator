@@ -125,4 +125,14 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
     }
   }
 
+  def getFile(path:String) = Action {
+    val basePath = "public/"
+    val file = new java.io.File(basePath+path)
+    if(file.exists()) {
+      Ok.sendFile(file)
+    } else {
+      Unauthorized(views.html.error.unauthorized())
+    }
+  }
+
 }
