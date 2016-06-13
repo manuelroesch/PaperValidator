@@ -25,7 +25,7 @@ GET        /test                                    controllers.Upload.statTest
 GET        /show-paper/:id/:secret                  controllers.Paper.show(id: Int, secret: String)
 GET        /confirm-paper/:id/:secret               controllers.Paper.confirmPaper(id: Int, secret: String)
 GET        /skip-paper/:id/:secret                  controllers.Paper.skipPaper(id: Int, secret: String)
-GET        /paper-file/:path                        controllers.Paper.getFile(path: String)
+GET        /paper-file/*path                        controllers.Paper.getFile(path: String)
 
 # Conference
 GET        /conference-creator                      controllers.Conference.conferenceCreator
