@@ -143,7 +143,7 @@ class BallotDAO extends DAO {
       ESCAPED BY '"'
       LINES TERMINATED BY '\n'
       IGNORE 1 LINES
-        (group_name, method_index, snippet_filename, pdf_path, method_on_top ,relative_height_top, relative_height_bottom)
+        (group_name, method_index, snippet_filename, pdf_path, method_on_top ,relative_height_top, relative_height_bottom, distanceMinIndexMax)
         SET create_time = $time, paper_id = $paperId""".update().apply()
     }
     true

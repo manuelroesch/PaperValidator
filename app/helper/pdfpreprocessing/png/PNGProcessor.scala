@@ -126,12 +126,14 @@ class PNGProcessor(pngImage: File, pdfPermutation: PDFPermutation, val enableCro
 	def createImage(inputImage: BufferedImage, startY: Int, endY: Int): BufferedImage = {
 		val snippetHeight = endY - startY
 
-		val bothHighlightsOnLeftSide = yellowCoords.map(_.getX).max < inputImage.getWidth / 2 && greenCoords.map(_.getX).max < inputImage.getWidth / 2
+		/*val bothHighlightsOnLeftSide = yellowCoords.map(_.getX).max < inputImage.getWidth / 2 && greenCoords.map(_.getX).max < inputImage.getWidth / 2
 		val bothHighlightsOnRightSide = yellowCoords.map(_.getX).min > inputImage.getWidth / 2 && greenCoords.map(_.getX).min > inputImage.getWidth / 2
 		val isTwoColumnPaper: Boolean = pdfPermutation.paper.journal.numColumns == 2
 		val isOnSamePage: Boolean = pdfPermutation.highlights.forall(_.occurrence.page == pdfPermutation.highlights.head.occurrence.page)
 		val offsetLeft = if (isOnSamePage && isTwoColumnPaper && (bothHighlightsOnLeftSide || bothHighlightsOnRightSide)) inputImage.getWidth / 2
-		else 0
+		else 0*/
+		val bothHighlightsOnRightSide = false
+		val offsetLeft = 0
 
 		val snippetWidth = inputImage.getWidth - offsetLeft
 
