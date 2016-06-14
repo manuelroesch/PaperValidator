@@ -1,7 +1,7 @@
 @import play.Configuration
 @import models.PaperResult
 
-@(paper: Papers,hashedSecret:String,results: List[PaperResult], spellCheck: String, log: String)
+@(paper: Papers,hashedSecret:String,results: List[PaperResult], spellCheck: String, log: String, answers: String)
 
 @urlPrefix = {@Configuration.root().getString("url.prefix")}
 @mainFrame("Show Paper") {
@@ -9,11 +9,11 @@
         <div class="col-md-1"></div>
         <div class="col-md-2 text-center cover">
             <img class="cover-img" src="@{urlPrefix +
-                    routes.Paper.getFile("papers/"+hashedSecret+"/cover.jpg").url}" >
+                    routes.Paper.getFile("public","papers/"+hashedSecret+"/cover.jpg").url}" >
             <div class="text-right">
             <img src="@{urlPrefix + routes.Assets.at("images/pdf.png").url}" class="cover-ico text-right">
             </div>
-            <a target="_blank" href="@{urlPrefix + routes.Paper.getFile("papers/"+hashedSecret+"/"+paper.name).url}">
+            <a target="_blank" href="@{urlPrefix + routes.Paper.getFile("public","papers/"+hashedSecret+"/"+paper.name).url}">
                 <button class="btn btn-primary">Download Paper</button>
             </a>
             <!--<button class="btn btn-primary">Update Paper</button>-->
@@ -140,6 +140,7 @@
                     <div id="collapseFour" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
                         <div class="panel-body" style="padding-top:15px">
                             @Html(log)
+                            @Html(answers)
                         </div>
                     </div>
                 </div>

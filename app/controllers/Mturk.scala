@@ -117,10 +117,10 @@ class Mturk @Inject()(configuration: Configuration, questionService: QuestionSer
 					else
 						Unauthorized(views.html.tooManyAnswersInBatch()).withSession(replaceSession.getOrElse(request.session))
 				} else {
-					Ok(views.html.login()).withSession("redirect" -> (configuration.getString("assetPrefix") + "/showQuestion?q=" + uuid + "&s=" + secret))
+					Ok(views.html.login()).withSession("redirect" -> (configuration.getString("url.prefix") + "/showQuestion?q=" + uuid + "&s=" + secret))
 				}
 			}.getOrElse {
-				Ok(views.html.login()).withSession("redirect" -> (configuration.getString("assetPrefix") + "/showQuestion?q=" + uuid + "&s=" + secret))
+				Ok(views.html.login()).withSession("redirect" -> (configuration.getString("url.prefix") + "/showQuestion?q=" + uuid + "&s=" + secret))
 			}
 		} else Unauthorized("We have received too many requests from your IP address")
 	}

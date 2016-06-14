@@ -4,6 +4,7 @@ import javax.inject.Inject
 
 import scala.collection.mutable.ListBuffer
 import scala.reflect.io.File
+import scala.util.matching.Regex
 import util.control.Breaks._
 import helper.{SpellChecker, Commons, PaperProcessingManager}
 import models._
@@ -11,8 +12,6 @@ import play.api.Configuration
 import play.api.db.Database
 import play.api.mvc.{Action, Controller}
 
-import scala.concurrent.Future
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 /**
   * Created by manuel on 11.04.2016.
@@ -37,7 +36,16 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
         val source = scala.io.Source.fromFile(filePath)
         log = try source.mkString.replace("\n","\n<br>") finally source.close()
       }
-      Ok(views.html.paper.showPaper(paper.get,Commons.getSecretHash(secret),results,spellCheck,log))
+      val answers = answerService.findJsonAnswerByPaperId(id).map(a => {
+        val questionIdRegex = new Regex("\"questionId\" : \"([^\"]+)\"")
+        val questionId = questionIdRegex.findAllIn(a).matchData.map(r => r.group(1)).toList(0)
+        var imgPath = questionService.findQuestionImgPathById(questionId.toLong)
+        imgPath = imgPath.substring(imgPath.indexOf("tmp")+4)
+        val link = "<a href='" + routes.Paper.getFile("tmp",imgPath).url + "'>Show Question</a>"
+        val parsedJSON = a.replace("{\"","").replace("\"}","").replace("\" : \"",": ").replace("\", \"","<br>\n")
+        "<br><br>\n\n" + link + "<br>\n" + parsedJSON
+      }).mkString("")
+      Ok(views.html.paper.showPaper(paper.get,Commons.getSecretHash(secret),results,spellCheck,log,answers))
     } else {
       Unauthorized(views.html.error.unauthorized())
     }
@@ -125,11 +133,13 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
     }
   }
 
-  def getFile(path:String) = Action {
-    val basePath = "public/"
-    val file = new java.io.File(basePath+path)
-    if(file.exists()) {
-      Ok.sendFile(file)
+  def getFile(basePath:String,path:String) = Action {
+    val file = new java.io.File(basePath+"/"+path)
+    if(file.exists() && (basePath =="public" || basePath == "tmp")) {
+      Ok.sendFile(
+        content = file,
+        inline = true
+      )
     } else {
       Unauthorized(views.html.error.unauthorized())
     }

@@ -77,7 +77,7 @@ object PaperProcessingManager {
                    paperResultService: PaperResultService, paperMethodService: PaperMethodService,
                    permutationsServcie: PermutationsService, answerService: AnswerService, paper : Papers) = {
     if(paper.status == Papers.STATUS_NEW) {
-      writePaperLog("Start Analysis\n",paper.secret)
+      writePaperLog("<b>Start</b> Analysis\n",paper.secret)
       Commons.generateCoverFile(paper)
       writePaperLog("Run StatChecker\n",paper.secret)
       Statchecker.run(paper, paperResultService)
@@ -87,7 +87,7 @@ object PaperProcessingManager {
       val permutations = PreprocessPDF.start(database,paperMethodService,paper)
       //val permutations = 0
       if(permutations > 0) {
-        writePaperLog(permutations + " Permutation(s) Found\n",paper.secret)
+        writePaperLog("<b>"+ permutations + " Permutation(s)</b> Found\n",paper.secret)
         papersService.updateStatus(paper.id.get,Papers.STATUS_AWAIT_CONFIRMATION)
         papersService.updatePermutations(paper.id.get,permutations)
         if(BYPASS_CROWD_PROCESSING){
@@ -95,7 +95,7 @@ object PaperProcessingManager {
           papersService.updateStatus(paper.id.get,Papers.STATUS_COMPLETED)
         }
       } else {
-        writePaperLog("No Permutations Found\n",paper.secret)
+        writePaperLog("<b>No Permutations</b> Found\n",paper.secret)
         papersService.updateStatus(paper.id.get,Papers.STATUS_COMPLETED)
       }
       writePaperLog("Finish and Notify Analysis\n",paper.secret)
@@ -110,11 +110,7 @@ object PaperProcessingManager {
       MailTemplates.sendPaperCompletedMail(paper.name,paperLink,paper.email)
       writePaperLog("Clean Up\n",paper.secret)
       cleanUpTmpDir(paper)
-      writePaperLog("Completed!\n\n",paper.secret)
-      answerService.findJsonAnswerByPaperId(paper.id.get).foreach(a => {
-        val parsedJSON = a.replace("{\"","").replace("\"}","").replace("\" : \"",": ").replace("\", \"","\n")
-        writePaperLog(parsedJSON+"\n\n",paper.secret)
-      })
+      writePaperLog("<b>Completed!</b>\n\n",paper.secret)
     }
   }
 

@@ -69,4 +69,11 @@ class QuestionService @Inject()(db:Database) {
 				'secret -> secret
 			).executeInsert(scalar[Long].single)
 		}
+
+	def findQuestionImgPathById(id: Long): String =
+		db.withConnection { implicit c =>
+			SQL("SELECT snippet_filename FROM question q,permutations p WHERE q.id = {id} AND q.permutation = p.id").on(
+				'id -> id
+			).as(str("snippet_filename").single)
+		}
 }
