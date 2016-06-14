@@ -109,7 +109,7 @@ object PaperProcessingManager {
       val paperLink = configuration.getString("hcomp.ballot.baseURL").get + routes.Paper.show(paper.id.get,paper.secret).url
       MailTemplates.sendPaperCompletedMail(paper.name,paperLink,paper.email)
       writePaperLog("Clean Up\n",paper.secret)
-      cleanUpTmpDir(paper)
+      //cleanUpTmpDir(paper)
       writePaperLog("<b>Completed!</b>\n\n",paper.secret)
     }
   }
