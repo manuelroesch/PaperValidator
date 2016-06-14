@@ -105,6 +105,16 @@ class AnswerService @Inject()(db:Database) {
 		}
 	}
 
+	def findJsonAnswerByPaperId(paperId: Int): List[String] = {
+		db.withConnection { implicit c =>
+			SQL("SELECT answer_json " +
+				"FROM question q,answer a,permutations pe " +
+				"WHERE q.id = a.question_id AND q.permutation = pe.id AND pe.paper_id = {paper_id}").on(
+				'paper_id -> paperId
+			).as(str("answer_json").*)
+		}
+	}
+
 	def countAnswersByConferenceTotal(conferenceId: Int): Int = {
 		db.withConnection { implicit c =>
 			SQL("SELECT count(*)" +

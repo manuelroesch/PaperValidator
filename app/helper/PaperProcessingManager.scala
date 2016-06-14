@@ -76,7 +76,6 @@ object PaperProcessingManager {
                    questionService: QuestionService, method2AssumptionService: Method2AssumptionService,
                    paperResultService: PaperResultService, paperMethodService: PaperMethodService,
                    permutationsServcie: PermutationsService, answerService: AnswerService, paper : Papers) = {
-    val paperLink = configuration.getString("hcomp.ballot.baseURL").get + routes.Paper.confirmPaper(paper.id.get,paper.secret).url
     if(paper.status == Papers.STATUS_NEW) {
       writePaperLog("Start Analysis\n",paper.secret)
       Commons.generateCoverFile(paper)
@@ -100,16 +99,22 @@ object PaperProcessingManager {
         papersService.updateStatus(paper.id.get,Papers.STATUS_COMPLETED)
       }
       writePaperLog("Finish and Notify Analysis\n",paper.secret)
+      val paperLink = configuration.getString("hcomp.ballot.baseURL").get + routes.Paper.confirmPaper(paper.id.get,paper.secret).url
       MailTemplates.sendPaperAnalyzedMail(paper.name,paperLink,permutations,paper.email)
     } else if(paper.status == Papers.STATUS_IN_PPLIB_QUEUE) {
       writePaperLog("Run Question Generator\n",paper.secret)
       questionGenerator(questionService, method2AssumptionService, paper)
       papersService.updateStatus(paper.id.get,Papers.STATUS_COMPLETED)
       writePaperLog("Finish and Notify Crowdwork\n",paper.secret)
+      val paperLink = configuration.getString("hcomp.ballot.baseURL").get + routes.Paper.show(paper.id.get,paper.secret).url
       MailTemplates.sendPaperCompletedMail(paper.name,paperLink,paper.email)
       writePaperLog("Clean Up\n",paper.secret)
       cleanUpTmpDir(paper)
-      writePaperLog("Completet!\n",paper.secret)
+      writePaperLog("Completed!\n\n",paper.secret)
+      answerService.findJsonAnswerByPaperId(paper.id.get).foreach(a => {
+        val parsedJSON = a.replace("{\"","").replace("\"}","").replace("\" : \"",": ").replace("\", \"","\n")
+        writePaperLog(parsedJSON+"\n\n",paper.secret)
+      })
     }
   }
 

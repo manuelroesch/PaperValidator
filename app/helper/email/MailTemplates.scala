@@ -37,7 +37,9 @@ object MailTemplates {
     if(Hours.hoursBetween(email.lastMail,DateTime.now()).getHours > 12 || isNewEmailAddress) {
       Logger.debug("Email would be sent!")
       emailService.setLastMailNow(email.id.getOrElse(-1),email.secret)
-      MailSendingService.sendMail(toEmail,subject,content)
+      if(configuration.getString("helper.mailing.active") == "true") {
+        MailSendingService.sendMail(toEmail,subject,content)
+      }
     } else {
       Logger.debug("Email would not be sent! Daycount:" + Hours.hoursBetween(email.lastMail,DateTime.now()).getHours)
     }
