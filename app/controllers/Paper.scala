@@ -41,8 +41,8 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
         val questionId = questionIdRegex.findAllIn(a).matchData.map(r => r.group(1)).toList.head
         var imgPath = questionService.findQuestionImgPathById(questionId.toLong)
         imgPath = imgPath.substring(imgPath.indexOf("tmp")+4)
-        val link = "<a href='" + configuration.getString("url.prefix") +
-          routes.Paper.getFile("tmp",imgPath).url + "'>Show Question</a>"
+        val link = "<a href='" + configuration.getString("hcomp.ballot.baseURL").get +
+          configuration.getString("url.prefix").get + routes.Paper.getFile("tmp",imgPath).url + "'>Show Question</a>"
         val parsedJSON = a.replace("{\"","").replace("\"}","").replace("\" : \"",": ").replace("\", \"","<br>\n")
         "<br><br>\n\n" + link + "<br>\n" + parsedJSON
       }).mkString("")
