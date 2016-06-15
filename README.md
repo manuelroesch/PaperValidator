@@ -2,6 +2,8 @@
 
 Automated validation of statistics in research papers
 
+Manuel Roesch, University of Zurich, 2016
+
 Here is a movie of PaperValidator in action:
 
-[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/0.jpg)](http://www.youtube.com/watch?v=fCDdrjJxUV4)
+[![Watch Video](https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/movie-mock.jpg)](http://www.youtube.com/watch?v=fCDdrjJxUV4)
