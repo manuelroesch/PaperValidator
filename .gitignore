@@ -4,6 +4,7 @@ project/target
 public/papers/*
 target
 tmp/*
+state/*
 .history
 dist
 /.idea
