@@ -3,12 +3,12 @@ package helper.email
 import java.util.Properties
 import javax.mail._
 import javax.mail.internet._
-
+import play.Configuration
 
 object MailSendingService
 {
-  val FROM = "***REMOVED***"
-  val PW = "***REMOVED***!"
+  val FROM = Configuration.root().getString("helper.mailing.from")
+  val PW = Configuration.root().getString("helper.mailing.to")
   val HOST = "smtp.gmail.com"
   val PORT = "587"
 
