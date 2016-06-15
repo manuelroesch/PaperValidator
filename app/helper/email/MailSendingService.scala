@@ -8,7 +8,7 @@ import play.Configuration
 object MailSendingService
 {
   val FROM = Configuration.root().getString("helper.mailing.from")
-  val PW = Configuration.root().getString("helper.mailing.to")
+  val PW = Configuration.root().getString("helper.mailing.pw")
   val HOST = "smtp.gmail.com"
   val PORT = "587"
 

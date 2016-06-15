@@ -1,4 +1,7 @@
-This is your new Play application
-=====================================
+# PaperValidator
 
-This file will be packaged with your application, when using `play dist`.
+Automated validation of statistics in research papers
+
+Here is a movie of PaperValidator in action:
+
+[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/0.jpg)](http://www.youtube.com/watch?v=fCDdrjJxUV4)
