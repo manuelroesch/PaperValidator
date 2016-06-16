@@ -15,6 +15,7 @@ import ch.uzh.ifi.pdeboer.pplib.process.stdlib.ContestWithBeatByKVotingProcess
 import ch.uzh.ifi.pdeboer.pplib.process.stdlib.ContestWithBeatByKVotingProcess._
 import models.Method2AssumptionService
 import play.api.Logger
+import play.Configuration
 
 import scala.xml.NodeSeq
 
@@ -23,6 +24,8 @@ import scala.xml.NodeSeq
   * Created by mattia on 01.09.15.
   */
 case class Algorithm250(dao: DAO, ballotPortalAdapter: HCompPortalAdapter, method2AssumptionService: Method2AssumptionService) {
+
+	val conf = Configuration.root()
 
 	def executePermutation(conferenceId: Int, p: Permutation) = {
 		val answers: List[ParsedAnswer] = buildAndExecuteQuestion(conferenceId, p)
@@ -47,9 +50,9 @@ case class Algorithm250(dao: DAO, ballotPortalAdapter: HCompPortalAdapter, metho
 		val description: String = "Can you grasp some of the main concepts in the field of statistics without necessary prior knowledge in the field - just by basic text understanding?"
 		val title: String = s"Are these two words related? {Batch ${properties.permutationId}}"
 		val process = new ContestWithBeatByKVotingProcess(Map(
-			K.key -> 2,
+			K.key -> conf.getInt("hcomp.k"),
 			PORTAL_PARAMETER.key -> ballotPortalAdapter,
-			MAX_ITERATIONS.key -> 10,
+			MAX_ITERATIONS.key -> conf.getInt("hcomp.maxIterations"),
 			MEMOIZER_NAME.key -> Some("bbk_mem_" + properties.permutationId),
 			QUESTION_PRICE.key -> properties,
 			QUERY_BUILDER_KEY -> new SnippetHTMLQueryBuilder(ballotHtmlPage, description, title)
@@ -82,7 +85,7 @@ case class Algorithm250(dao: DAO, ballotPortalAdapter: HCompPortalAdapter, metho
 		val jsAsset = Asset(javascriptByteArray, javascriptContentType, "script.js")
 
 		val properties = new BallotProperties(Batch(allowedAnswersPerTurker = 1), List(
-			snippetAsset, jsAsset), permutation.id, propertiesForDecoratedPortal = new HCompQueryProperties(50, qualifications = Nil)) //TODO put in qualifications
+			snippetAsset, jsAsset), permutation.id, propertiesForDecoratedPortal = new HCompQueryProperties(conf.getInt("hcomp.paymentCents"), qualifications = Nil)) //TODO put in qualifications
 
 		//val method = permutation.methodIndex.substring(0,permutation.methodIndex.indexOf("_")).toLowerCase()
 		//val assumption = permutation.groupName.substring(permutation.groupName.indexOf("/")+1,permutation.groupName.lastIndexOf("/")).toLowerCase()

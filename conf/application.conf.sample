@@ -86,3 +86,7 @@ hcomp.randomPortal.active = "true"
 helper.mailing.active = "true"
 helper.mailing.from = ""
 helper.mailing.pw = ""
+
+hcomp.k = 2
+hcomp.maxIterations = 7
+hcomp.paymentCents = 40
