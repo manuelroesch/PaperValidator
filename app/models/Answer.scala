@@ -19,6 +19,7 @@ case class Answer(id: Option[Long], questionId: Long, userId: Long, time: DateTi
 									accepted: Boolean) extends Serializable
 case class AnswerM2A(method: String, assumption: String, isRelated: Double, isCheckedBefore: Double,
 										 extraAnswer: Double, flag: Int) extends Serializable
+case class AnswerShowPaper(groupName:String,answerJson:String) extends Serializable
 
 class AnswerService @Inject()(db:Database) {
 
@@ -46,6 +47,13 @@ class AnswerService @Inject()(db:Database) {
 			get[Int]("flag") map {
 			case method ~ assumption ~ isRelated ~ isCheckedBefore ~ extraAnswer ~ flag =>
 				AnswerM2A(method, assumption, isRelated, isCheckedBefore, extraAnswer, flag)
+		}
+
+	private val answerShowPaperParser: RowParser[AnswerShowPaper] =
+		get[String]("group_name") ~
+			get[String]("answer_json") map {
+			case group_name ~ answer_json  =>
+				AnswerShowPaper(group_name, answer_json)
 		}
 
 	def findById(id: Long): Option[Answer] =
@@ -105,13 +113,14 @@ class AnswerService @Inject()(db:Database) {
 		}
 	}
 
-	def findJsonAnswerByPaperId(paperId: Int): List[String] = {
+	def findJsonAnswerByPaperId(paperId: Int): List[AnswerShowPaper] = {
 		db.withConnection { implicit c =>
-			SQL("SELECT answer_json " +
+			SQL("SELECT group_name,answer_json " +
 				"FROM question q,answer a,permutations pe " +
-				"WHERE q.id = a.question_id AND q.permutation = pe.id AND pe.paper_id = {paper_id}").on(
+				"WHERE q.id = a.question_id AND q.permutation = pe.id AND pe.paper_id = {paper_id} " +
+				"ORDER BY pe.group_name").on(
 				'paper_id -> paperId
-			).as(str("answer_json").*)
+			).as(answerShowPaperParser *)
 		}
 	}
 

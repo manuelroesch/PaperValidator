@@ -36,15 +36,21 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
         val source = scala.io.Source.fromFile(filePath)
         log = try source.mkString.replace("\n","\n<br>") finally source.close()
       }
+      var groupName = ""
       val answers = answerService.findJsonAnswerByPaperId(id).map(a => {
-        val questionIdRegex = new Regex("\"questionId\" : \"([^\"]+)\"")
-        val questionId = questionIdRegex.findAllIn(a).matchData.map(r => r.group(1)).toList.head
-        var imgPath = questionService.findQuestionImgPathById(questionId.toLong)
-        imgPath = imgPath.substring(imgPath.indexOf("tmp")+4)
-        val link = "<a href='" + configuration.getString("url.prefix").get +
-          routes.Paper.getFile("tmp",imgPath).url + "'>Show Question</a>"
-        val parsedJSON = a.replace("{\"","").replace("\"}","").replace("\" : \"",": ").replace("\", \"","<br>\n")
-        "<br><br>\n\n" + link + "<br>\n" + parsedJSON
+        val parsedJSON = a.answerJson.replace("{\"","").replace("\"}","").replace("\" : \"",": ").replace("\", \"","<br>\n")
+        if(groupName != a.groupName && !a.answerJson.isEmpty) {
+          groupName = a.groupName
+          val questionIdRegex = new Regex("\"questionId\" : \"([^\"]+)\"")
+          val questionId = questionIdRegex.findAllIn(a.answerJson).matchData.map(r => r.group(1)).toList
+            var imgPath = questionService.findQuestionImgPathById(questionId.head.toLong)
+            imgPath = imgPath.substring(imgPath.indexOf("tmp")+4)
+            val imgUrl = configuration.getString("url.prefix").get + routes.Paper.getFile("tmp",imgPath).url
+            val img = "<hr><a href='" + imgUrl + "'><img class='img-responsive' src='" + imgUrl + "'></a><br>"
+              "<br><br>" + img + "<br>" + parsedJSON
+        } else {
+          "<br><br>" + parsedJSON
+        }
       }).mkString("")
       Ok(views.html.paper.showPaper(paper.get,Commons.getSecretHash(secret),results,spellCheck,log,answers))
     } else {
