@@ -19,7 +19,7 @@ case class Answer(id: Option[Long], questionId: Long, userId: Long, time: DateTi
 									accepted: Boolean) extends Serializable
 case class AnswerM2A(method: String, assumption: String, isRelated: Double, isCheckedBefore: Double,
 										 extraAnswer: Double, flag: Int) extends Serializable
-case class AnswerShowPaper(groupName:String,answerJson:String) extends Serializable
+case class AnswerShowPaper(snippetFilename:String,answerJson:String) extends Serializable
 
 class AnswerService @Inject()(db:Database) {
 
@@ -50,10 +50,10 @@ class AnswerService @Inject()(db:Database) {
 		}
 
 	private val answerShowPaperParser: RowParser[AnswerShowPaper] =
-		get[String]("group_name") ~
+		get[String]("snippet_filename") ~
 			get[String]("answer_json") map {
-			case group_name ~ answer_json  =>
-				AnswerShowPaper(group_name, answer_json)
+			case snippet_filename ~ answer_json  =>
+				AnswerShowPaper(snippet_filename, answer_json)
 		}
 
 	def findById(id: Long): Option[Answer] =
@@ -115,7 +115,7 @@ class AnswerService @Inject()(db:Database) {
 
 	def findJsonAnswerByPaperId(paperId: Int): List[AnswerShowPaper] = {
 		db.withConnection { implicit c =>
-			SQL("SELECT group_name,answer_json " +
+			SQL("SELECT snippet_filename,answer_json " +
 				"FROM question q,answer a,permutations pe " +
 				"WHERE q.id = a.question_id AND q.permutation = pe.id AND pe.paper_id = {paper_id} " +
 				"ORDER BY pe.group_name").on(
