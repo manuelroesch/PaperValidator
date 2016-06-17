@@ -30,7 +30,6 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
     if(paper.isDefined) {
       var results = paperResultService.findByPaperId(id)
       results = addMethodsAndAssumptions(id,results)
-      val spellCheck = ""//SpellChecker.check(paper.get)
       val filePath = configuration.getString("highlighter.pdfSourceDir").get+"/"+Commons.getSecretHash(secret)+"/log.txt"
       val fileLengh = File(filePath).length
       var log = ""
@@ -40,7 +39,16 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
       }
       val answers = answerService.findJsonAnswerByPaperId(id)
       val answersEvaluated = evaluateAnswers(answers)
-      Ok(views.html.paper.showPaper(paper.get,Commons.getSecretHash(secret),results,spellCheck,log,answers,answersEvaluated))
+      Ok(views.html.paper.showPaper(paper.get,Commons.getSecretHash(secret),results,log,answers,answersEvaluated))
+    } else {
+      Unauthorized(views.html.error.unauthorized())
+    }
+  }
+
+  def loadSpellCheckerResults(id:Int, secret: String) = Action {
+    val paper = papersService.findByIdAndSecret(id,secret)
+    if(paper.isDefined) {
+      Ok(SpellChecker.check(paper.get)).as("text/html")
     } else {
       Unauthorized(views.html.error.unauthorized())
     }
@@ -49,12 +57,22 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
   def evaluateAnswers(answers: List[AnswerShowPaper]): Map[String,Int] = {
     var countAnswers: Map[String,Int] = Map()
     var confidenceList : ListBuffer[Int] = ListBuffer()
-    var snippetFilename = ""
+    var snippetFilename : String = null
     answers.foreach(a => {
       if(!a.answerJson.isEmpty) {
         val parsedJSON = Json.parse(a.answerJson)
+        val confidence = parsedJSON.get("confidence").asInt()
+        List("isRelated","isCheckedBefore").foreach(q => {
+          val countKey = a.snippetFilename+q+parsedJSON.get(q).asText()+"-"+(confidence>=Constants.LIKERT_VALUE_CLEANED_ANSWERS)
+          if(countAnswers.isDefinedAt(countKey)) {
+            countAnswers += (countKey -> (countAnswers(countKey)+1))
+          } else {
+            countAnswers += (countKey -> 1)
+          }
+        })
+        confidenceList += confidence
         if (snippetFilename != a.snippetFilename || a == answers.last) {
-          if(confidenceList.nonEmpty) {
+          if(snippetFilename != null) {
             val confMean = confidenceList.sum / confidenceList.length.toFloat
             val confVar = confidenceList.map(cv => Math.pow(cv-confMean,2)).sum / confidenceList.length
             countAnswers += ((snippetFilename+"confMean") -> Math.round(confMean*10))
@@ -63,16 +81,6 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
           }
           snippetFilename = a.snippetFilename
         }
-          val confidence = parsedJSON.get("confidence").asInt()
-          List("isRelated","isCheckedBefore").foreach(a => {
-            val countKey = snippetFilename+a+parsedJSON.get(a).asText()+"-"+(confidence>=Constants.LIKERT_VALUE_CLEANED_ANSWERS)
-            if(countAnswers.isDefinedAt(countKey)) {
-              countAnswers += (countKey -> (countAnswers(countKey)+1))
-            } else {
-              countAnswers += (countKey -> 1)
-            }
-          })
-          confidenceList += confidence
       }
     })
     countAnswers

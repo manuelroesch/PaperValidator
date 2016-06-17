@@ -3,7 +3,7 @@
 @import play.api.libs.json.Json
 
 @import play.api.libs.json.JsObject
-@(paper: Papers,hashedSecret:String,results: List[PaperResult], spellCheck: String, log: String,
+@(paper: Papers,hashedSecret:String,results: List[PaperResult], log: String,
         answers: List[AnswerShowPaper], answersEvaluated: Map[String,Int])
 
 
@@ -123,7 +123,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="panel panel-default">
+                <div class="panel panel-default" onclick="loadSpellCheckerResults()">
                     <div class="panel-heading" role="tab" id="headingThree">
                         <h4 class="panel-title">
                             <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
@@ -133,7 +133,7 @@
                     </div>
                     <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
                         <div class="panel-body pb-padding-top">
-                            @Html(spellCheck)
+                            <img id="sc-loader" src="@{urlPrefix + routes.Assets.at("images/loader2.gif").url}">
                         </div>
                     </div>
                 </div>
@@ -259,6 +259,11 @@
         .m2aFlag {
             float:right;
         }
+        #sc-loader {
+            margin: 20px auto;
+            width: 50px;
+            display: inherit;
+        }
     </style>
     <script>
         $(".answer-eval-table").each(function(){
@@ -273,6 +278,26 @@
                 }
             }
         });
+
+        var isSpellcheckerActivated = false;
+        function loadSpellCheckerResults() {
+            if(!isSpellcheckerActivated){
+                isSpellcheckerActivated = true;
+                var request = $.ajax({
+                    url: "@{urlPrefix + routes.Paper.loadSpellCheckerResults(paper.id.get,paper.secret).url}",
+                    method: "GET",
+                    dataType: "html"
+                });
+
+                request.done(function( msg ) {
+                    $( "#sc-loader" ).parent().html( msg );
+                });
+
+                request.fail(function( jqXHR, textStatus ) {
+                    $( "#sc-loader" ).parent().html( "<br><br>Error while loading. Sorry!<br><br>");
+                });
+            }
+        }
     </script>
 }
 
