@@ -22,7 +22,7 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
                       questionService: QuestionService, method2AssumptionService: Method2AssumptionService,
                       paperResultService: PaperResultService, answerService: AnswerService,
                       conferenceSettingsService: ConferenceSettingsService, paperMethodService: PaperMethodService,
-                      permutationsServcie: PermutationsService
+                      permutationsServcie: PermutationsService, conferenceService: ConferenceService
                      ) extends Controller {
 
   def show(id:Int, secret:String) = Action {
@@ -73,17 +73,27 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
           }
         })
         confidenceList += confidence
-        if (snippetFilename != null && (snippetFilename != a.snippetFilename || a == answers.last)) {
-            val confMean = confidenceList.sum / confidenceList.length.toFloat
-            val confVar = confidenceList.map(cv => Math.pow(cv-confMean,2)).sum / confidenceList.length
-            countAnswers += ((snippetFilename+"confMean") -> Math.round(confMean*10))
-            countAnswers += ((snippetFilename+"confVar") -> Math.round(confVar.toFloat*10))
-            confidenceList = ListBuffer()
-        }
-        snippetFilename = a.snippetFilename
       }
+      if (snippetFilename != null && (snippetFilename != a.snippetFilename || a == answers.last)) {
+        val confMean = confidenceList.sum / confidenceList.length.toFloat
+        val confVar = confidenceList.map(cv => Math.pow(cv-confMean,2)).sum / confidenceList.length
+        countAnswers += ((snippetFilename+"confMean") -> Math.round(confMean*10))
+        countAnswers += ((snippetFilename+"confVar") -> Math.round(confVar.toFloat*10))
+        confidenceList = ListBuffer()
+      }
+      snippetFilename = a.snippetFilename
     })
     countAnswers
+  }
+
+  def generateMturkResults(conferenceId: Int, secret: String) = Action {
+    if(conferenceService.findByIdAndSecret(conferenceId,secret).nonEmpty) {
+      val answers = answerService.findAllJsonAnswersByConference(conferenceId)
+      val answersEvaluated = evaluateAnswers(answers)
+      Ok(views.html.paper.generateMturkAnswers(answers,answersEvaluated))
+    } else {
+      Unauthorized(views.html.error.unauthorized())
+    }
   }
 
   def addMethodsAndAssumptions(id:Int, results: List[PaperResult]) : List[PaperResult] = {

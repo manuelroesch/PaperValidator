@@ -7,9 +7,9 @@
 <html>
 	<head>
 		<title>@title</title>
-		<link rel="stylesheet" media="screen" href="@{urlPrefix + routes.Assets.at("stylesheets/main.css").url}">
-		<link rel="stylesheet" media="screen" href="@{urlPrefix + routes.Assets.at("stylesheets/bootstrap.min.css").url}">
-		<link rel="stylesheet" media="screen" href="@{urlPrefix + routes.Assets.at("stylesheets/bootstrap-slider.css").url}">
+		<link rel="stylesheet" href="@{urlPrefix + routes.Assets.at("stylesheets/main.css").url}">
+		<link rel="stylesheet" href="@{urlPrefix + routes.Assets.at("stylesheets/bootstrap.min.css").url}">
+		<link rel="stylesheet" href="@{urlPrefix + routes.Assets.at("stylesheets/bootstrap-slider.css").url}">
 		<link rel="shortcut icon" type="image/png" href="@{urlPrefix + routes.Assets.at("images/favicon.png").url}">
 		<script src="@{urlPrefix + routes.Assets.at("javascripts/jquery-2.1.4.min.js").url}" type="text/javascript"></script>
 		<script src="@{urlPrefix + routes.Assets.at("javascripts/angular.min.js").url}" type="text/javascript"></script>
@@ -53,6 +53,21 @@
 			}
 			.footer {
 				margin-top: 100px;
+			}
+			@@media print {
+				.header {
+					display:none;
+				}
+				.page-breaker-before {
+					page-break-before: always;
+				}
+				.page-breaker-after {
+					page-break-after: always;
+				}
+				a:link:after,
+				a:visited:after {
+					content: "" !important;
+				}
 			}
 		</style>
 	</head>

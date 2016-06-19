@@ -157,14 +157,6 @@
                                             <img class='img-responsive answer-img' src="@getSnippetUrl(answer.snippetFilename)">
                                         </a>
                                         <br>
-                                    }
-                                    @for((jsonElement,i) <- Json.parse(answer.answerJson).as[JsObject].fields.zipWithIndex) {
-                                        @if(i > 1) {
-                                            @jsonElement._1: @jsonElement._2.asOpt[String]<br>
-                                        }
-                                    }
-                                    <br>
-                                    @if(index == answers.length-1 || answer.snippetFilename != answers(index+1).snippetFilename) {
                                         <table class="answer-eval-table">
                                             <tr>
                                                 <th rowspan="2">Mturk Question
@@ -203,7 +195,14 @@
                                                 <td></td>
                                             </tr>
                                         </table>
+                                        <br>
                                     }
+                                    @for((jsonElement,i) <- Json.parse(answer.answerJson).as[JsObject].fields.zipWithIndex) {
+                                        @if(i > 1) {
+                                            @jsonElement._1: @jsonElement._2.asOpt[String]<br>
+                                        }
+                                    }
+                                    <br>
                                 }
                             }
                         </div>

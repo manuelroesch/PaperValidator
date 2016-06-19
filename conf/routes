@@ -27,6 +27,7 @@ GET        /confirm-paper/:id/:secret               controllers.Paper.confirmPap
 GET        /skip-paper/:id/:secret                  controllers.Paper.skipPaper(id: Int, secret: String)
 GET        /paper-file/:basePath/*path              controllers.Paper.getFile(basePath: String, path: String)
 GET        /spellchecker/:id/:secret                controllers.Paper.loadSpellCheckerResults(id: Int, secret: String)
+GET        /generate-mturk-results/:id/:secret      controllers.Paper.generateMturkResults(id: Int, secret: String)
 
 # Conference
 GET        /conference-creator                      controllers.Conference.conferenceCreator

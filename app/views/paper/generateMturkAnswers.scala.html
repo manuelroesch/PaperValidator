@@ -1,0 +1,220 @@
+@import play.Configuration
+@import models.PaperResult
+@import play.api.libs.json.Json
+
+@import play.api.libs.json.JsObject
+@(answers: List[AnswerShowPaper], answersEvaluated: Map[String,Int])
+
+
+@urlPrefix = {@Configuration.root().getString("url.prefix")}
+@getSnippetUrl(snippetFilename: String) = @{
+    val relativePath = snippetFilename.substring(snippetFilename.indexOf("tmp") + 4)
+    urlPrefix + routes.Paper.getFile("tmp", relativePath).url
+}
+@mainFrame("Generate Mturk Answers") {
+    <div class="mturk-answers">
+        <h1>Mturk Answers</h1>
+        <h2>Settings</h2>
+        <b>answersPerSnippet:</b> @Configuration.root().getString("answersPerSnippet")<br>
+        <b>likertCleanedAnswers:</b> @Configuration.root().getString("likertCleanedAnswers")<br>
+        <b>hcomp.k:</b> @Configuration.root().getString("hcomp.k")<br>
+        <b>hcomp.maxIterations:</b> @Configuration.root().getString("hcomp.maxIterations")<br>
+        <b>hcomp.paymentCents:</b> @Configuration.root().getString("hcomp.paymentCents")<br>
+        <h2>Answer Overview</h2>
+        <table id="answer-overview">
+            <tr>
+                <th rowspan="2">Snippet Name</th>
+                <th colspan="2">isRelated</th>
+                <th colspan="2">isCheckedBefore</th>
+                <th colspan="2">Confidence</th>
+            </tr>
+            <tr>
+                <th>High (≥5)</th>
+                <th>Low (5>)</th>
+                <th>High (≥5)</th>
+                <th>Low (5>)</th>
+                <th>Mean</th>
+                <th>Variance</th>
+            </tr>
+        </table>
+        <br>
+        <button class="btn btn-primary" onclick="generateOverview(this)">Generate Overview</button>
+        <h2 class="page-breaker-before">Answer Details</h2>
+        @for((answer,index) <- answers.zipWithIndex){
+            @if(!answer.answerJson.isEmpty) {
+                @if((index == 0 || answer.snippetFilename != answers(index-1).snippetFilename)
+                        && !answer.snippetFilename.isEmpty) {
+                    <hr>
+                    <h3 class="paper-name">@answer.snippetFilename.substring(answer.snippetFilename.replace("\\","/").lastIndexOf("/")+1)</h3>
+                    <a href="@getSnippetUrl(answer.snippetFilename)">
+                        <img class='img-responsive answer-img' src="@getSnippetUrl(answer.snippetFilename)">
+                    </a>
+                    <br>
+                    <table class="answer-eval-table">
+                        <tr>
+                            <th rowspan="2">Mturk Question
+                                <br>Confidence (Ø=
+                                <span class="mean">@{answersEvaluated.getOrElse(answer.snippetFilename+"confMean",0)/10.0}</span>
+                                ±<span class="variance">@{answersEvaluated.getOrElse(answer.snippetFilename+"confVar",0)/10.0}</span>
+                            </th>
+                            <th colspan="2">isRelated</th>
+                            <th colspan="2">isCheckedBefore</th>
+                        </tr>
+                        <tr>
+                            <th>High (≥5)</th>
+                            <th>Low (5>)</th>
+                            <th>High (≥5)</th>
+                            <th>Low (5>)</th>
+                        </tr>
+                        <tr>
+                            <th>Yes</th>
+                            <td class="p-0 p-active">@answersEvaluated.getOrElse(answer.snippetFilename+"isRelatedYes-true",0)</td>
+                            <td class="p-1 p-active">@answersEvaluated.getOrElse(answer.snippetFilename+"isRelatedYes-false",0)</td>
+                            <td class="p-2 p-active">@answersEvaluated.getOrElse(answer.snippetFilename+"isCheckedBeforeYes-true",0)</td>
+                            <td class="p-3 p-active">@answersEvaluated.getOrElse(answer.snippetFilename+"isCheckedBeforeYes-false",0)</td>
+                        </tr>
+                        <tr>
+                            <th>No</th>
+                            <td class="p-0">@answersEvaluated.getOrElse(answer.snippetFilename+"isRelatedNo-true",0)</td>
+                            <td class="p-1">@answersEvaluated.getOrElse(answer.snippetFilename+"isRelatedNo-false",0)</td>
+                            <td class="p-2">@answersEvaluated.getOrElse(answer.snippetFilename+"isCheckedBeforeNo-true",0)</td>
+                            <td class="p-3">@answersEvaluated.getOrElse(answer.snippetFilename+"isCheckedBeforeNo-false",0)</td>
+                        </tr>
+                        <tr>
+                            <th class="yes-percent">Accuracy of the Answers</th>
+                            <td class="result-0" onclick="negatePercent(this)"></td>
+                            <td class="result-1" onclick="negatePercent(this)"></td>
+                            <td class="result-2" onclick="negatePercent(this)"></td>
+                            <td class="result-3" onclick="negatePercent(this)"></td>
+                        </tr>
+                    </table>
+                    <br>
+                }
+                @for((jsonElement,i) <- Json.parse(answer.answerJson).as[JsObject].fields.zipWithIndex) {
+                    @if(i > 1) {
+                        @jsonElement._1: @jsonElement._2.asOpt[String]<br>
+                    }
+                }
+                @if((index != answers.length-1 && answer.snippetFilename != answers(index+1).snippetFilename)
+                        && !answer.snippetFilename.isEmpty) {
+                    <br class="page-breaker-after">
+                } else {
+                    <br>
+                }
+            }
+        }
+    </div>
+    <style>
+        .answer-img {
+            border: 1px solid #ddd;
+        }
+        .answer-eval-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 3px;
+        }
+        .answer-eval-table, th, td {
+            border: 1px solid #ddd;
+            padding: 5px;
+        }
+        th {
+            background-color: #f5f5f5 ;
+        }
+        h1 {
+            margin:20px 0px 10px;
+        }
+        .mturk-answers {
+            width: 650px;
+            margin: 0px auto;
+        }
+        .end-results {
+            border-top:2px solid black;
+        }
+        .p-active {
+            background-color: #d2ffb2;
+            font-weight:bold;
+        }
+    </style>
+    <script>
+        $(".answer-eval-table").each(function(){
+            var answerCounts = $(this).find("td");
+            for(var i=0;i<4;i++){
+                var calcPercentage = parseInt(answerCounts.get(i).innerHTML);
+                calcPercentage = calcPercentage/(parseInt(answerCounts.get(i).innerHTML)+parseInt(answerCounts.get(4+i).innerHTML));
+                if(calcPercentage){
+                    answerCounts.get(8+i).innerHTML = Math.round(calcPercentage*100)+"%";
+                } else {
+                    answerCounts.get(8+i).innerHTML = "-";
+                }
+            }
+        });
+
+        function generateOverview(element) {
+            element.style.display = "none";
+            var results = [];
+            var mean = $('.mean');
+            var answerOverview = $('#answer-overview');
+            for(var i = 0;i < mean.length;i++) {
+                results[i] = [];
+                for(var j = 0;j<4;j++) {
+                    results[i][j] = parseInt($(".result-"+j).get(i).innerHTML);
+                }
+                results[i][4] = parseFloat(mean.get(i).innerHTML);
+                results[i][5] = parseFloat($(".variance").get(i).innerHTML);
+                var paperName = $(".paper-name").get(i).innerHTML;
+                if(paperName.length > 27) {
+                    paperName = paperName.substring(0,27) + "...";
+                }
+                var paperNameHTML = "<th>"+paperName+"</th>";
+                var resultHTML = "";
+                for(j = 0;j<results[i].length;j++){
+                    var unit = j < 4 ? "%" : "";
+                    resultHTML += "<td>"+results[i][j]+unit+"</td>";
+                }
+                answerOverview.append("<tr>"+paperNameHTML+resultHTML+"</tr>")
+            }
+
+            var endResultHtml = "";
+            for(i = 0;i<results[0].length;i++){
+                var unit = i < 4 ? "%" : ""
+                endResultHtml += "<th>"+getMean(results,i)+unit+"<br>±"+getVariance(results,i)+unit+"</th>";
+            }
+            answerOverview.append('<tr class="end-results"><th>Mean<br>±SE</th>'+endResultHtml+'</tr>')
+        }
+
+        function getMean(resultList, i) {
+            var sum = 0;
+            var count = 0;
+            for(var j=0;j<resultList.length;j++){
+                if(!isNaN(resultList[j][i])){
+                    sum += resultList[j][i];
+                    count++;
+                }
+            }
+            return Math.round(sum/count*100)/100;
+        }
+
+        function getVariance(resultList, i) {
+            var mean = getMean(resultList,i);
+            var sum = 0;
+            var count = 0;
+            for(var j=0;j<resultList.length;j++){
+                if(!isNaN(resultList[j][i])){
+                    sum += Math.sqrt(Math.pow(resultList[j][i]-mean,2));
+                    count++;
+                }
+            }
+            return Math.round(sum/count*100)/100;
+        }
+
+        function negatePercent(element) {
+            element.innerHTML = 100-parseInt(element.innerHTML.substring(0,element.innerHTML.length-1))+"%";
+            var pos = parseInt($(element).attr("class").replace("result-",""));
+            var table = $(element).parent().parent()
+            var activeCell = $(table.find(".p-"+pos+".p-active").get(0))
+            table.find(".p-"+pos).addClass("p-active")
+            activeCell.removeClass("p-active")
+        }
+    </script>
+}
+

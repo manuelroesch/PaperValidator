@@ -124,6 +124,18 @@ class AnswerService @Inject()(db:Database) {
 		}
 	}
 
+	def findAllJsonAnswersByConference(conferenceId: Int): List[AnswerShowPaper] = {
+		db.withConnection { implicit c =>
+			SQL("SELECT snippet_filename,answer_json " +
+				"FROM question q,answer a,permutations pe " +
+				"WHERE q.id = a.question_id AND q.permutation = pe.id " +
+				"AND pe.paper_id IN (SELECT id FROM papers WHERE conference_id = {conference_id})" +
+				"ORDER BY pe.group_name").on(
+				'conference_id -> conferenceId
+			).as(answerShowPaperParser *)
+		}
+	}
+
 	def countAnswersByConferenceTotal(conferenceId: Int): Int = {
 		db.withConnection { implicit c =>
 			SQL("SELECT count(*)" +

@@ -146,6 +146,10 @@
 			"<b>"+stats("methodsTotal")+" Method(s)</b> in " + stats("paperWithMethods")+" Paper(s)")
 		@stat("Detected <b>methods to assumption mappings</b>:",
 			"<b>"+stats("m2ATotal")+" Mapping(s)</b> in "+stats("paperWithM2A")+" Paper(s)")
+		<br><br>
+		<a href="@{baseUrl + routes.Paper.generateMturkResults(id,secret).url}">
+			<button class="btn btn-primary">Show Mturk Results</button>
+		</a>
 	</div>
 	<style>
 		.tabStart-true {
