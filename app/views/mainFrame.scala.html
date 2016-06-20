@@ -56,13 +56,16 @@
 			}
 			@@media print {
 				.header {
-					display:none;
+					display: none;
 				}
 				.page-breaker-before {
 					page-break-before: always;
 				}
 				.page-breaker-after {
 					page-break-after: always;
+				}
+				.print-block {
+					page-break-inside: avoid;
 				}
 				a:link:after,
 				a:visited:after {
