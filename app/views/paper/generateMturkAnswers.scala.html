@@ -54,8 +54,8 @@
                         <tr>
                             <th rowspan="2">Mturk Question
                                 <br>Confidence (Ø=
-                                <span class="mean">@{answersEvaluated.getOrElse(answer.snippetFilename+"confMean",0)/10.0}</span>
-                                ±<span class="variance">@{answersEvaluated.getOrElse(answer.snippetFilename+"confVar",0)/10.0}</span>
+                                <span class="mean">@{answersEvaluated.getOrElse(answer.snippetFilename+"confMean",0)/100.0}</span>
+                                ±<span class="variance">@{answersEvaluated.getOrElse(answer.snippetFilename+"confVar",0)/100.0}</span>)
                             </th>
                             <th colspan="2">isRelated</th>
                             <th colspan="2">isCheckedBefore</th>
@@ -82,10 +82,10 @@
                         </tr>
                         <tr>
                             <th class="yes-percent">Accuracy of the Answers</th>
-                            <td class="result-0" onclick="negatePercent(this)"></td>
-                            <td class="result-1" onclick="negatePercent(this)"></td>
-                            <td class="result-2" onclick="negatePercent(this)"></td>
-                            <td class="result-3" onclick="negatePercent(this)"></td>
+                            <td class="p-result result-0" onclick="negatePercent(this)"></td>
+                            <td class="p-result result-1" onclick="negatePercent(this)"></td>
+                            <td class="p-result result-2" onclick="negatePercent(this)"></td>
+                            <td class="p-result result-3" onclick="negatePercent(this)"></td>
                         </tr>
                     </table>
                     <br>
@@ -134,15 +134,18 @@
             background-color: #d2ffb2;
             font-weight:bold;
         }
+        .p-result {
+            cursor: pointer;
+        }
     </style>
     <script>
         $(".answer-eval-table").each(function(){
             var answerCounts = $(this).find("td");
             for(var i=0;i<4;i++){
                 var calcPercentage = parseInt(answerCounts.get(i).innerHTML);
-                calcPercentage = calcPercentage/(parseInt(answerCounts.get(i).innerHTML)+parseInt(answerCounts.get(4+i).innerHTML));
-                if(calcPercentage){
-                    answerCounts.get(8+i).innerHTML = Math.round(calcPercentage*100)+"%";
+                calcPercentage = calcPercentage/(calcPercentage+parseFloat(answerCounts.get(4+i).innerHTML));
+                if(!isNaN(calcPercentage)){
+                    answerCounts.get(8+i).innerHTML = Math.round(calcPercentage*1000)/10+"%";
                 } else {
                     answerCounts.get(8+i).innerHTML = "-";
                 }
@@ -176,7 +179,7 @@
 
             var endResultHtml = "";
             for(i = 0;i<results[0].length;i++){
-                var unit = i < 4 ? "%" : ""
+                var unit = i < 4 ? "%" : "";
                 endResultHtml += "<th>"+getMean(results,i)+unit+"<br>±"+getVariance(results,i)+unit+"</th>";
             }
             answerOverview.append('<tr class="end-results"><th>Mean<br>±SE</th>'+endResultHtml+'</tr>')
@@ -208,12 +211,12 @@
         }
 
         function negatePercent(element) {
-            element.innerHTML = 100-parseInt(element.innerHTML.substring(0,element.innerHTML.length-1))+"%";
-            var pos = parseInt($(element).attr("class").replace("result-",""));
-            var table = $(element).parent().parent()
-            var activeCell = $(table.find(".p-"+pos+".p-active").get(0))
-            table.find(".p-"+pos).addClass("p-active")
-            activeCell.removeClass("p-active")
+            element.innerHTML = Math.round((100-parseFloat(element.innerHTML.replace("%","")))*10)/10+"%";
+            var pos = parseInt($(element).attr("class").replace("p-result result-",""));
+            var table = $(element).parent().parent();
+            var activeCell = $(table.find(".p-"+pos+".p-active").get(0));
+            table.find(".p-"+pos).addClass("p-active");
+            activeCell.removeClass("p-active");
         }
     </script>
 }

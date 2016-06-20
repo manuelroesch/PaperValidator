@@ -161,8 +161,8 @@
                                             <tr>
                                                 <th rowspan="2">Mturk Question
                                                     <br>Confidence
-                                                    (Ø=@{answersEvaluated.getOrElse(answer.snippetFilename+"confMean",0)/10.0}
-                                                    ±@{answersEvaluated.getOrElse(answer.snippetFilename+"confVar",0)/10.0}
+                                                    (Ø=@{answersEvaluated.getOrElse(answer.snippetFilename+"confMean",0)/100.0}
+                                                    ±@{answersEvaluated.getOrElse(answer.snippetFilename+"confVar",0)/100.0}
                                                 </th>
                                                 <th colspan="2">isRelated</th>
                                                 <th colspan="2">isCheckedBefore</th>
@@ -270,7 +270,7 @@
             for(var i=0;i<4;i++){
                 var calcPercentage = parseInt(answerCounts.get(i).innerHTML);
                 calcPercentage = calcPercentage/(parseInt(answerCounts.get(i).innerHTML)+parseInt(answerCounts.get(4+i).innerHTML));
-                if(calcPercentage){
+                if(!isNaN(calcPercentage)){
                     answerCounts.get(8+i).innerHTML = Math.round(calcPercentage*100)+"%";
                 } else {
                     answerCounts.get(8+i).innerHTML = "-";

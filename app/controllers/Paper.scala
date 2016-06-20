@@ -59,9 +59,18 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
     var confidenceList : ListBuffer[Int] = ListBuffer()
     var snippetFilename : String = null
     answers.foreach(a => {
+      if (snippetFilename != null && (snippetFilename != a.snippetFilename || a == answers.last)) {
+        val confMean = confidenceList.sum / confidenceList.length.toFloat
+        val confVar = Math.sqrt(confidenceList.map(cv => Math.pow(cv-confMean,2)).sum / confidenceList.length)
+        countAnswers += ((snippetFilename+"confMean") -> Math.round(confMean*100))
+        countAnswers += ((snippetFilename+"confVar") -> Math.round(confVar.toFloat*100))
+        confidenceList = ListBuffer()
+      }
       if(!a.answerJson.isEmpty) {
+        snippetFilename = a.snippetFilename
         val parsedJSON = Json.parse(a.answerJson)
         val confidence = parsedJSON.get("confidence").asInt()
+        confidenceList += confidence
         List("isRelated","isCheckedBefore").foreach(q => {
           if(parsedJSON.has(q)) {
             val countKey = a.snippetFilename+q+parsedJSON.get(q).asText()+"-"+(confidence>=Constants.LIKERT_VALUE_CLEANED_ANSWERS)
@@ -72,16 +81,7 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
             }
           }
         })
-        confidenceList += confidence
       }
-      if (snippetFilename != null && (snippetFilename != a.snippetFilename || a == answers.last)) {
-        val confMean = confidenceList.sum / confidenceList.length.toFloat
-        val confVar = confidenceList.map(cv => Math.pow(cv-confMean,2)).sum / confidenceList.length
-        countAnswers += ((snippetFilename+"confMean") -> Math.round(confMean*10))
-        countAnswers += ((snippetFilename+"confVar") -> Math.round(confVar.toFloat*10))
-        confidenceList = ListBuffer()
-      }
-      snippetFilename = a.snippetFilename
     })
     countAnswers
   }
