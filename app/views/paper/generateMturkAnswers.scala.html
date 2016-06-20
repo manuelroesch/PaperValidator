@@ -11,7 +11,7 @@
     val relativePath = snippetFilename.substring(snippetFilename.indexOf("tmp") + 4)
     urlPrefix + routes.Paper.getFile("tmp", relativePath).url
 }
-@mainFrame("Generate Mturk Answers") {
+@mainFrame("Mturk Answers") {
     <div class="mturk-answers">
         <h1>Mturk Answers</h1>
         <h2>Settings</h2>
@@ -99,7 +99,7 @@
                 </div>
                 @if((index != answers.length-1 && answer.snippetFilename != answers(index+1).snippetFilename)
                         && !answer.snippetFilename.isEmpty) {
-                    <br class="page-breaker-after">
+                    <div class="page-breaker-after"><br></div>
                 } else {
                     <br>
                 }
