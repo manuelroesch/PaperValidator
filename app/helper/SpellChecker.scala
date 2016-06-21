@@ -15,10 +15,14 @@ object SpellChecker {
   def check(paper:Papers): String = {
 
     //TODO: Create central text conversion proccess
-    val text = Statchecker.convertPDFtoText(paper).replaceAll("\\s+"," ")
+    val text = Statchecker.convertPDFtoText(paper).mkString("\n").replaceAll("\\s+"," ")
 
     val langTool = new JLanguageTool(new BritishEnglish())
-    val result = langTool.check(text).map(m => {
+    val result = langTool.check(text)
+    if(result.isEmpty) {
+      "No Errors Found!"
+    } else {
+      result.map(m => {
         if(text.substring(m.getFromPos,m.getToPos) == text.substring(m.getFromPos,m.getToPos).toLowerCase() &&
           !m.getSuggestedReplacements.isEmpty) {
             val errorInTextSnippetSize = 30
@@ -31,9 +35,9 @@ object SpellChecker {
         } else {
             " "
         }
+      })
+      result.mkString(" ")
     }
-      )
-    result.mkString(" ")
   }
 
 }
