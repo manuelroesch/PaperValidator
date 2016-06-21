@@ -121,7 +121,8 @@ CREATE TABLE `paper_results` (
   `result_type` int(11) NOT NULL,
   `descr` varchar(256) NOT NULL,
   `result` varchar(256) NOT NULL,
-  `symbol` int(11) NOT NULL
+  `symbol` int(11) NOT NULL,
+  `position` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `question` (

@@ -5,6 +5,7 @@ import javax.inject.{Singleton, Inject}
 import anorm.SqlParser._
 import anorm._
 import anorm.JodaParameterMetaData._
+import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.integrationtest.console.Constants
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.db.Database
@@ -77,38 +78,42 @@ class AnswerService @Inject()(db:Database) {
 			).as(answerParser *)
 		}
 
-	def findByPaperId(paperId: Int): List[AnswerM2A] = {
+	def findByPaperId(paperId: Int, useRawAnswers: Boolean = false): List[AnswerM2A] = {
 		var m2aMap: Map[String, Map[String, List[Double]]] = null
 		db.withConnection { implicit c =>
 			val answers = SQL("SELECT method_index method,group_name assumption, " +
 				"AVG(a.is_related) is_related, AVG(is_checked_before) is_checked_before, AVG(extra_answer) extra_answer, 0 flag " +
 				"FROM question q,answer a,permutations pe,papers pa " +
 				"WHERE q.id = a.question_id AND q.permutation = pe.id AND pe.paper_id = pa.id AND pa.id = {paper_id} " +
-				"GROUP BY method_index, group_name").on(
+				"AND a.confidence >= "+Constants.LIKERT_VALUE_CLEANED_ANSWERS+" GROUP BY method_index, group_name").on(
 				'paper_id -> paperId
 			).as(answerM2AParser *)
-				answers.foreach(answer => {
-					val method = answer.method.split("_")(0)
-					val assumption = answer.assumption.split("/")(1)
-					if (m2aMap == null) {
-						m2aMap = Map(method -> Map(assumption -> List(answer.isRelated, answer.isCheckedBefore)))
-					} else if (!m2aMap.isDefinedAt(method)) {
-						m2aMap += (method -> Map(assumption -> List(answer.isRelated, answer.isCheckedBefore)))
-					} else if (!m2aMap(method).isDefinedAt(assumption) || m2aMap(method)(assumption).head <= answer.isRelated
-						&& m2aMap(method)(assumption)(1) <= answer.isCheckedBefore) {
-						m2aMap += (method -> m2aMap.get(method).get.updated(assumption, List(answer.isRelated, answer.isCheckedBefore)))
-					}
-				})
-				if(m2aMap!=null){
-					var m2aList: ListBuffer[AnswerM2A] = ListBuffer()
-					m2aMap.foreach(m2a => {
-						m2aMap(m2a._1).foreach(a => {
-							m2aList += new AnswerM2A(m2a._1, a._1, a._2.head, a._2(1), 0.0, 0)
-						})
-					})
-					m2aList.toList
+				if(useRawAnswers) {
+					answers
 				} else {
-					List[AnswerM2A]()
+					answers.foreach(answer => {
+						val method = answer.method.split("_")(0)
+						val assumption = answer.assumption.split("/")(1)
+						if (m2aMap == null) {
+							m2aMap = Map(method -> Map(assumption -> List(answer.isRelated, answer.isCheckedBefore)))
+						} else if (!m2aMap.isDefinedAt(method)) {
+							m2aMap += (method -> Map(assumption -> List(answer.isRelated, answer.isCheckedBefore)))
+						} else if (!m2aMap(method).isDefinedAt(assumption) || m2aMap(method)(assumption).head <= answer.isRelated
+							&& m2aMap(method)(assumption)(1) <= answer.isCheckedBefore) {
+							m2aMap += (method -> m2aMap.get(method).get.updated(assumption, List(answer.isRelated, answer.isCheckedBefore)))
+						}
+					})
+					if(m2aMap!=null){
+						var m2aList: ListBuffer[AnswerM2A] = ListBuffer()
+						m2aMap.foreach(m2a => {
+							m2aMap(m2a._1).foreach(a => {
+								m2aList += new AnswerM2A(m2a._1, a._1, a._2.head, a._2(1), 0.0, 0)
+							})
+						})
+						m2aList.toList
+					} else {
+						List[AnswerM2A]()
+					}
 				}
 		}
 	}

@@ -46,16 +46,16 @@ object LayoutChecker {
 
     if(checkBorderOk)
       paperResultService.create(paper.id.get,PaperResult.TYPE_LAYOUT_BORDER,"Printable Borders",
-        "Borders are printable",PaperResult.SYMBOL_OK)
+        "Borders are printable",PaperResult.SYMBOL_OK,"")
     else
       paperResultService.create(paper.id.get,PaperResult.TYPE_LAYOUT_BORDER,"Printable Borders",
-        "Borders are too small",PaperResult.SYMBOL_WARNING)
+        "Borders are too small",PaperResult.SYMBOL_WARNING,"")
     if(checkColorsOk)
       paperResultService.create(paper.id.get,PaperResult.TYPE_LAYOUT_COLORS,"Printable Colors",
-        "Paper is b/w",PaperResult.SYMBOL_OK)
+        "Paper is b/w",PaperResult.SYMBOL_OK,"")
     else
       paperResultService.create(paper.id.get,PaperResult.TYPE_LAYOUT_COLORS,"Printable Colors",
-        "Paper may contain unprintable colors",PaperResult.SYMBOL_WARNING)
+        "Paper may contain unprintable colors",PaperResult.SYMBOL_WARNING,"")
   }
 
 }

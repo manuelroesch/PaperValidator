@@ -1,12 +1,15 @@
 package controllers
 
+import java.awt.Color
+import java.io.{FileOutputStream, BufferedOutputStream, ByteArrayOutputStream}
 import javax.inject.Inject
 
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.integrationtest.console.Constants
+import helper.pdfpreprocessing.pdf.TextHighlight
+import org.apache.pdfbox.pdmodel.PDDocument
 import play.libs.Json
 
 import scala.collection.mutable.ListBuffer
-import scala.reflect.io.File
 import util.control.Breaks._
 import helper.{SpellChecker, Commons, PaperProcessingManager}
 import models._
@@ -30,16 +33,77 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
     if(paper.isDefined) {
       var results = paperResultService.findByPaperId(id)
       results = addMethodsAndAssumptions(id,results)
-      val filePath = configuration.getString("highlighter.pdfSourceDir").get+"/"+Commons.getSecretHash(secret)+"/log.txt"
-      val fileLengh = File(filePath).length
+      val fileBasePath = configuration.getString("highlighter.pdfSourceDir").get+"/"+Commons.getSecretHash(secret)
+      val fileLengh = scala.reflect.io.File(fileBasePath + "/log.txt").length
       var log = ""
       if(fileLengh < 9999999 && fileLengh > 0) {
-        val source = scala.io.Source.fromFile(filePath)
+        val source = scala.io.Source.fromFile(fileBasePath + "/log.txt")
         log = try source.mkString.replace("\n","\n<br>") finally source.close()
       }
       val answers = answerService.findJsonAnswerByPaperId(id)
       val answersEvaluated = evaluateAnswers(answers)
-      Ok(views.html.paper.showPaper(paper.get,Commons.getSecretHash(secret),results,log,answers,answersEvaluated))
+      val annotated = scala.reflect.io.File(fileBasePath + "/annotated-" + paper.get.name).exists
+      Ok(views.html.paper.showPaper(paper.get,Commons.getSecretHash(secret),results,log,answers,answersEvaluated, annotated))
+    } else {
+      Unauthorized(views.html.error.unauthorized())
+    }
+  }
+
+  def annotatePaper(id:Int, secret:String) = Action {
+    val paper = papersService.findByIdAndSecret(id,secret)
+    if(paper.isDefined) {
+      //var results = paperResultService.findByPaperId(id)
+      val fileBasePath = configuration.getString("highlighter.pdfSourceDir").get+"/"+Commons.getSecretHash(secret)+"/"
+      val paperPDF = new java.io.File(fileBasePath + paper.get.name)
+      val answers = answerService.findByPaperId(id,true)
+      val results = paperResultService.findByPaperId(id)
+      PaperProcessingManager.writePaperLog("Creating Annotation PDF\n",paper.get.secret)
+      try {
+          val pdDoc: PDDocument = PDDocument.load(paperPDF)
+
+          val textHighlighter = new TextHighlight("UTF-8")
+          textHighlighter.initialize(pdDoc)
+          answers.foreach(a => {
+            val methodPos = a.method.substring(a.method.lastIndexOf("_")+1).split(":")
+            val methodSize = a.method.substring(0,a.method.lastIndexOf("_")).length
+            textHighlighter.highlight(methodPos(1).toInt,methodPos(1).toInt+methodSize,Color.yellow,methodPos(0).toInt,true)
+            val assumptionParsed = a.assumption.split("/")
+            val assumptionPos = assumptionParsed(2).split(":")
+            val assumptionSize = assumptionParsed(1).length
+            textHighlighter.highlight(assumptionPos(1).toInt,assumptionPos(1).toInt+assumptionSize,Color.yellow,assumptionPos(0).toInt,true)
+          })
+          val colorList = List(new Color(22, 160, 133),new Color(39, 174, 96),new Color(41, 128, 185),
+            new Color(142, 68, 173),new Color(44, 62, 80),new Color(243, 156, 18),new Color(211, 84, 0),
+            new Color(192, 57, 43),new Color(189, 195, 199),new Color(127, 140, 141))
+          results.foreach(r => {
+            if(r.position != ""){
+              r.position.split(",").foreach(p => {
+                val position = p.split(":|-")
+                if(position.length == 3) {
+                  textHighlighter.highlight(position(1).toInt,position(2).toInt,colorList(r.resultType%1000/10),position(0).toInt,true)
+                }
+              })
+            }
+          })
+          val byteArrayOutputStream = new ByteArrayOutputStream()
+          if (pdDoc != null) {
+            pdDoc.save(byteArrayOutputStream)
+            pdDoc.close()
+          }
+          val outFile = new java.io.File(fileBasePath + "annotated-" + paper.get.name)
+          Some(new BufferedOutputStream(new FileOutputStream(outFile))).foreach(o => {
+            o.write(byteArrayOutputStream.toByteArray)
+            o.close()
+          })
+          PaperProcessingManager.writePaperLog("Annotation PDF ready!\n",paper.get.secret)
+      } catch {
+        case e: Throwable => {
+          PaperProcessingManager.writePaperLog(e.toString,paper.get.secret)
+          println("couldn't highlight pdf", e)
+          Ok("Error")
+        }
+      }
+      Ok("Ok")
     } else {
       Unauthorized(views.html.error.unauthorized())
     }
@@ -119,7 +183,7 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
               } else {
                 m2aResult += getM2AFlagText(confSetting)
               }
-              allResults = allResults:+ new PaperResult(Some(1L),id,PaperResult.TYPE_M2A,m2aDescr,m2aResult,symbol)
+              allResults = allResults :+ new PaperResult(Some(1L),id,PaperResult.TYPE_M2A,m2aDescr,m2aResult,symbol,"")
               conferenceSettings.remove(i)
               break
             }
@@ -137,7 +201,7 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
         if(confSetting.flag.get==ConferenceSettings.FLAG_EXPECT) {
           symbol = PaperResult.SYMBOL_WARNING
         }
-        allResults:+ new PaperResult(Some(1L),id,PaperResult.TYPE_M2A,m2aDescr,m2aResult,symbol)
+        allResults = allResults :+ new PaperResult(Some(1L),id,PaperResult.TYPE_M2A,m2aDescr,m2aResult,symbol,"")
       }
     })
     allResults

@@ -43,7 +43,7 @@ object PaperStats {
                 symbol = PaperResult.SYMBOL_WARNING
               } else {
               }
-              allResults = allResults:+ new PaperResult(Some(1L),id,PaperResult.TYPE_M2A,"","",symbol)
+              allResults = allResults:+ new PaperResult(Some(1L),id,PaperResult.TYPE_M2A,"","",symbol,"")
               conferenceSettings.remove(i)
               break
             }
@@ -57,7 +57,7 @@ object PaperStats {
         if(confSetting.flag.get==ConferenceSettings.FLAG_EXPECT) {
           symbol = PaperResult.SYMBOL_WARNING
         }
-        allResults = allResults:+ new PaperResult(Some(1L),id,PaperResult.TYPE_M2A,"","",symbol)
+        allResults = allResults:+ new PaperResult(Some(1L),id,PaperResult.TYPE_M2A,"","",symbol,"")
       }
     })
     allResults

@@ -4,7 +4,7 @@
 
 @import play.api.libs.json.JsObject
 @(paper: Papers,hashedSecret:String,results: List[PaperResult], log: String,
-        answers: List[AnswerShowPaper], answersEvaluated: Map[String,Int])
+        answers: List[AnswerShowPaper], answersEvaluated: Map[String,Int], annotated: Boolean)
 
 
 @urlPrefix = {@Configuration.root().getString("url.prefix")}
@@ -22,9 +22,15 @@
             <img src="@{urlPrefix + routes.Assets.at("images/pdf.png").url}" class="cover-ico text-right">
             </div>
             <a target="_blank" href="@{urlPrefix + routes.Paper.getFile("public","papers/"+hashedSecret+"/"+paper.name).url}">
-                <button class="btn btn-primary">Download Paper</button>
+                <button class="btn btn-primary">Get Paper</button>
             </a>
-            <!--<button class="btn btn-primary">Update Paper</button>-->
+            @if(annotated) {
+                <a target="_blank" href="@{urlPrefix + routes.Paper.getFile("public","papers/"+hashedSecret+"/annotated-"+paper.name).url}">
+                    <button class="btn btn-primary">Get Annotations</button>
+                </a>
+            } else {
+                <button class="btn btn-primary cursor-pointer" onclick="annotatePaper(this)">Annotate Paper</button>
+            }
             <button class="btn btn-danger">Delete Paper</button>
         </div>
         <div class="col-md-8">
@@ -263,6 +269,9 @@
             width: 50px;
             display: inherit;
         }
+        .cursor-pointer {
+            cursor:pointer;
+        }
     </style>
     <script>
         $(".answer-eval-table").each(function(){
@@ -296,6 +305,28 @@
                     $( "#sc-loader" ).parent().html( "<br><br>Error while loading. Sorry!<br><br>");
                 });
             }
+        }
+
+        function annotatePaper(element) {
+            element.innerHTML = "Loading..."
+            element.onclick = function() {};
+            var request = $.ajax({
+                url: "@{urlPrefix + routes.Paper.annotatePaper(paper.id.get,paper.secret).url}",
+                method: "GET"
+            });
+
+            request.done(function( msg ) {
+                if(msg=="Ok"){
+                    element.innerHTML = "Get Annotations"
+                    element.onclick = function() {
+                        window.open('@{urlPrefix + routes.Paper.getFile("public","papers/"+hashedSecret+"/annotated-"+paper.name).url}', '_blank');
+                    }
+                }
+            });
+
+            request.fail(function(jqXHR, textStatus) {
+                alert("Annotation Failed! Check Processing Log for further details.")
+            });
         }
     </script>
 }

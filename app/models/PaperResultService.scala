@@ -41,7 +41,8 @@ object PaperResult {
 	val TYPE_LAYOUT_COLORS = 3020
 }
 
-case class PaperResult(id: Option[Long], paperId: Int, resultType: Int, descr: String, result: String, symbol: Int) extends Serializable
+case class PaperResult(id: Option[Long], paperId: Int, resultType: Int, descr: String, result: String, symbol: Int,
+											 position: String) extends Serializable
 
 class PaperResultService @Inject()(db:Database) {
 
@@ -51,9 +52,10 @@ class PaperResultService @Inject()(db:Database) {
 			get[Int]("result_type") ~
 			get[String]("descr") ~
 			get[String]("result") ~
-			get[Int]("symbol") map {
-			case id ~ paper_id ~ result_type ~ descr ~ result ~ symbol =>
-				PaperResult(id, paper_id, result_type, descr, result, symbol)
+			get[Int]("symbol") ~
+			get[String]("position") map {
+			case id ~ paper_id ~ result_type ~ descr ~ result ~ symbol ~ position =>
+				PaperResult(id, paper_id, result_type, descr, result, symbol, position)
 		}
 
 	def findById(id: Long): Option[PaperResult] =
@@ -90,15 +92,16 @@ class PaperResultService @Inject()(db:Database) {
 		}
 	}
 
-	def create(paperId: Int, resultType: Int, descr: String, result: String, symbol: Int) =
+	def create(paperId: Int, resultType: Int, descr: String, result: String, symbol: Int, position: String) =
 		db.withConnection { implicit c =>
-			SQL("INSERT INTO paper_results(paper_id, result_type, descr, result, symbol) " +
-				"VALUES ({paper_id},{result_type},{descr},{result},{symbol})").on(
+			SQL("INSERT INTO paper_results(paper_id, result_type, descr, result, symbol, position) " +
+				"VALUES ({paper_id},{result_type},{descr},{result},{symbol},{position})").on(
 				'paper_id -> paperId,
 				'result_type -> resultType,
 				'descr -> descr,
 				'result -> result,
-				'symbol -> symbol
+				'symbol -> symbol,
+				'position -> position
 			).executeInsert()
 		}
 

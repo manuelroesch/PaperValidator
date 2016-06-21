@@ -163,6 +163,37 @@ public class TextHighlight extends PDFTextStripper {
 		}
 	}
 
+	public void highlight(int startIndex, int stopIndex, Color color, int pageNr, boolean hasLineOffset) {
+		if (textCache == null || document == null) {
+			throw new IllegalArgumentException("TextCache was not initialized");
+		}
+		try {
+			final PDPage page = document.getPages().get(pageNr - 1);
+			PDPageContentStream contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true);
+
+			PDExtendedGraphicsState graphicsState = new PDExtendedGraphicsState();
+			graphicsState.setNonStrokingAlphaConstant(0.5f);
+
+			contentStream.setGraphicsStateParameters(graphicsState);
+
+			List<TextPosition> pos = textCache.getTextPositions(pageNr);
+			int numberOfLines = 0;
+			if(hasLineOffset) {
+				numberOfLines = textCache.getText(pageNr).substring(0,stopIndex).split("\\n").length-1;
+			}
+			pos = pos.subList(Math.min(numberOfLines+startIndex,pos.size()),Math.min(numberOfLines+stopIndex,pos.size()));
+			Match m = new Match("",pos);
+			markupMatch(color, contentStream, m);
+
+			contentStream.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} catch (Error e1) {
+			e1.printStackTrace();
+			throw e1;
+		}
+	}
+
 
 	private boolean markupMatch(Color color, PDPageContentStream contentStream, Match markingMatch) throws IOException {
 		final List<PDRectangle> textBoundingBoxes = getTextBoundingBoxes(markingMatch.positions);
