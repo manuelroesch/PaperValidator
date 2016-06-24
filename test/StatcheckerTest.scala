@@ -14,8 +14,8 @@ import scala.util.matching.Regex
 class StatcheckerTest extends PlaySpec {
   "extractPValues Test" should {
     "extract one p Value" in {
-      val pValue = Statchecker.extractPValues("This ist an example sentence with a p value that is p=0.05 approximately.",0)
-      pValue mustBe 1
+      val pValue = Statchecker.extractPValues(List("This ist an example sentence with a p value that is p=0.05 approximately."))
+      pValue.size mustBe 1
     }
   }
 
@@ -298,7 +298,7 @@ class StatcheckerTest extends PlaySpec {
           textHighlighter.initialize(pdDoc)
 
           REGEX_ANNOTATE_TERM.findAllIn(textHighlighter.textCache.getText(1)).matchData.foreach({r =>
-            textHighlighter.highlight(r.start(0),r.end(0),Color.yellow,1,false)
+            textHighlighter.highlight(r.start(0),r.end(0),Color.yellow,1,10,false)
           })
 
 

@@ -5,11 +5,15 @@ import java.io.{FileOutputStream, BufferedOutputStream, ByteArrayOutputStream}
 import javax.inject.Inject
 
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.integrationtest.console.Constants
-import helper.pdfpreprocessing.pdf.TextHighlight
+import helper.pdfpreprocessing.PreprocessPDF
+import helper.pdfpreprocessing.pdf.{PDFTextExtractor, TextHighlight}
 import org.apache.pdfbox.pdmodel.PDDocument
 import play.libs.Json
 
 import scala.collection.mutable.ListBuffer
+import scala.io.Source
+import scala.reflect.io.File
+import scala.util.matching.Regex
 import util.control.Breaks._
 import helper.{SpellChecker, Commons, PaperProcessingManager}
 import models._
@@ -59,6 +63,7 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
       val results = paperResultService.findByPaperId(id)
       PaperProcessingManager.writePaperLog("Creating Annotation PDF\n",paper.get.secret)
       try {
+          val annotationList : ListBuffer[String] = ListBuffer()
           val pdDoc: PDDocument = PDDocument.load(paperPDF)
 
           val textHighlighter = new TextHighlight("UTF-8")
@@ -66,11 +71,19 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
           answers.foreach(a => {
             val methodPos = a.method.substring(a.method.lastIndexOf("_")+1).split(":")
             val methodSize = a.method.substring(0,a.method.lastIndexOf("_")).length
-            textHighlighter.highlight(methodPos(1).toInt,methodPos(1).toInt+methodSize,Color.yellow,methodPos(0).toInt,true)
+            if(!annotationList.contains(methodPos(0)+":"+methodPos(1))) {
+              textHighlighter.highlight(methodPos(1).toInt,methodPos(1).toInt+methodSize,Color.yellow,
+                methodPos(0).toInt,10,true)
+              annotationList += methodPos(0)+":"+methodPos(1)
+            }
             val assumptionParsed = a.assumption.split("/")
             val assumptionPos = assumptionParsed(2).split(":")
             val assumptionSize = assumptionParsed(1).length
-            textHighlighter.highlight(assumptionPos(1).toInt,assumptionPos(1).toInt+assumptionSize,Color.yellow,assumptionPos(0).toInt,true)
+            if(!annotationList.contains(assumptionPos(0)+":"+assumptionPos(1))) {
+              textHighlighter.highlight(assumptionPos(1).toInt,assumptionPos(1).toInt+assumptionSize,Color.yellow,
+                assumptionPos(0).toInt,10,true)
+              annotationList += assumptionPos(0)+":"+assumptionPos(1)
+            }
           })
           val colorList = List(new Color(22, 160, 133),new Color(39, 174, 96),new Color(41, 128, 185),
             new Color(142, 68, 173),new Color(44, 62, 80),new Color(243, 156, 18),new Color(211, 84, 0),
@@ -80,11 +93,16 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
               r.position.split(",").foreach(p => {
                 val position = p.split(":|-")
                 if(position.length == 3) {
-                  textHighlighter.highlight(position(1).toInt,position(2).toInt,colorList(r.resultType%1000/10),position(0).toInt,true)
+                  if(!annotationList.contains(position(0)+":"+position(1))) {
+                    textHighlighter.highlight(position(1).toInt, position(2).toInt, colorList(r.resultType % 1000 / 10),
+                      position(0).toInt, 4, true)
+                    annotationList += position(0)+":"+position(1)
+                  }
                 }
               })
             }
           })
+          addGlossaryAnnotation(paper.get, textHighlighter)
           val byteArrayOutputStream = new ByteArrayOutputStream()
           if (pdDoc != null) {
             pdDoc.save(byteArrayOutputStream)
@@ -107,6 +125,18 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
     } else {
       Unauthorized(views.html.error.unauthorized())
     }
+  }
+
+  val glossary = Source.fromFile("statterms/glossary.txt", "UTF-8").getLines().toList
+  val REGEX_GLOSSARY = new Regex(glossary.mkString("|"))
+  def addGlossaryAnnotation(paper:Papers, textHighlighter: TextHighlight) = {
+    val paperLink = PreprocessPDF.INPUT_DIR + "/" + Commons.getSecretHash(paper.secret) + "/" + paper.name
+    val textList = new PDFTextExtractor(paperLink).pages.map(_.toLowerCase())
+    textList.zipWithIndex.foreach{case(text,page) => {
+      REGEX_GLOSSARY.findAllMatchIn(text).foreach(m => {
+        textHighlighter.highlight(m.start(0), m.end(0), Color.black,page, 1, true)
+      })
+    }}
   }
 
   def loadSpellCheckerResults(id:Int, secret: String) = Action {

@@ -47,7 +47,7 @@ object Statchecker {
     //val text = contents.mkString(" ").replaceAll("\u0000"," ")
     if(!new File(paperLink+".text").exists()){
       val pw = new PrintWriter(new File(paperLink+".txt"))
-      pw.write(text.mkString("\n\n"))
+      pw.write(text.map(_.toLowerCase()).mkString("\n\n"))
       pw.close()
     }
     text

@@ -143,7 +143,7 @@ public class TextHighlight extends PDFTextStripper {
 			for (Match searchMatch : textCache.match(pageNr, searchText)) {
 				if (textCache.match(searchMatch.positions, markingPattern).size() > 0) {
 					for (Match markingMatch : textCache.match(searchMatch.positions, markingPattern)) {
-						if (markupMatch(color, contentStream, markingMatch)) {
+						if (markupMatch(color, contentStream, markingMatch,10)) {
 							found = true;
 						}
 					}
@@ -163,7 +163,7 @@ public class TextHighlight extends PDFTextStripper {
 		}
 	}
 
-	public void highlight(int startIndex, int stopIndex, Color color, int pageNr, boolean hasLineOffset) {
+	public void highlight(int startIndex, int stopIndex, Color color, int pageNr, int boxHeight, boolean hasLineOffset) {
 		if (textCache == null || document == null) {
 			throw new IllegalArgumentException("TextCache was not initialized");
 		}
@@ -183,7 +183,7 @@ public class TextHighlight extends PDFTextStripper {
 			}
 			pos = pos.subList(Math.min(numberOfLines+startIndex,pos.size()),Math.min(numberOfLines+stopIndex,pos.size()));
 			Match m = new Match("",pos);
-			markupMatch(color, contentStream, m);
+			markupMatch(color, contentStream, m,boxHeight);
 
 			contentStream.close();
 		} catch (Exception e) {
@@ -195,14 +195,14 @@ public class TextHighlight extends PDFTextStripper {
 	}
 
 
-	private boolean markupMatch(Color color, PDPageContentStream contentStream, Match markingMatch) throws IOException {
+	private boolean markupMatch(Color color, PDPageContentStream contentStream, Match markingMatch, int height) throws IOException {
 		final List<PDRectangle> textBoundingBoxes = getTextBoundingBoxes(markingMatch.positions);
 
 		if (textBoundingBoxes.size() > 0) {
 			contentStream.setNonStrokingColor(color);
 			for (PDRectangle textBoundingBox : textBoundingBoxes) {
 				contentStream.addRect(textBoundingBox.getLowerLeftX(), textBoundingBox.getLowerLeftY(),
-						Math.max(Math.abs(textBoundingBox.getUpperRightX() - textBoundingBox.getLowerLeftX()), 10), 10);
+						Math.max(Math.abs(textBoundingBox.getUpperRightX() - textBoundingBox.getLowerLeftX()), 10), height);
                 contentStream.fill();
 			}
 			return true;
