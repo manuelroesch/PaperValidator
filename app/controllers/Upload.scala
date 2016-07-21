@@ -103,7 +103,15 @@ class Upload @Inject() (database: Database, configuration: Configuration, questi
   }
 
   def statTest = Action {
-    createDirs()
+    Logger.info("uploadZips")
+    val zipDir = new File("G:\\CHI-Crawl\\ZIP")
+    zipDir.listFiles().foreach(file => {
+      extractAndProcessZip(file,"manuelroesch@gmail.com",1)
+    })
+    /*PaperProcessingManager.run(database, configuration, papersService, questionService, method2AssumptionService,
+      paperResultService,paperMethodService, permutationsServcie, answerService)*/
+    Logger.info("done")
+    /*createDirs()
     Logger.debug("starting highlighting")
 
 
@@ -122,7 +130,8 @@ class Upload @Inject() (database: Database, configuration: Configuration, questi
       Logger.info(s"finished processing paper $paper")
 
     }
-    Logger.info("done")
+    Logger.info("done")*/
+
     Ok("Ok")
   }
 }

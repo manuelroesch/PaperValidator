@@ -1,6 +1,6 @@
 package helper
 
-import java.io.{FileWriter, File}
+import java.io.{File, FileWriter}
 
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.dao.BallotDAO
 import ch.uzh.ifi.pdeboer.pplib.hcomp.ballot.integrationtest.console.ConsoleIntegrationTest
@@ -20,8 +20,10 @@ import org.joda.time.DateTime
 import play.api.{Configuration, Logger}
 import play.api.db.Database
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits._
+
 import scala.io.Source
 
 
@@ -33,7 +35,6 @@ object PaperProcessingManager {
   var BYPASS_CROWD_PROCESSING = false
 
   var isRunning = false
-
 
   def run(database: Database, configuration: Configuration, papersService: PapersService,
           questionService: QuestionService, method2AssumptionService: Method2AssumptionService,
@@ -50,7 +51,9 @@ object PaperProcessingManager {
                 paperResultService, paperMethodService, permutationsService, answerService, paper)
             } catch {
               case error: Throwable => {
-                val errorMsg = error.getStackTrace.mkString("\n")
+                Logger.info("ERROR!!!!!!")
+                Logger.info(error.getStackTrace.mkString("\n"))
+                val errorMsg = error.getStackTrace.mkString("\n") + "\n"
                 PaperProcessingManager.writePaperLog(errorMsg, paper.secret)
                 papersService.updateStatus(paper.id.get, Papers.STATUS_ERROR)
               }
@@ -76,15 +79,37 @@ object PaperProcessingManager {
                    questionService: QuestionService, method2AssumptionService: Method2AssumptionService,
                    paperResultService: PaperResultService, paperMethodService: PaperMethodService,
                    permutationsServcie: PermutationsService, answerService: AnswerService, paper : Papers) = {
+    Logger.debug("processPaper: " + paper.name + " " + DateTime.now())
     if(paper.status == Papers.STATUS_NEW) {
       writePaperLog("<b>Start</b> Analysis\n",paper.secret)
       Commons.generateCoverFile(paper)
       writePaperLog("Run StatChecker\n",paper.secret)
-      Statchecker.run(paper, paperResultService)
+      try {
+        val statCheck = Future {
+          Statchecker.run(paper, paperResultService)
+        }
+        Await.result(statCheck, 120 seconds)
+      } catch { case e : Throwable => {
+        Logger.info("StatCheck Timeout/Error!!!")
+        writePaperLog("StatChecker Timeout/Error!!!\n",paper.secret)
+        writePaperLog(e.getStackTrace.mkString("\n") + "\n",paper.secret)
+      }}
       writePaperLog("Run Layout Checker\n",paper.secret)
-      LayoutChecker.check(paper,paperResultService)
+      try {
+        val layoutCheck = Future {
+          LayoutChecker.check(paper,paperResultService)
+        }
+        Await.result(layoutCheck, 120 seconds)
+      } catch { case e : Throwable => {
+        Logger.info("Layout Check Timeout/Error!!!")
+        writePaperLog("Layout Checker Timeout/Error!!!\n",paper.secret)
+        writePaperLog(e.getStackTrace.mkString("\n") + "\n",paper.secret)
+      }}
       writePaperLog("Run PreprocessPDF\n",paper.secret)
-      val permutations = PreprocessPDF.start(database,paperMethodService,paper)
+      val process = Future {
+        PreprocessPDF.start(database,paperMethodService,paper)
+      }
+      val permutations = Await.result(process, 300 seconds)
       //val permutations = 0
       if(permutations > 0) {
         writePaperLog("<b>"+ permutations + " Permutation(s)</b> Found\n",paper.secret)
@@ -112,6 +137,7 @@ object PaperProcessingManager {
       //cleanUpTmpDir(paper)
       writePaperLog("<b>Completed!</b>\n\n",paper.secret)
     }
+    PaperAnnotator.annotatePaper(configuration,answerService,paperResultService,paper,false)
   }
 
   def cleanUpTmpDir(paper: Papers): Unit = {

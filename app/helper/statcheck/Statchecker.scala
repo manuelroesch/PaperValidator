@@ -3,10 +3,10 @@ package helper.statcheck
 import java.io._
 import java.util.regex.Pattern
 
-import breeze.linalg.{min, max}
+import breeze.linalg.{max, min}
 import breeze.numerics._
 import breeze.stats.distributions.FDistribution
-import helper.Commons
+import helper.{Commons, PaperProcessingManager}
 import helper.pdfpreprocessing.PreprocessPDF
 import helper.pdfpreprocessing.pdf.PDFTextExtractor
 import models.{PaperResult, PaperResultService, Papers}
@@ -190,8 +190,8 @@ object Statchecker {
     }.mkString(",")
   }
 
-  val REGEX_MEAN = new Regex("(mean|average|µ|⌀)")
-  val REGEX_VARIANCE = new Regex("(±|[^a-z]var[^a-z]|variance|standard\\s?deviation|standard\\s?error|[^a-z]sd[^a-z]|[^a-z]se[^a-z])")
+  val REGEX_MEAN = new Regex("([^a-z]mean[^a-z]|[^a-z]average[^a-z]|µ|⌀)")
+  val REGEX_VARIANCE = new Regex("(±|[^a-z]var[^a-z]|[^a-z]variance[^a-z]|standard\\s?deviation|standard\\s?error|[^a-z]sd[^a-z]|[^a-z]se[^a-z])")
   val REGEX_NO_DIGIT = new Regex("\\d[.,]\\d")
   val MEAN_VARIANCE_TRES = 200
   def extractMeanWithoutVariance(textList: List[String]): String = {
@@ -295,11 +295,7 @@ object Statchecker {
   def extractPValues(textList: List[String]): Map[String,Double] = {
     textList.zipWithIndex.flatMap { case (text, page) =>
       REGEX_EXTRACT_P.findAllIn(text).matchData.map({ m =>
-        try {
           page + ":" + m.start(0) + "-" + m.end(0) -> parsePValue(m.group(3))
-        } catch {
-          case _: Throwable => "" -> 1.0
-        }
       })
     }.toMap
   }
@@ -374,15 +370,19 @@ object Statchecker {
 
   val REGEX_E_DIGIT_TO_DOUBLE = new Regex("([^a-z]ns)|(p\\s?([<>=])\\s?((\\d?\\.\\d+)e?(-?\\d*)))")
   def parsePValue(text: String): Double = {
-    REGEX_E_DIGIT_TO_DOUBLE.findFirstMatchIn(text).map({m =>
-      if(m.group(1)!=null) {
-        alpha
-      } else if(m.group(6)!="") {
-        m.group(5).toDouble * pow(10,m.group(6).toDouble)
-      } else {
-        m.group(5).toDouble
-      }
-    }).getOrElse(alpha)
+    if(text==null || text.isEmpty) {
+      alpha
+    } else {
+      REGEX_E_DIGIT_TO_DOUBLE.findFirstMatchIn(text).map({m =>
+        if(m.group(1)!=null) {
+          alpha
+        } else if(m.group(6)!="") {
+          try{m.group(5).toDouble * pow(10,m.group(6).toDouble)} catch { case _ : Throwable => 0.5 }
+        } else {
+          try{m.group(5).toDouble} catch { case _ : Throwable => 0.5 }
+        }
+      }).getOrElse(alpha)
+    }
   }
 
 }

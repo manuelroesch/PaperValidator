@@ -29,6 +29,7 @@ GET        /paper-file/:basePath/*path              controllers.Paper.getFile(ba
 GET        /spellchecker/:id/:secret                controllers.Paper.loadSpellCheckerResults(id: Int, secret: String)
 GET        /generate-mturk-results/:id/:secret      controllers.Paper.generateMturkResults(id: Int, secret: String)
 GET        /annotate-paper/:id/:secret              controllers.Paper.annotatePaper(id: Int, secret: String)
+GET        /annotate-glossary/:id/:secret           controllers.Paper.annotatePaperGlossaryMode(id: Int, secret: String)
 
 # Conference
 GET        /conference-creator                      controllers.Conference.conferenceCreator

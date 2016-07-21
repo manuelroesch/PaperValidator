@@ -20,6 +20,8 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
@@ -124,7 +126,7 @@ public class TextHighlight extends PDFTextStripper {
 	}
 
 
-	public void highlight(final Pattern searchText, final Pattern markingPattern, Color color, int pageNr) {
+	public void highlight(final Pattern searchText, final Pattern markingPattern, Color color, int pageNr, boolean withId) {
 		if (textCache == null || document == null) {
 			throw new IllegalArgumentException("TextCache was not initialized");
 		}
@@ -143,7 +145,7 @@ public class TextHighlight extends PDFTextStripper {
 			for (Match searchMatch : textCache.match(pageNr, searchText)) {
 				if (textCache.match(searchMatch.positions, markingPattern).size() > 0) {
 					for (Match markingMatch : textCache.match(searchMatch.positions, markingPattern)) {
-						if (markupMatch(color, contentStream, markingMatch,10)) {
+						if (markupMatch(color, contentStream, markingMatch,10,withId)) {
 							found = true;
 						}
 					}
@@ -163,7 +165,7 @@ public class TextHighlight extends PDFTextStripper {
 		}
 	}
 
-	public void highlight(int startIndex, int stopIndex, Color color, int pageNr, int boxHeight, boolean hasLineOffset) {
+	public void highlight(int startIndex, int stopIndex, Color color, int pageNr, int boxHeight, boolean hasLineOffset, boolean withId) {
 		if (textCache == null || document == null) {
 			throw new IllegalArgumentException("TextCache was not initialized");
 		}
@@ -182,8 +184,8 @@ public class TextHighlight extends PDFTextStripper {
 				numberOfLines = textCache.getText(pageNr).substring(0,stopIndex).split("\\n").length-1;
 			}
 			pos = pos.subList(Math.min(numberOfLines+startIndex,pos.size()),Math.min(numberOfLines+stopIndex,pos.size()));
-			Match m = new Match("",pos);
-			markupMatch(color, contentStream, m,boxHeight);
+			Match m = new Match(pageNr+"-"+startIndex,pos);
+			markupMatch(color, contentStream, m,boxHeight, withId);
 
 			contentStream.close();
 		} catch (Exception e) {
@@ -195,7 +197,7 @@ public class TextHighlight extends PDFTextStripper {
 	}
 
 
-	private boolean markupMatch(Color color, PDPageContentStream contentStream, Match markingMatch, int height) throws IOException {
+	private boolean markupMatch(Color color, PDPageContentStream contentStream, Match markingMatch, int height, boolean withId) throws IOException {
 		final List<PDRectangle> textBoundingBoxes = getTextBoundingBoxes(markingMatch.positions);
 
 		if (textBoundingBoxes.size() > 0) {
@@ -204,6 +206,14 @@ public class TextHighlight extends PDFTextStripper {
 				contentStream.addRect(textBoundingBox.getLowerLeftX(), textBoundingBox.getLowerLeftY(),
 						Math.max(Math.abs(textBoundingBox.getUpperRightX() - textBoundingBox.getLowerLeftX()), 10), height);
                 contentStream.fill();
+				if(withId) {
+					PDFont font = PDType1Font.HELVETICA;
+					contentStream.beginText();
+					contentStream.setFont(font, 5);
+					contentStream.newLineAtOffset( textBoundingBox.getUpperRightX(), textBoundingBox.getUpperRightY());
+					contentStream.showText(markingMatch.str);
+					contentStream.endText();
+				}
 			}
 			return true;
 		}

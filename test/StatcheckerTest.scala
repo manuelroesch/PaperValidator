@@ -1,21 +1,27 @@
 import java.awt.Color
 import java.io._
+import java.nio.file.{Files, Path}
+import java.nio.file.StandardCopyOption._
 
-import helper.pdfpreprocessing.pdf.{TextHighlight, PDFTextExtractor}
+import helper.Commons
+import helper.pdfpreprocessing.pdf.{PDFTextExtractor, TextHighlight}
 import helper.statcheck.Statchecker
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import org.scalatestplus.play._
 
 import scala.collection.mutable.ListBuffer
+import scala.io.Source
 import scala.util.matching.Regex
 
 
 class StatcheckerTest extends PlaySpec {
   "extractPValues Test" should {
     "extract one p Value" in {
-      val pValue = Statchecker.extractPValues(List("This ist an example sentence with a p value that is p=0.05 approximately."))
-      pValue.size mustBe 1
+      val text = new PDFTextExtractor("C:\\Users\\manuel\\Desktop\\p439-green.pdf").pages
+      val pValue = Statchecker.extractPValues(text)
+      println(pValue)
+      1 mustBe 1
     }
   }
 
@@ -298,7 +304,7 @@ class StatcheckerTest extends PlaySpec {
           textHighlighter.initialize(pdDoc)
 
           REGEX_ANNOTATE_TERM.findAllIn(textHighlighter.textCache.getText(1)).matchData.foreach({r =>
-            textHighlighter.highlight(r.start(0),r.end(0),Color.yellow,1,10,false)
+            textHighlighter.highlight(r.start(0),r.end(0),Color.yellow,1,10,false,true)
           })
 
 
@@ -319,6 +325,188 @@ class StatcheckerTest extends PlaySpec {
           println("couldn't highlight pdf", e)
         }
       }
+      1 mustBe 1
+    }
+  }
+
+  "glossaryTest" should {
+    "complete" in {
+      val glossaryFiles = new File("C:\\Users\\manuel\\Dropbox\\Uni\\Master Thesis\\Find Good Papers\\With Glossary\\Glossaries")
+      val allFiles = glossaryFiles.listFiles().toList
+      //val stopwords = Source.fromFile(new File("C:\\Users\\manuel\\Dropbox\\Uni\\Master Thesis\\Find Good Papers\\With Glossary\\stopwords.txt")).getLines().toList
+      val stopwords = List()
+      val glossary: ListBuffer[Regex] = ListBuffer()
+      allFiles.foreach({ file =>
+        print("\t"+file.getName+"\t")
+        val regexString = "("+Source.fromFile(file.getAbsolutePath, "UTF-8").getLines().toList.mkString("\\s|\\s").replace(" ", "\\s+").toLowerCase()+")"
+        glossary += new Regex(regexString)
+      })
+      val year = (1989 to 2016).toList
+      year.foreach(y =>{
+        val pw = new PrintWriter(new File("C:\\Users\\manuel\\Desktop\\CHI-"+y+".txt"))
+        //val testFiles = new File("C:\\Users\\manuel\\Desktop\\test")
+        //val testFiles = new File("C:\\Users\\manuel\\Desktop\\MasterThesis\\Test-Papers\\upload-all")
+        //val testFiles = new File("C:\\Users\\manuel\\Desktop\\MasterThesis\\Test-Papers\\CHI\\chi2016-ea-withIndex")
+        val testFiles = new File("G:\\CHI-Crawl\\CHI-"+y)
+        //val testFiles = new File("C:\\Users\\manuel\\Desktop\\CHI-Crawl\\CHI-2013")
+        //val testFiles = new File("C:\\Users\\manuel\\Desktop\\MasterThesis\\Test-Papers\\test-Up-100")
+        try {
+          val allFiles = testFiles.listFiles().toList
+          var i = 0
+          allFiles.foreach({ file =>
+            i += 1
+            println(i)
+            try {
+              //val doc = PDDocument.load(file)
+              //val pdfStripper = new PDFTextStripper()
+              //val text = pdfStripper.getText(doc).replaceAll("\u0000", " ").toLowerCase()
+              //doc.close()
+              val text = new PDFTextExtractor(file.getAbsolutePath).pages.mkString("\n\n")
+              var resultCount = ""
+              var resultList = ""
+              //resultCount += "\n\n"+file.getAbsolutePath+"\n"
+              resultCount += "\n"+file.getName+"\t"
+              glossary.foreach({ regex =>
+                var resultMap : Map[String, Int] = Map()
+                var counter = 0
+                regex.findAllMatchIn(text).foreach({r =>
+                  val foundWord = r.group(0).replaceAll("\\s+","").toLowerCase
+                  if(!stopwords.contains(foundWord)) {
+                    if(resultMap.getOrElse(foundWord,0) < 10) {
+                      resultMap += foundWord -> (resultMap.getOrElse(foundWord,0)+1)
+                      counter+=1
+                    }
+                  }
+                })
+                resultCount += counter+"\t"+resultMap.size+"\t"
+                //resultCount += "\n"+counter+"("+resultMap.size+")\t"
+                resultList += "\n@@"+resultMap.toList.sortBy(_._2).reverse.mkString(";").replace("\n","").replaceAll("\\s+"," ")
+              })
+              pw.write(resultCount+resultList)
+            } catch {
+              case e: Throwable => {
+                println("couldn't highlight pdf", e)
+              }
+            }
+          })
+        } catch {
+          case e: Throwable => {
+            println("couldn't highlight pdf", e)
+          }
+        }
+        pw.close()
+      })
+      1 mustBe 1
+    }
+  }
+
+  val REGEX_FIND_FREELANCE= new Regex("p.value")
+  //val REGEX_FIND_FREELANCE= new Regex("freelance|[^a-z]odesk[^a-z]|[^a-z]elance[^a-z]|crowd\\s+work")
+  //val REGEX_FIND_URL= new Regex("http://[^\\s]*|www\\.[^\\s]*")
+  "findUpWork" should {
+    "complete" in {
+      val pw = new PrintWriter(new File("C:\\Users\\manuel\\Desktop\\outUpWorkExperts.txt"))
+      val yearList  = (1989 to 2016).toList
+      yearList.par.foreach(year => {
+        println("Year " + year)
+        val testFiles = new File("G:\\CHI-Crawl\\CHI-"+year)
+        try {
+          val allFiles = testFiles.listFiles().toList
+          var i = 0
+          allFiles.foreach({ file =>
+            i += 1
+            println(i)
+            try {
+              val text = new PDFTextExtractor(file.getAbsolutePath).pages.mkString("\n\n").toLowerCase()
+              var resultMap : Map[String,Int] = Map()
+              var resultList = ""
+              val results = REGEX_FIND_FREELANCE.findAllMatchIn(text)
+              if(!results.isEmpty) {
+                resultList += file.getName + "\t"
+                /*results.foreach(r => {
+                  var word = r.group(0).replaceAll("\\s+"," ")
+                  word = word.substring(1,word.length-1)
+                  if(resultMap.contains(word)) {
+                    resultMap += word -> (resultMap(word)+1)
+                  } else {
+                    resultMap += word -> 1
+                  }
+                })
+                /*val urls = REGEX_FIND_URL.findAllMatchIn(text)
+                urls.foreach(u => {
+                  resultList += text.substring(u.start,u.end+2) + "\n"
+                })*/
+                resultList += resultMap.toList.sorted.toString() + "\n"*/
+              }
+              pw.write(resultList)
+            } catch {
+              case e: Throwable => {
+                println("couldn't highlight pdf", e)
+              }
+            }
+          })
+        } catch {
+          case e: Throwable => {
+            println("couldn't highlight pdf", e)
+          }
+        }
+      })
+      pw.close()
+      1 mustBe 1
+    }
+  }
+
+  "getHashes" should {
+    "complete" in {
+      val papers = Source.fromFile(new File("C:\\Users\\manuel\\Desktop\\papers.csv")).getLines().toList
+      val pw = new PrintWriter(new File("C:\\Users\\manuel\\Desktop\\hashes.txt"))
+      papers.foreach(p => {
+        var secret = p.split(";").last
+        secret = secret.substring(1,secret.length-1)
+        println(secret)
+        pw.write(Commons.getSecretHash(secret) + "\n")
+      })
+      pw.close()
+      1 mustBe 1
+    }
+  }
+
+  "getFiles" should {
+    "complete" in {
+      val inputFile = new File("C:\\Users\\manuel\\Desktop\\bad-pVal.txt")
+      val outDir = new File("C:\\Users\\manuel\\Desktop\\outout\\")
+      val searchFiles = Source.fromFile(inputFile.getAbsolutePath, "UTF-8").getLines().toList
+      val yearList  = (1989 to 2016).toList
+      searchFiles.par.foreach(f => {
+        yearList.foreach(year => {
+          val yearFiles = new File("G:\\CHI-Crawl\\CHI-"+year).listFiles().toList
+          yearFiles.foreach({ file =>
+            if(file.getName == f) {
+              Files.copy(file.toPath, new File(outDir.getAbsolutePath + "\\" + f).toPath, REPLACE_EXISTING)
+            }
+          })
+        })
+      })
+      1 mustBe 1
+    }
+  }
+
+  "renameToDate" should {
+    "complete" in {
+      val filePath = "C:\\Users\\manuel\\Desktop\\bad-annotated\\"
+      val searchFiles= new File(filePath).listFiles().toList
+      val yearList  = (1989 to 2016).toList
+      searchFiles.par.foreach(f => {
+        yearList.foreach(year => {
+          val yearFiles = new File("G:\\CHI-Crawl\\CHI-"+year).listFiles().toList
+          yearFiles.foreach({ file =>
+            if(file.getName == f.getName.replace("annotated-","")) {
+              new File(filePath + "\\" + year).mkdir()
+              Files.copy(f.toPath, new File(filePath + "\\" + year + "\\" + file.getName()).toPath, REPLACE_EXISTING)
+            }
+          })
+        })
+      })
       1 mustBe 1
     }
   }

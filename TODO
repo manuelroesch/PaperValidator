@@ -1,5 +1,4 @@
 Pending high-priority:
-- Create Table: Problems - Occurrence Frequency - time/way to solve
 - Alle Statchecker tests implementieren
 - Paper-Checker in eigener JVM
 - 2-Spalten cropping Bug
@@ -21,9 +20,18 @@ Done
 - Stats zum eigenen Paper (Meth-Ass-Flag, Statchecker, einfache Stat-Fehler
 - Prüf-Fortschritt
 
+- Create Table: Problems - Occurrence Frequency - time/way to solve 
 - screencast statcheck 
 - 2-step upload 
 - 3-step Question mturk (e.g. normality of residuals) 
 - union/intersection von allen tests/assumptions, Screen um Fragen auszuwählen 
 - Statterms in DB 
 - Statcheck code anschauen und integrieren ~~
+
+
+- Crawl CHI -> Tool
+- Glossery diff common words - fehler analyse
+- simple durchgang >
+- costs durchgang
+- simple check - compare
+- simpflify testing -> comparison format
