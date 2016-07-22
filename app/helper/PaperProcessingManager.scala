@@ -137,7 +137,7 @@ object PaperProcessingManager {
       //cleanUpTmpDir(paper)
       writePaperLog("<b>Completed!</b>\n\n",paper.secret)
     }
-    PaperAnnotator.annotatePaper(configuration,answerService,paperResultService,paper,false)
+    //PaperAnnotator.annotatePaper(configuration,answerService,paperResultService,paper,false)
   }
 
   def cleanUpTmpDir(paper: Papers): Unit = {
