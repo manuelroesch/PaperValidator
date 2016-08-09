@@ -1,0 +1,20 @@
+ANOVA;normality
+ANOVA;homoscedasticity
+t-test;normality
+t-test;homoscedasticity
+t-test;significant outliers
+linear regression;normality
+linear regression;homoscedasticity
+linear regression;linearity
+MANOVA;normality
+MANOVA;multicollinearity
+MANOVA;linearity
+MANOVA;variance-covariance
+multiple regression;normality
+multiple regression;homoscedasticity
+multiple regression;multicollinearity
+multiple regression;linearity
+ANCOVA;normality
+ANCOVA;homoscedasticity
+ANCOVA;linearity
+ANCOVA;regression slopes

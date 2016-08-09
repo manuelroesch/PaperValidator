@@ -1,0 +1,8 @@
+normality;normal distribution,normal distributed,normally distributed,Q-Q plot,skewness,kurtosis,Shapiro-Wilk,Shapiro Wilk,Kolmogorov-Smirnov,Kolmogorov Smirnov,gaussian distribution,gaussian distributed,normal error
+homoscedasticity;homogeneity of variance,variance homogenity,same variance,equal variance,equality of variance,equality of variances,sphericity,constant variance,heteroscedasticity,Breusch Pagan,Breusch-Pagan,White-Test,White test,Koenker-Bassett,Koenker Bassett,Könker-Bassett,Könker Bassett,Goldfeld-Quandt,Goldfeld Quandt,Levene's test,Levene test,f-test,f test,Bartlett test,Bartlett's test,Brown-Forsythe,Brown Forsythe
+multicollinearity;collinearity
+significant outliers;no outliers
+linearity;linear relationship,linear
+similar distribution;same shape,similar shape,same shape
+regression slopes;regression slope
+variance-covariance;var-covar,variance covariance

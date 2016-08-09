@@ -1,0 +1,36 @@
+ANOVA;normality
+ANOVA;homoscedasticity
+ANOVA;significant outliers
+t-test;normality
+t-test;homoscedasticity
+t-test;significant outliers
+wilcoxon signed rank;similar distribution
+linear regression;normality
+linear regression;homoscedasticity
+linear regression;significant outliers
+linear regression;linearity
+MANOVA;normality
+MANOVA;multicollinearity
+MANOVA;normality
+MANOVA;significant outliers
+MANOVA;linearity
+MANOVA;variance-covariance
+factor analysis;homoscedasticity
+factor analysis;multicollinearity
+factor analysis;significant outliers
+factor analysis;linearity
+kruskal-wallis;similar distribution
+mann-whitney u-test;similar distribution
+multiple regression;normality
+multiple regression;homoscedasticity
+multiple regression;multicollinearity
+multiple regression;significant outliers
+multiple regression;linearity
+pearson correlation;normality
+pearson correlation;significant outliers
+pearson correlation;linearity
+ANCOVA;normality
+ANCOVA;homoscedasticity
+ANCOVA;significant outliers
+ANCOVA;linearity
+ANCOVA;regression slopes
