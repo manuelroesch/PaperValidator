@@ -14,12 +14,7 @@ Welcome to the PaperValidator, an open-source statistics validation tool release
 
 ## Overview
 
-The validity of statistics in scientific publications is crucial for accurate and reliable results.
-However, there are many publications, that are not acceptable in this regard. The PaperValidator tool confronts this problem
-by allowing for the automated validation of statistics in publications, focusing mainly on
-statistical methods and their assumptions. The validation process is rule-based using partially crowd-sourced workers
-hired from the Amazon Mechanical Turk (MTurk) platform. The tool and the validation process, were successfully
-tested on 100 papers from the ACM Conference on Human Factors in Computing Systems (CHI).
+The validity of statistics in scientific publications is crucial for accurate and reliable results. However, there are many publications, that are not acceptable in this regard. The PaperValidator tool confronts this problem by allowing for the automated validation of statistics in publications, focusing mainly on statistical methods and their assumptions. The validation process is rule-based using partially crowd-sourced workers hired from the Amazon Mechanical Turk (MTurk) platform. The tool and the validation process, were successfully tested on 100 papers from the ACM Conference on Human Factors in Computing Systems (CHI).
 
 Click on the following movie clip to see PaperValidator in action:
 
@@ -27,8 +22,7 @@ Click on the following movie clip to see PaperValidator in action:
 
 ## Installation Guide
 
-1. Install the two tools [Git](https://git-scm.com/) and [sbt](http://www.scala-sbt.org/) by following the
-instructions on their websites.
+1. Install the two tools [Git](https://git-scm.com/) and [sbt](http://www.scala-sbt.org/) by following the instructions on their websites.
 2. Clone your repository to a folder which you can choose freely
 
   ```
@@ -44,10 +38,9 @@ instructions on their websites.
   hcomp.ballot.baseURL = "http://your-url.com" #Insert the URL where you have installed PaperValidator
   likertCleanedAnswers = 5 #Defining the minimal confidence required to take an Mturk answer into account.
 
-  hcomp.mechanicalTurk.accessKeyID = "AKIAIQJSLLQWGRYVZHGQ"
-  hcomp.mechanicalTurk.secretAccessKey = "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"
-  hcomp.mechanicalTurk.sandbox = "true"
-  hcomp.randomPortal.active = "true"
+  hcomp.mechanicalTurk.accessKeyID = "Mturk-Access-Key-ID" # Insert your Mturk access key
+  hcomp.mechanicalTurk.secretAccessKey = "Mturk-Secret-Access-Key" # Insert your Secret Access Key
+  hcomp.mechanicalTurk.sandbox = "false" # Disable sandbox mode
 
   helper.mailing.active = "true" #POP access to this email has to be enabled
   helper.mailing.from = "your-email@gmail.com"
@@ -75,98 +68,52 @@ In the following; each part is described in more detail.
 The PaperValidator system builds on the [Play! Framework](https://playframework.com/), which is a web framework facilitating the creation of web applications. The system is mainly written in [Scala](http://www.scala-lang.org/) and partially in [Java](http://java.com). As storage, a [MySQL](https://www.mysql.com/) database is used. The PDF processing relies on [Apache PDFBox](https://pdfbox.apache.org/), an open-source Java tool, which allows the extraction of content from PDF documents or the conversion of a PDF document into an image. For the crowd-sourcing component, which is used during the statistics validation process, the system makes use of the [PPLib](https://github.com/uzh/PPLib), a library, that facilitates the creation of crowdsourcing tasks. This library was used to send validation tasks to [Amazon Mechanical Turk (Mturk)](https://www.mturk.com/mturk/welcome), a popular crowdsourcing platform.
 
 ### Functionality Overview
-The target users of PaperValidator are authors, reviewers, as well as conference chairs. For each of these users, the tool
-provides a different functionality. In addition, there are also the Mturk crowd workers who access the tool.
+The target users of PaperValidator are authors, reviewers, as well as conference chairs. For each of these users, the tool provides a different functionality. In addition, there are also the Mturk crowd workers who access the tool.
 
 ### Functionality for Authors
-An author starts the process by uploading his publication to PaperValidator using
-the provided upload form. In doing so, he has to select the conference to which he wants to upload the paper. The conference
-was previously created by a conference chair, which will be explained later. It is worth mentioning that
-the system supports the upload of a single PDF file as well as the upload of multiple PDF documents compressed in a ZIP
-file.
+An author starts the process by uploading his publication to PaperValidator using the provided upload form. In doing so, he has to select the conference to which he wants to upload the paper. The conference was previously created by a conference chair, which will be explained later. It is worth mentioning that the system supports the upload of a single PDF file as well as the upload of multiple PDF documents compressed in a ZIP file.
 
-After the upload, the system analyses the paper using validation algorithms partially based on crowd workers. The
-PaperValidator performs an analysis consisting of four different parts: (1) There is the method-assumption part, which
-validates methods and assumptions; (2) the Statchecker part, which implements the functionality as provided by the
-Statchecker tool as presented in the RelatedWork section; (3) a part that validates some basic statistical rules; and (4) a
-part that performs some basic layout inspection.
+After the upload, the system analyses the paper using validation algorithms partially based on crowd workers. The PaperValidator performs an analysis consisting of four different parts: (1) There is the method-assumption part, which validates methods and assumptions; (2) the Statchecker part, which implements the functionality as provided by the Statchecker tool as presented in the RelatedWork section; (3) a part that validates some basic statistical rules; and (4) a part that performs some basic layout inspection.
 
-Part (1), is the most central and relevant part in this work. For this method-assumption part, the
-text is first extracted from the uploaded PDF and further processed using regular expressions search for a predetermined
-set of methods, assumptions, and their synonyms. After having determined all the methods and assumptions in the text, a
-matching algorithm determines, which methods and assumptions fit together by using a predefined list containing the
-method-assumption allocation.
+Part (1), is the most central and relevant part in this work. For this method-assumption part, the text is first extracted from the uploaded PDF and further processed using regular expressions search for a predetermined set of methods, assumptions, and their synonyms. After having determined all the methods and assumptions in the text, a matching algorithm determines, which methods and assumptions fit together by using a predefined list containing the method-assumption allocation.
 
-The next step is the creation of method-assumption snippets, which are later sent to Mturk for validation. The creation of
-such snippets is necessary because the copyrights of the papers often prohibit papers be distributed as a whole. The creation
-of a snippet works as follows: First, a method-assumption pair, which has been extracted previously, is annotated in a copy of
-the uploaded PDF file. The method is annotated in yellow, the assumption in green. In the next step, the PDF file is converted
-to a PNG image and cropped so that both the method and assumption are visible. In case they are on different pages,
-the pages are put together into one image, and the page break is indicated by a page break symbol.
+The next step is the creation of method-assumption snippets, which are later sent to Mturk for validation. The creation of such snippets is necessary because the copyrights of the papers often prohibit papers be distributed as a whole. The creation of a snippet works as follows: First, a method-assumption pair, which has been extracted previously, is annotated in a copy of the uploaded PDF file. The method is annotated in yellow, the assumption in green. In the next step, the PDF file is converted to a PNG image and cropped so that both the method and assumption are visible. In case they are on different pages, the pages are put together into one image, and the page break is indicated by a page break symbol.
 
-The last step in part (1) of the analysis is the validation of the snippet using crowd-sourcing. For this, a question is generated on Mturk. The Mturk worker (Mturker) then decides whether the method-assumption pair is related,
-and if the author has checked the assumption before applying the method. Thereby, we do not only ask one Mturker, but several
-of them with the stopping rule that the final answer must win with at least three more votes than the second most voted
-answer. To increase the reliability of the answers, we also introduced two further measures. First, we let the Mturker report
-their thoughts during the decision-making process and write them down. This should encourage them to think more deeply
-and elaborately. Second, we let them report their confidence from one to seven on a slider and
-eliminate all answers with a confidence lower than five from further analysis. The threshold of five was determined empirically by a couple of initial test runs and is also confirmed by the work of Lessel et al., who also uses a seven-point
-confidence scale with a threshold of 5.
+The last step in part (1) of the analysis is the validation of the snippet using crowd-sourcing. For this, a question is generated on Mturk. The Mturk worker (Mturker) then decides whether the method-assumption pair is related, and if the author has checked the assumption before applying the method. Thereby, we do not only ask one Mturker, but several of them with the stopping rule that the final answer must win with at least three more votes than the second most voted answer. To increase the reliability of the answers, we also introduced two further measures. First, we let the Mturker report their thoughts during the decision-making process and write them down. This should encourage them to think more deeply and elaborately. Second, we let them report their confidence from one to seven on a slider and eliminate all answers with a confidence lower than five from further analysis. The threshold of five was determined empirically by a couple of initial test runs and is also confirmed by the work of Lessel et al., who also uses a seven-point confidence scale with a threshold of 5.
 
-Part (2) of the analysis, the Statchecker part, first converts the PDF to text and performs a validation equivalent to the
-functionality of the Statchecker R package presented in the common statistical tests like f-tests, t-tests, Z-tests or
-chisquare tests reported in the APA format using text search with regular expression from the converted text. All the extracted
-tests are, in the next step, recalculated and compared with the reported p-values. If such p-values are not in compliance with
-the recalculated p-values, they are saved as an error in the database.
+Part (2) of the analysis, the Statchecker part, first converts the PDF to text and performs a validation equivalent to the functionality of the Statchecker R package presented in the common statistical tests like f-tests, t-tests, Z-tests or chisquare tests reported in the APA format using text search with regular expression from the converted text. All the extracted tests are, in the next step, recalculated and compared with the reported p-values. If such p-values are not in compliance with the recalculated p-values, they are saved as an error in the database.
 
-Part (3) deals with basic statistical rules as reported in. Here, the first step is once again the conversion of
-the PDF into text. Next, PaperValidator performs a text search using regular expressions to answer the following questions:
-- Is the sample size stated in the text?
-- Is there any incorrect statistical terminology in the text?
-- Does the PDF contain any p-values? Are they in the correct range and precision?
-- Is there a mean without variance reported in the text?
-- Has the author performed a statistical test without stating effect size or power of the test?
+Part (3) deals with basic statistical rules as reported in. Here, the first step is once again the conversion of the PDF into text. Next, PaperValidator performs a text search using regular expressions to answer the following questions:
 
-In part (4), a simple layout analysis is performed. For that, the PDF is converted into a PNG image, which is analyzed by
-PaperValidator considering the following questions:
+* Is the sample size stated in the text?
+* Is there any incorrect statistical terminology in the text?
+* Does the PDF contain any p-values? Are they in the correct range and precision?
+* Is there a mean without variance reported in the text?
+* Has the author performed a statistical test without stating effect size or power of the test?
 
-- Does the paper have a certain distance between content and border so that it can be printed properly?
-- Are there any colors used in the paper, which are difficult to read when printed in gray scale?
+In part (4), a simple layout analysis is performed. For that, the PDF is converted into a PNG image, which is analyzed by PaperValidator considering the following questions:
 
-Notice that the analysis in part (4) is not directly related to statistics but indirectly; e.g. diagrams presented in unreadable
-colors makes it challenging for a reader to follow the reported explanations. Besides, part (4) is also a proof of concept, that the PaperValidator can be easily extended so that not only the contents but also the layout can be checked.
+* Does the paper have a certain distance between content and border so that it can be printed properly?
+* Are there any colors used in the paper, which are difficult to read when printed in gray scale?
 
-Having finished the paper analysis parts (1)-(4), the author, who has uploaded the PDF, will be notified by an email containing
-a hyperlink to the paper analysis result overview page. On this page, for each of the four analysis parts, the
-a hyperlink to the paper analysis result overview page. On this page, for each of the four analysis parts, the
-results are listed and depending on the result, a warning or an error is generated.
+Notice that the analysis in part (4) is not directly related to statistics but indirectly; e.g. diagrams presented in unreadable colors makes it challenging for a reader to follow the reported explanations. Besides, part (4) is also a proof of concept, that the PaperValidator can be easily extended so that not only the contents but also the layout can be checked.
 
-Furthermore, the analysis results overview page also includes, a spell checker, which can be used besides spell checking, to
-verify the conversion process from PDF to text. If there are exceptional spelling mistakes listed, which are not present
-in the initial PDF file, there was an error in the conversion process and the analysis results are therefore not reliable.
+Having finished the paper analysis parts (1)-(4), the author, who has uploaded the PDF, will be notified by an email containing a hyperlink to the paper analysis result overview page. For each of the four analysis parts, the results are listed and depending on the result, a warning or an error is generated.
 
-Another source of information when an error happens during the PDF processing is the processing log, which also can be
-found on the result overview page. This log shows all the important events and reports all errors thrown by the tool.
-There is also a summary of all method-assumption snippets and their corresponding Mturk answers.
+Furthermore, the analysis results overview page also includes, a spell checker, which can be used besides spell checking, to verify the conversion process from PDF to text. If there are exceptional spelling mistakes listed, which are not present in the initial PDF file, there was an error in the conversion process and the analysis results are therefore not reliable.
 
-The result overview page also allows the download of the analyzed PDF in two versions; one is the blank version, which
-is equal to the one which was uploaded to the system, and the other is an annotated version in which all the findings
-are highlighted. The most dominant highlighting, thereby, is applied to methods with missing assumption.
+Another source of information when an error happens during the PDF processing is the processing log, which also can be found on the result overview page. This log shows all the important events and reports all errors thrown by the tool. There is also a summary of all method-assumption snippets and their corresponding Mturk answers.
+
+The result overview page also allows the download of the analyzed PDF in two versions; one is the blank version, which is equal to the one which was uploaded to the system, and the other is an annotated version in which all the findings are highlighted. The most dominant highlighting, thereby, is applied to methods with missing assumption.
 
 ### Functionality for a Conference Chair
-The main functionality for a conference chair is related to the creation and administration of a conference. PaperValidator
-provides for this purpose several interfaces such as a conference creation form, conference settings pages as well as a
-conference overview page. In the following paragraphs, each of these interfaces is explained in more detail.
+The main functionality for a conference chair is related to the creation and administration of a conference. PaperValidator provides for this purpose several interfaces such as a conference creation form, conference settings pages as well as a conference overview page. In the following paragraphs, each of these interfaces is explained in more detail.
 
-First, the conference creation form, allows the chair to create a conference by choosing a name for the conference and selecting a method-assumption template, which later builds the base for the method-assumption validation process. It is worth
-mentioning that this template is only the base and it is freely adaptable later. Having created the conference, the creator gets an email with a hyperlink to the conference overview page.
+First, the conference creation form, allows the chair to create a conference by choosing a name for the conference and selecting a method-assumption template, which later builds the base for the method-assumption validation process. It is worth mentioning that this template is only the base and it is freely adaptable later. Having created the conference, the creator gets an email with a hyperlink to the conference overview page.
 
-This conference overview page, as shown in Figure 6, consists of three parts. On the top, there are three buttons relating to different conference settings concerning the method-assumption validation. The next part, in the middle, lists all the papers,
-which have been uploaded to the conference so far. Besides the processing status of the uploaded papers, the list also shows
-how many warnings and errors have been found for each paper. Moreover, by clicking on a paper, a conference chair can get
-to the paper results overview page and use all its functionality, as has already been presented in the Functionality for Authors Section. The bottom of the conference overview page provides some statistics about all the uploaded papers and the findings of its validation process.
+This conference overview page, consists of three parts. On the top, there are three buttons relating to different conference settings concerning the method-assumption validation. The next part, in the middle, lists all the papers, which have been uploaded to the conference so far. Besides the processing status of the uploaded papers, the list also shows how many warnings and errors have been found for each paper. Moreover, by clicking on a paper, a conference chair can get to the paper results overview page and use all its functionality, as has already been presented in the Functionality for Authors Section. The bottom of the conference overview page provides some statistics about all the uploaded papers and the findings of its validation process.
 
-The three method-assumption validation settings pages, which are at the top of the conference overview page, have the following meanings. The first relates to the interface for inserting and editing methods, assumptions and their synonyms; the second is for linking methods with their associated assumptions, and the last is for flagging the linked method and assumptions as shown in Figure 7. With this flagging option, a conference chair can assign an importance to each of the method-assumption linking. So for example, if a chair flags ANOVA and its assumption of a normal distribution as required, every paper will show an error when ANOVA is used without checking for a normal distribution first. The flagging also directly influences the highlighting color on the paper overview page.
+The three method-assumption validation settings pages, which are at the top of the conference overview page, have the following meanings. The first relates to the interface for inserting and editing methods, assumptions and their synonyms; the second is for linking methods with their associated assumptions, and the last is for flagging the linked method and assumptions. With this flagging option, a conference chair can assign an importance to each of the method-assumption linking. So for example, if a chair flags ANOVA and its assumption of a normal distribution as required, every paper will show an error when ANOVA is used without checking for a normal distribution first. The flagging also directly influences the highlighting color on the paper overview page.
 
 ## Frequently Asked Questions
 
