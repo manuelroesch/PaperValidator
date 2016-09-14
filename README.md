@@ -1,40 +1,70 @@
 # PaperValidator
 
-Welcome to the PaperValidator page. The following you can find an overview, a setup guide and a functionality summary.
+Welcome to the PaperValidator, an open-source statistics validation tool released under the [MIT License](https://github.com/manuelroesch/PaperValidator/blob/master/LICENSE.md)
+. This README file is structured as follows:
+
+* [Overview](https://github.com/manuelroesch/PaperValidator#overview)
+* [Installation Guide](https://github.com/manuelroesch/PaperValidator#installation-guide)
+* [Functionality](https://github.com/manuelroesch/PaperValidator#functionality)
+  * [Technical Details](https://github.com/manuelroesch/PaperValidator#technical-details)
+  * [Functionality Overview](https://github.com/manuelroesch/PaperValidator#functionality-overview)
+  * [Functionality for Authors](https://github.com/manuelroesch/PaperValidator#functionality-for-authors)
+  * [Functionality for a Conference Chair](https://github.com/manuelroesch/PaperValidator#functionality-for-a-conference-chair)
+* [Frequently Asked Questions](https://github.com/manuelroesch/PaperValidator#frequently-asked-questions)
 
 ## Overview
 
 The validity of statistics in scientific publications is crucial for accurate and reliable results.
-However, there are many publications, that are not acceptable in this regard. PaperValidator confronts this problem
-by proposing a tool that allows for the automated validation of statistics in publications, focusing mainly on
+However, there are many publications, that are not acceptable in this regard. The PaperValidator tool confronts this problem
+by allowing for the automated validation of statistics in publications, focusing mainly on
 statistical methods and their assumptions. The validation process is rule-based using partially crowd-sourced workers
 hired from the Amazon Mechanical Turk (MTurk) platform. The tool and the validation process, were successfully
 tested on 100 papers from the ACM Conference on Human Factors in Computing Systems (CHI).
 
-Watch the following movie to see PaperValidator in action.
-
-Here is a short clip with an overview of PaperValidator's functionallity.
+Click on the following movie clip to see PaperValidator in action:
 
 [![Watch Video](https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/movie-mock.jpg)](http://www.youtube.com/watch?v=fCDdrjJxUV4)
 
-## Setup
+## Installation Guide
 
-- Install the two popular tools [Git](https://git-scm.com/) and [sbt](http://www.scala-sbt.org/) by following the
+1. Install the two tools [Git](https://git-scm.com/) and [sbt](http://www.scala-sbt.org/) by following the
 instructions on their websites.
-- Clone your repository to a folder which you can choose freely
-```
-git clone https://github.com/manuelroesch/PaperValidator.git
-```
-- Set up your configuration file by editing the /conf/application.conf.sample file according to your need. After
-having done that you have to rename the file to application.conf.
-(TODO: Extend this step with further explanations)
+2. Clone your repository to a folder which you can choose freely
 
-- Start PaperValidator by running the following command in the folder where you downloaded PaperValidator:
-```
-sbt "run -Dhttp.port=1234 -Dconfig.resource=application.conf"
-```
+  ```
+  git clone https://github.com/manuelroesch/PaperValidator.git
+  ```
 
-- Use PaperValidator according to the next section.
+3. In case you don't have a MySQL database already running, install it from the [MySQL website](https://www.mysql.com/) by by following the instructions on their websites.
+4. Set up your configuration file by editing the /conf/application.conf.sample file according to your needs. See all the important fileds listed below.
+
+  ```
+  db.default.url="mysql://username:passwort@127.0.0.1:3306/tablename" #Insert the URL to your database here
+  hcomp.ballot.decoratedPortalKey = "mechanicalTurk" #Defines the crowd service you want to use
+  hcomp.ballot.baseURL = "http://your-url.com" #Insert the URL where you have installed PaperValidator
+  likertCleanedAnswers = 5 #Defining the minimal confidence required to take an Mturk answer into account.
+
+  hcomp.mechanicalTurk.accessKeyID = "AKIAIQJSLLQWGRYVZHGQ"
+  hcomp.mechanicalTurk.secretAccessKey = "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"
+  hcomp.mechanicalTurk.sandbox = "true"
+  hcomp.randomPortal.active = "true"
+
+  helper.mailing.active = "true" #POP access to this email has to be enabled
+  helper.mailing.from = "your-email@gmail.com"
+  helper.mailing.pw = "your-password"
+
+  hcomp.k = 3 #Beat-by-k, Defines the number of answers required to win (relative to the second most frequent response)
+  hcomp.maxIterations = 10 #Insert a maximum number of iterations for the beat-by-k mechanism
+  hcomp.paymentCents = 50 #How many cents are you willing to pay per Mturk task
+  ```
+
+  After having edited the configuration file you have to rename the file to application.conf.
+
+5. Start PaperValidator by running the following command in the folder where you downloaded PaperValidator:
+
+  ```
+  sbt "run -Dhttp.port=1234 -Dconfig.resource=application.conf"
+  ```
 
 ## Functionality
 
@@ -42,14 +72,7 @@ The PaperValidator consists of different parts, that are based on different fram
 In the following; each part is described in more detail.
 
 ### Technical Details
-The PaperValidator system builds on the Play! Framework, which is a web framework facilitating the creation of web
-applications. The system is mainly written in Scala and partially in Java8. As storage, we use a MySQL9 database, which
-runs with our web application on a server at the University of Zurich with an Intel(R) Xeon(R) CPU X5570 @ 2.93GHz
-and 80 GB RAM. The PDF processing relies on Apache PDFBox10, an open-source Java tool, which allows the extraction
-of content from PDF documents or the conversion of a PDF document into an image. For the crowd-sourcing component,
-which is used during the statistics validation process, the system makes use of the PPLib, a library, that
-facilitates the creation of crowdsourcing tasks. This library was used to send validation tasks to Amazon Mechanical
-Turk11 (Mturk), a popular crowdsourcing platform.
+The PaperValidator system builds on the [Play! Framework](https://playframework.com/), which is a web framework facilitating the creation of web applications. The system is mainly written in [Scala](http://www.scala-lang.org/) and partially in [Java](http://java.com). As storage, a [MySQL](https://www.mysql.com/) database is used. The PDF processing relies on [Apache PDFBox](https://pdfbox.apache.org/), an open-source Java tool, which allows the extraction of content from PDF documents or the conversion of a PDF document into an image. For the crowd-sourcing component, which is used during the statistics validation process, the system makes use of the [PPLib](https://github.com/uzh/PPLib), a library, that facilitates the creation of crowdsourcing tasks. This library was used to send validation tasks to [Amazon Mechanical Turk (Mturk)](https://www.mturk.com/mturk/welcome), a popular crowdsourcing platform.
 
 ### Functionality Overview
 The target users of PaperValidator are authors, reviewers, as well as conference chairs. For each of these users, the tool
@@ -81,15 +104,13 @@ the uploaded PDF file. The method is annotated in yellow, the assumption in gree
 to a PNG image and cropped so that both the method and assumption are visible. In case they are on different pages,
 the pages are put together into one image, and the page break is indicated by a page break symbol.
 
-The last step in part (1) of the analysis is the validation of the snippet using crowd-sourcing. For this, a question is generated
-on Mturk. The Mturk worker (Mturker) then decides whether the method-assumption pair is related,
+The last step in part (1) of the analysis is the validation of the snippet using crowd-sourcing. For this, a question is generated on Mturk. The Mturk worker (Mturker) then decides whether the method-assumption pair is related,
 and if the author has checked the assumption before applying the method. Thereby, we do not only ask one Mturker, but several
 of them with the stopping rule that the final answer must win with at least three more votes than the second most voted
 answer. To increase the reliability of the answers, we also introduced two further measures. First, we let the Mturker report
 their thoughts during the decision-making process and write them down. This should encourage them to think more deeply
 and elaborately. Second, we let them report their confidence from one to seven on a slider and
-eliminate all answers with a confidence lower than five from further analysis. The threshold of five was determined empirically
-by a couple of initial test runs and is also confirmed by the work of Lessel et al., who also uses a seven-point
+eliminate all answers with a confidence lower than five from further analysis. The threshold of five was determined empirically by a couple of initial test runs and is also confirmed by the work of Lessel et al., who also uses a seven-point
 confidence scale with a threshold of 5.
 
 Part (2) of the analysis, the Statchecker part, first converts the PDF to text and performs a validation equivalent to the
@@ -113,8 +134,8 @@ PaperValidator considering the following questions:
 - Are there any colors used in the paper, which are difficult to read when printed in gray scale?
 
 Notice that the analysis in part (4) is not directly related to statistics but indirectly; e.g. diagrams presented in unreadable
-colors makes it challenging for a reader to follow the reported explanations. Besides, part (4) is also a proof of concept, that
-the PaperValidator can be easily extended so that not only the contents but also the layout can be checked.
+colors makes it challenging for a reader to follow the reported explanations. Besides, part (4) is also a proof of concept, that the PaperValidator can be easily extended so that not only the contents but also the layout can be checked.
+
 Having finished the paper analysis parts (1)-(4), the author, who has uploaded the PDF, will be notified by an email containing
 a hyperlink to the paper analysis result overview page. On this page, for each of the four analysis parts, the
 a hyperlink to the paper analysis result overview page. On this page, for each of the four analysis parts, the
@@ -123,12 +144,40 @@ results are listed and depending on the result, a warning or an error is generat
 Furthermore, the analysis results overview page also includes, a spell checker, which can be used besides spell checking, to
 verify the conversion process from PDF to text. If there are exceptional spelling mistakes listed, which are not present
 in the initial PDF file, there was an error in the conversion process and the analysis results are therefore not reliable.
+
 Another source of information when an error happens during the PDF processing is the processing log, which also can be
 found on the result overview page. This log shows all the important events and reports all errors thrown by the tool.
 There is also a summary of all method-assumption snippets and their corresponding Mturk answers.
+
 The result overview page also allows the download of the analyzed PDF in two versions; one is the blank version, which
 is equal to the one which was uploaded to the system, and the other is an annotated version in which all the findings
 are highlighted. The most dominant highlighting, thereby, is applied to methods with missing assumption.
 
-## Questions
-If you have any further questions, please ask manuel.roesch@uzh.ch.
+### Functionality for a Conference Chair
+The main functionality for a conference chair is related to the creation and administration of a conference. PaperValidator
+provides for this purpose several interfaces such as a conference creation form, conference settings pages as well as a
+conference overview page. In the following paragraphs, each of these interfaces is explained in more detail.
+
+First, the conference creation form, allows the chair to create a conference by choosing a name for the conference and selecting a method-assumption template, which later builds the base for the method-assumption validation process. It is worth
+mentioning that this template is only the base and it is freely adaptable later. Having created the conference, the creator gets an email with a hyperlink to the conference overview page.
+
+This conference overview page, as shown in Figure 6, consists of three parts. On the top, there are three buttons relating to different conference settings concerning the method-assumption validation. The next part, in the middle, lists all the papers,
+which have been uploaded to the conference so far. Besides the processing status of the uploaded papers, the list also shows
+how many warnings and errors have been found for each paper. Moreover, by clicking on a paper, a conference chair can get
+to the paper results overview page and use all its functionality, as has already been presented in the Functionality for Authors Section. The bottom of the conference overview page provides some statistics about all the uploaded papers and the findings of its validation process.
+
+The three method-assumption validation settings pages, which are at the top of the conference overview page, have the following meanings. The first relates to the interface for inserting and editing methods, assumptions and their synonyms; the second is for linking methods with their associated assumptions, and the last is for flagging the linked method and assumptions as shown in Figure 7. With this flagging option, a conference chair can assign an importance to each of the method-assumption linking. So for example, if a chair flags ANOVA and its assumption of a normal distribution as required, every paper will show an error when ANOVA is used without checking for a normal distribution first. The flagging also directly influences the highlighting color on the paper overview page.
+
+## Frequently Asked Questions
+
+_**Is PaperValidator really free from commercial interests?**_
+
+Yes, PaperValidator is a project of the University of Zurich with the aim to improve statistics in scientific publications. There are no hidden commercial interests and the tool is truly free and independent.
+
+_**I need support, who should I ask?**_
+
+If you have any further questions or troubles with the installation, please ask manuel.roesch@uzh.ch. Notice that the support is limited and you may have to wait a day or two to get an answer.
+
+_**Will PaperValidator be extended any time soon?**_
+
+PaperValidator was built as an all-purpose research paper validation tool, which is open for many extensions. Further statistical analysis tests could be implemented alongside other tests concerning layout, grammar or content. What exactly the next steps are, is still under discussion.
