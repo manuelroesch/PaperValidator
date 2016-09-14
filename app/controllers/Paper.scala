@@ -7,7 +7,7 @@ import play.libs.Json
 
 import scala.collection.mutable.ListBuffer
 import util.control.Breaks._
-import helper.{Commons, PaperAnnotator, PaperProcessingManager, SpellChecker}
+import helper._
 import models._
 import play.api.Configuration
 import play.api.db.Database
@@ -28,7 +28,7 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
     val paper = papersService.findByIdAndSecret(id,secret)
     if(paper.isDefined) {
       var results = paperResultService.findByPaperId(id)
-      results = addMethodsAndAssumptions(id,results)
+      results = M2AResultHelper.addMethodsAndAssumptions(id,results,papersService,answerService,conferenceSettingsService)
       val fileBasePath = configuration.getString("highlighter.pdfSourceDir").get+"/"+Commons.getSecretHash(secret)
       val fileLengh = scala.reflect.io.File(fileBasePath + "/log.txt").length
       var log = ""
@@ -48,7 +48,8 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
   def annotatePaper(id:Int, secret:String) = Action {
     val paper = papersService.findByIdAndSecret(id,secret)
     if(paper.isDefined) {
-      PaperAnnotator.annotatePaper(configuration,answerService,paperResultService,paper.get,false)
+      PaperAnnotator.annotatePaper(configuration,answerService, papersService, conferenceSettingsService,
+        paperResultService, paperMethodService,paper.get,false)
       Ok("Ok")
     } else {
       Unauthorized(views.html.error.unauthorized())
@@ -58,7 +59,8 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
   def annotatePaperGlossaryMode(id:Int, secret:String) = Action {
     val paper = papersService.findByIdAndSecret(id,secret)
     if(paper.isDefined) {
-      PaperAnnotator.annotatePaper(configuration,answerService,paperResultService,paper.get,true)
+      PaperAnnotator.annotatePaper(configuration,answerService,papersService, conferenceSettingsService,
+        paperResultService, paperMethodService, paper.get,true)
       Ok("Ok")
     } else {
       Unauthorized(views.html.error.unauthorized())
@@ -116,69 +118,12 @@ class Paper @Inject()(database: Database, configuration: Configuration, papersSe
     }
   }
 
-  def addMethodsAndAssumptions(id:Int, results: List[PaperResult]) : List[PaperResult] = {
-    var allResults = results
-    val paper = papersService.findById(id).get
-    val m2aList = answerService.findByPaperId(paper.id.get)
-    val conferenceSettings = conferenceSettingsService.findAllByPaperId(paper.id.get,paper.conferenceId).to[ListBuffer]
-    m2aList.foreach(m2a => {
-      breakable {
-        conferenceSettings.zipWithIndex.foreach{case (confSetting,i) => {
-          if(confSetting.flag.get != ConferenceSettings.FLAG_IGNORE) {
-            if(m2a.method.toLowerCase() == confSetting.methodName.toLowerCase() &&
-              m2a.assumption.toLowerCase() == confSetting.assumptionName.toLowerCase()) {
-              val m2aDescr = m2a.method+" <span class='glyphicon glyphicon-arrow-right'></span> "+m2a.assumption
-              var m2aResult = "Related: <b>"+ (m2a.isRelated > 0.5) + "</b>, " +
-                "Checked before: <b>" + (m2a.isCheckedBefore > 0.5) + "</b>"
-              var symbol = PaperResult.SYMBOL_ERROR
-              if(m2a.isRelated > 0.5 && m2a.isCheckedBefore > 0.5) {
-                symbol = PaperResult.SYMBOL_OK
-              } else if(m2a.isRelated > 0.5) {
-                symbol = PaperResult.SYMBOL_WARNING
-                m2aResult += getM2AFlagText(confSetting)
-              } else {
-                m2aResult += getM2AFlagText(confSetting)
-              }
-              allResults = allResults :+ new PaperResult(Some(1L),id,PaperResult.TYPE_M2A,m2aDescr,m2aResult,symbol,"")
-              conferenceSettings.remove(i)
-              break
-            }
-          }
-        }}
-      }
-    })
-    conferenceSettings.foreach(confSetting => {
-      if(confSetting.flag.get != ConferenceSettings.FLAG_IGNORE){
-        val m2aDescr = confSetting.methodName+" <span class='glyphicon glyphicon-arrow-right'></span> "+
-          confSetting.assumptionName
-        var m2aResult = "Not Found in Paper"
-        m2aResult += getM2AFlagText(confSetting)
-        var symbol = PaperResult.SYMBOL_ERROR
-        if(confSetting.flag.get==ConferenceSettings.FLAG_EXPECT) {
-          symbol = PaperResult.SYMBOL_WARNING
-        }
-        allResults = allResults :+ new PaperResult(Some(1L),id,PaperResult.TYPE_M2A,m2aDescr,m2aResult,symbol,"")
-      }
-    })
-    allResults
-  }
-
-  def getM2AFlagText(confSetting: ConferenceSettings): String = {
-    confSetting.flag.get match {
-      case ConferenceSettings.FLAG_REQUIRE =>
-        "<span class='m2aFlag text-danger glyphicon glyphicon-flag'><span>"
-      case ConferenceSettings.FLAG_EXPECT =>
-        "<span class='m2aFlag text-warning glyphicon glyphicon-flag'><span>"
-      case ConferenceSettings.FLAG_IGNORE =>
-        "<span class='m2aFlag text-muted glyphicon glyphicon-flag'><span>"
-    }
-  }
-
   def confirmPaper(id:Int, secret:String) = Action {
     if(papersService.findByIdAndSecret(id,secret).nonEmpty){
       papersService.updateStatus(id,Papers.STATUS_IN_PPLIB_QUEUE)
       PaperProcessingManager.run(database, configuration, papersService, questionService,
-        method2AssumptionService, paperResultService, paperMethodService, permutationsServcie, answerService)
+        method2AssumptionService, paperResultService, paperMethodService, permutationsServcie, answerService,
+        conferenceSettingsService)
       Ok(views.html.paper.confirmPaper(true))
     } else {
       Unauthorized(views.html.error.unauthorized())

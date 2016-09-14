@@ -38,7 +38,7 @@ object PreprocessPDF {
 			val searcher = new StatTermSearcher(snip,database,paper)
 			searcher.occurrences.foreach(occurence => {
 				if(occurence.term.isStatisticalMethod) {
-					paperMethodService.create(paper.id.get,occurence.term.name)
+					paperMethodService.create(paper.id.get,occurence.term.name,occurence.page+":"+occurence.startIndex)
 				}
 			})
 			val statTermsInPaper = new StatTermPruning(List(new PruneTermsWithinOtherTerms)).prune(searcher.occurrences)

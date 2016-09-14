@@ -24,11 +24,11 @@ class Upload @Inject() (database: Database, configuration: Configuration, questi
                         papersService: PapersService, conferenceService: ConferenceService,
                         method2AssumptionService: Method2AssumptionService, paperResultService: PaperResultService,
                         paperMethodService: PaperMethodService, permutationsServcie: PermutationsService,
-                        answerService: AnswerService
+                        answerService: AnswerService, conferenceSettingsService: ConferenceSettingsService
                        ) extends Controller {
   def upload = Action {
     PaperProcessingManager.run(database, configuration, papersService, questionService, method2AssumptionService,
-      paperResultService,paperMethodService, permutationsServcie, answerService)
+      paperResultService,paperMethodService, permutationsServcie, answerService, conferenceSettingsService)
     val conferences = conferenceService.findAll()
     Ok(views.html.upload(conferences))
   }
@@ -50,7 +50,7 @@ class Upload @Inject() (database: Database, configuration: Configuration, questi
           papersService.create(filename,email,conference,secret)
         }
         PaperProcessingManager.run(database, configuration, papersService, questionService, method2AssumptionService,
-          paperResultService,paperMethodService, permutationsServcie, answerService)
+          paperResultService,paperMethodService, permutationsServcie, answerService, conferenceSettingsService)
         Logger.info("done")
         Ok("Ok")
       } else {

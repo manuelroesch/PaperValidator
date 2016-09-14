@@ -112,7 +112,8 @@ CREATE TABLE `papers` (
 CREATE TABLE `paper_methods` (
   `id` bigint(20) NOT NULL,
   `paper_id` bigint(20) NOT NULL,
-  `method` varchar(255) NOT NULL
+  `method` varchar(255) NOT NULL,
+  `pos` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `paper_results` (

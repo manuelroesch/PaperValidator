@@ -1,0 +1,4 @@
+ANOVA;normality
+ANOVA;homoscedasticity
+t-test;normality
+t-test;homoscedasticity

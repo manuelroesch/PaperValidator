@@ -6,7 +6,7 @@ import anorm.SqlParser._
 import anorm._
 import play.api.db.Database
 
-case class PaperMethod(id: Option[Long], paperId: Int, method: String) extends Serializable
+case class PaperMethod(id: Option[Long], paperId: Int, method: String, pos: String) extends Serializable
 
 
 class PaperMethodService @Inject()(db:Database) {
@@ -14,9 +14,10 @@ class PaperMethodService @Inject()(db:Database) {
 	private val answerParser: RowParser[PaperMethod] =
 		get[Option[Long]]("id") ~
 			get[Int]("paper_id") ~
-			get[String]("method") map {
-			case id ~ paper_id ~ method =>
-				PaperMethod(id, paper_id, method)
+			get[String]("method") ~
+			get[String]("pos") map {
+			case id ~ paper_id ~ method ~ pos =>
+				PaperMethod(id, paper_id, method, pos)
 		}
 
 	def findById(id: Long): Option[PaperMethod] =
@@ -44,12 +45,20 @@ class PaperMethodService @Inject()(db:Database) {
 		}
 	}
 
-	def create(paperId: Int, method: String) =
+	def findByPaperId(paperId: Int) : List[PaperMethod] =
+	db.withConnection { implicit c =>
+		SQL("SELECT * FROM paper_methods WHERE paper_id = {paper_id}").on(
+			'paper_id -> paperId
+		).as(answerParser *)
+	}
+
+	def create(paperId: Int, method: String, pos: String) =
 		db.withConnection { implicit c =>
-			SQL("INSERT INTO paper_methods(paper_id, method) " +
-				"VALUES ({paper_id},{method})").on(
+			SQL("INSERT INTO paper_methods(paper_id, method, pos) " +
+				"VALUES ({paper_id},{method},{pos})").on(
 				'paper_id -> paperId,
-				'method -> method
+				'method -> method,
+				'pos -> pos
 			).executeInsert()
 		}
 

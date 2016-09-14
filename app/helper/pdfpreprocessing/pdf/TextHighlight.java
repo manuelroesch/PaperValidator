@@ -22,7 +22,11 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
+import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
 import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationTextMarkup;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.util.Matrix;
@@ -126,7 +130,8 @@ public class TextHighlight extends PDFTextStripper {
 	}
 
 
-	public void highlight(final Pattern searchText, final Pattern markingPattern, Color color, int pageNr, boolean withId) {
+	public void highlight(final Pattern searchText, final Pattern markingPattern, Color color, int pageNr,
+						  boolean withId, String comment) {
 		if (textCache == null || document == null) {
 			throw new IllegalArgumentException("TextCache was not initialized");
 		}
@@ -145,7 +150,7 @@ public class TextHighlight extends PDFTextStripper {
 			for (Match searchMatch : textCache.match(pageNr, searchText)) {
 				if (textCache.match(searchMatch.positions, markingPattern).size() > 0) {
 					for (Match markingMatch : textCache.match(searchMatch.positions, markingPattern)) {
-						if (markupMatch(color, contentStream, markingMatch,10,withId)) {
+						if (markupMatch(color, contentStream, markingMatch,10,withId,page,comment,false)) {
 							found = true;
 						}
 					}
@@ -165,7 +170,8 @@ public class TextHighlight extends PDFTextStripper {
 		}
 	}
 
-	public void highlight(int startIndex, int stopIndex, Color color, int pageNr, int boxHeight, boolean hasLineOffset, boolean withId) {
+	public void highlight(int startIndex, int stopIndex, Color color, int pageNr, int boxHeight, boolean hasLineOffset,
+						  boolean withId, String comment, boolean commentOnly) {
 		if (textCache == null || document == null) {
 			throw new IllegalArgumentException("TextCache was not initialized");
 		}
@@ -185,7 +191,7 @@ public class TextHighlight extends PDFTextStripper {
 			}
 			pos = pos.subList(Math.min(numberOfLines+startIndex,pos.size()),Math.min(numberOfLines+stopIndex,pos.size()));
 			Match m = new Match(pageNr+"-"+startIndex,pos);
-			markupMatch(color, contentStream, m,boxHeight, withId);
+			markupMatch(color, contentStream, m,boxHeight, withId,page,comment,commentOnly);
 
 			contentStream.close();
 		} catch (Exception e) {
@@ -196,8 +202,8 @@ public class TextHighlight extends PDFTextStripper {
 		}
 	}
 
-
-	private boolean markupMatch(Color color, PDPageContentStream contentStream, Match markingMatch, int height, boolean withId) throws IOException {
+	private boolean markupMatch(Color color, PDPageContentStream contentStream, Match markingMatch, int height,
+								boolean withId, PDPage page, String comment, boolean commentOnly) throws IOException {
 		final List<PDRectangle> textBoundingBoxes = getTextBoundingBoxes(markingMatch.positions);
 
 		if (textBoundingBoxes.size() > 0) {
@@ -213,6 +219,40 @@ public class TextHighlight extends PDFTextStripper {
 					contentStream.newLineAtOffset( textBoundingBox.getUpperRightX(), textBoundingBox.getUpperRightY());
 					contentStream.showText(markingMatch.str);
 					contentStream.endText();
+				}
+				if(!comment.isEmpty() && !commentOnly) {
+					PDAnnotationTextMarkup txtMark = new PDAnnotationTextMarkup(PDAnnotationTextMarkup.SUB_TYPE_HIGHLIGHT);
+					PDRectangle position = new PDRectangle();
+					position.setLowerLeftX(textBoundingBox.getLowerLeftX());
+					position.setLowerLeftY(textBoundingBox.getLowerLeftY());
+					position.setUpperRightX(textBoundingBox.getLowerLeftX() + Math.max(Math.abs(textBoundingBox.getUpperRightX() - textBoundingBox.getLowerLeftX()),10));
+					position.setUpperRightY(textBoundingBox.getLowerLeftY() + 10);
+					txtMark.setRectangle(position);
+
+					float[] quads = new float[8];
+					quads[0] = position.getLowerLeftX();  // x1
+					quads[1] = position.getUpperRightY()-2; // y1
+					quads[2] = position.getUpperRightX(); // x2
+					quads[3] = quads[1]; // y2
+					quads[4] = quads[0];  // x3
+					quads[5] = position.getLowerLeftY()-2; // y3
+					quads[6] = quads[2]; // x4
+					quads[7] = quads[5]; // y5
+					txtMark.setQuadPoints(quads);
+					txtMark.setConstantOpacity((float)0.05);
+					txtMark.setContents("Missing Assumption/s ("+ markingMatch.str+"):\n" + comment);
+					PDColor black = new PDColor(new float[] { 0, 0, 0 }, PDDeviceRGB.INSTANCE);
+					txtMark.setColor(black);
+					page.getAnnotations().add(txtMark);
+				} else if(!comment.isEmpty() && commentOnly) {
+					for (int i = 0; i < page.getAnnotations().size(); i++) {
+						System.out.println(page.getAnnotations().get(i).getContents());
+						String extractedComment = page.getAnnotations().get(i).getContents();
+						String commentID = extractedComment.substring(extractedComment.indexOf("(")+1,extractedComment.indexOf(")"));
+						if(markingMatch.str.equals(commentID) && extractedComment.indexOf(comment)==-1) {
+							page.getAnnotations().get(i).setContents(extractedComment+"\n"+comment);
+						}
+					}
 				}
 			}
 			return true;
