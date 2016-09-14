@@ -19,22 +19,22 @@ Here is a short clip with an overview of PaperValidator's functionallity.
 
 ## Setup
 
-1. Install the two popular tools [Git](https://git-scm.com/) and [sbt](http://www.scala-sbt.org/) by following the
+- Install the two popular tools [Git](https://git-scm.com/) and [sbt](http://www.scala-sbt.org/) by following the
 instructions on their websites.
-2. Clone your repository to a folder which you can choose freely
+- Clone your repository to a folder which you can choose freely
 ```
 git clone https://github.com/manuelroesch/PaperValidator.git
 ```
-3. Set up your configuration file by editing the /conf/application.conf.sample file according to your need. After
+- Set up your configuration file by editing the /conf/application.conf.sample file according to your need. After
 having done that you have to rename the file to application.conf.
 (TODO: Extend this step with further explanations)
 
-4. Start PaperValidator by running the following command in the folder where you downloaded PaperValidator:
+- Start PaperValidator by running the following command in the folder where you downloaded PaperValidator:
 ```
 sbt "run -Dhttp.port=1234 -Dconfig.resource=application.conf"
 ```
 
-5. Use PaperValidator according to the next section.
+- Use PaperValidator according to the next section.
 
 ## Functionality
 
