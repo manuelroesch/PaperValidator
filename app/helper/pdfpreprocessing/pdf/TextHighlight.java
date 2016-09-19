@@ -25,8 +25,7 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
 import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
 import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationTextMarkup;
+import org.apache.pdfbox.pdmodel.interactive.annotation.*;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.util.Matrix;
@@ -209,9 +208,11 @@ public class TextHighlight extends PDFTextStripper {
 		if (textBoundingBoxes.size() > 0) {
 			contentStream.setNonStrokingColor(color);
 			for (PDRectangle textBoundingBox : textBoundingBoxes) {
-				contentStream.addRect(textBoundingBox.getLowerLeftX(), textBoundingBox.getLowerLeftY(),
-						Math.max(Math.abs(textBoundingBox.getUpperRightX() - textBoundingBox.getLowerLeftX()), 10), height);
-                contentStream.fill();
+				if(comment.isEmpty()) {
+					contentStream.addRect(textBoundingBox.getLowerLeftX(), textBoundingBox.getLowerLeftY(),
+							Math.max(Math.abs(textBoundingBox.getUpperRightX() - textBoundingBox.getLowerLeftX()), 10), height);
+					contentStream.fill();
+				}
 				if(withId) {
 					PDFont font = PDType1Font.HELVETICA;
 					contentStream.beginText();
@@ -239,18 +240,24 @@ public class TextHighlight extends PDFTextStripper {
 					quads[6] = quads[2]; // x4
 					quads[7] = quads[5]; // y5
 					txtMark.setQuadPoints(quads);
-					txtMark.setConstantOpacity((float)0.05);
+					txtMark.setConstantOpacity((float)0.5);
 					txtMark.setContents("Missing Assumption/s ("+ markingMatch.str+"):\n" + comment);
-					PDColor black = new PDColor(new float[] { 0, 0, 0 }, PDDeviceRGB.INSTANCE);
-					txtMark.setColor(black);
+					float[] colorArray = new float[]{0,0,0};
+					colorArray = color.getColorComponents(colorArray);
+					PDColor hColor = new PDColor(colorArray, PDDeviceRGB.INSTANCE);
+					txtMark.setColor(hColor);
+					txtMark.setCreationDate(Calendar.getInstance());
+					txtMark.setTitlePopup("Assumption Error");
 					page.getAnnotations().add(txtMark);
 				} else if(!comment.isEmpty() && commentOnly) {
 					for (int i = 0; i < page.getAnnotations().size(); i++) {
-						System.out.println(page.getAnnotations().get(i).getContents());
 						String extractedComment = page.getAnnotations().get(i).getContents();
-						String commentID = extractedComment.substring(extractedComment.indexOf("(")+1,extractedComment.indexOf(")"));
-						if(markingMatch.str.equals(commentID) && extractedComment.indexOf(comment)==-1) {
-							page.getAnnotations().get(i).setContents(extractedComment+"\n"+comment);
+						if(extractedComment!=null) {
+							String commentID = extractedComment.substring(extractedComment.indexOf("(")+1,extractedComment.indexOf(")"));
+							if(markingMatch.str.equals(commentID) && extractedComment.contains(comment)) {
+								page.getAnnotations().get(i).setContents(extractedComment+"\n"+comment);
+							}
+
 						}
 					}
 				}
