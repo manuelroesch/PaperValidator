@@ -156,8 +156,8 @@ The three method-assumption validation settings pages, which are at the top of t
 
 Whenever an author or conference chair loses the email with the link to a publication or conference, there is the option of resending the link respectively sending the link to the my account page (Figure 11) by submitting the email address via the my account form (Figure 10). It is to notice that the link is sent maximally once a day to prevent spam.
 
-<a href="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/my-account.png" target="_blank">
-<img src="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/my-account.png" width="500">
+<a href="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/my-account-link.png" target="_blank">
+<img src="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/my-account-link.png" width="500">
 </a><br><sup>Figure 10: Get your account link via the my account form.</sup>
 
 The my account page (Figure 11) contains the uploaded PDFs as well as the created conferences from a particular email address. You can either get to the result overview page (Figure 4) or to the converence overview page by clicking on the according link.
