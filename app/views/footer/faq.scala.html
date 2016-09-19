@@ -6,15 +6,167 @@
 		<div class="col-sm-2"></div>
 		<div class="col-sm-8">
 			<h1>Help and Frequently Asked Questions</h1>
+				<h2>Frequently Asked Questions</h2>
 
-			<h2>This is a sample question?</h2>
-			<i><p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim.</p>
+					<p><em><strong>Is PaperValidator really free from commercial interests?</strong></em></p>
 
-				<p>Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus.</p>
+					<p>Yes, PaperValidator is a project of the University of Zurich with the aim to improve statistics in scientific publications. There are no hidden commercial interests and the tool is truly free and independent.</p>
 
-				<p>Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi.</p>
+					<p><em><strong>I need support, who should I ask?</strong></em></p>
 
-				<p>Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc,</p></i>
+					<p>If you have any further questions or troubles with the installation, please ask <a href="mailto:manuel.roesch@@uzh.ch">manuel.roesch@@uzh.ch</a>. Notice that the support is limited and you may have to wait a day or two to get an answer.</p>
+
+					<p><em><strong>Will PaperValidator be extended any time soon?</strong></em></p>
+
+					<p>PaperValidator was built as an all-purpose research paper validation tool, which is open for many extensions. Further statistical analysis tests could be implemented alongside other tests concerning layout, grammar or content. What exactly the next steps are, is still under discussion.</p>
+
+				<h2>Installation Guide</h2>
+
+					<ol>
+						<li>Install the two tools <a href="https://git-scm.com/">Git</a> and <a href="http://www.scala-sbt.org/">sbt</a> by following the instructions on their websites.</li>
+						<li><p>Clone your repository to a folder which you can choose freely</p>
+
+							<pre><code>git clone https://github.com/manuelroesch/PaperValidator.git</code></pre></li>
+						<li><p>In case you don't have a MySQL database already running, install it from the <a href="https://www.mysql.com/">MySQL website</a> by by following the instructions on their websites.</p></li>
+						<li><p>Set up your configuration file by editing the /conf/application.conf.sample file according to your needs. See all the important fileds listed below.</p>
+
+							<pre><code>db.default.url="mysql://username:passwort@@127.0.0.1:3306/tablename" #Insert database URL here
+hcomp.ballot.decoratedPortalKey = "mechanicalTurk" #Defines the crowd service you want to use
+hcomp.ballot.baseURL = "http://your-url.com" #Insert URL where you have installed PaperValidator
+likertCleanedAnswers = 5 #Defines minimal confidence required to take Mturk answer into account
+
+hcomp.mechanicalTurk.accessKeyID = "Mturk-Access-Key-ID" # Insert your Mturk access key
+hcomp.mechanicalTurk.secretAccessKey = "Mturk-Secret-Access-Key" # Insert your Secret Access Key
+hcomp.mechanicalTurk.sandbox = "false" # Disable sandbox mode
+helper.mailing.active = "true" #POP access to this email has to be enabled
+helper.mailing.from = "your-email@@gmail.com"
+helper.mailing.pw = "your-password"
+
+hcomp.k = 3 #Beat-by-k, Defines the number of answers required to win (relative to the second most frequent response)
+hcomp.maxIterations = 10 #Insert a maximum number of iterations for the beat-by-k mechanism
+hcomp.paymentCents = 50 #How many cents are you willing to pay per Mturk task</code></pre>
+
+							<p>After having edited the configuration file you have to rename the file to application.conf.</p></li>
+						<li><p>Start PaperValidator by running the following command in the folder where you downloaded PaperValidator:</p>
+
+							<pre><code>sbt "run -Dhttp.port=1234 -Dconfig.resource=application.conf"</code></pre></li>
+					</ol>
+
+				<h2>Functionallity</h2>
+
+					<p>The PaperValidator consists of different parts, that are based on different frameworks and libraries.
+						In the following; each part is described in more detail.</p>
+
+						<h3>Technical Details</h3>
+
+							<p>The PaperValidator system builds on the <a href="https://playframework.com/">Play! Framework</a>, which is a web framework facilitating the creation of web applications. The system is mainly written in <a href="http://www.scala-lang.org/">Scala</a> and partially in <a href="http://java.com">Java</a>. As storage, a <a href="https://www.mysql.com/">MySQL</a> database is used. The PDF processing relies on <a href="https://pdfbox.apache.org/">Apache PDFBox</a>, an open-source Java tool, which allows the extraction of content from PDF documents or the conversion of a PDF document into an image. For the crowd-sourcing component, which is used during the statistics validation process, the system makes use of the <a href="https://github.com/uzh/PPLib">PPLib</a>, a library, that facilitates the creation of crowdsourcing tasks. This library was used to send validation tasks to <a href="https://www.mturk.com/mturk/welcome">Amazon Mechanical Turk (Mturk)</a>, a popular crowdsourcing platform.</p>
+
+						<h3>Functionality Overview</h3>
+
+							<p>The target users of PaperValidator are authors, reviewers, as well as conference chairs. For each of these users, the tool provides a different functionality. In addition, there are also the Mturk crowd workers who access the tool. All these different users are presented in Figure 1, where authors/reviewers are on the left, Mturk workers are on the right, and conference chairs are at the top.</p>
+
+							<p><a href="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/overview.png">
+								<img src="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/overview.png" style="max-width:100%;" width="500">
+							</a>
+								<br><sup>Figure 1: An overview of the most important parts and functionalities of the PaperValidator tool.</sup></p>
+
+						<h3>Functionality for Authors</h3>
+
+							<p>An author starts the process by uploading his publication to PaperValidator using the provided upload form (Figure 2). In doing so, he has to select the conference to which he wants to upload the paper. The conference was previously created by a conference chair, which will be explained later. It is worth mentioning that the system supports the upload of a single PDF file as well as the upload of multiple PDF documents compressed in a ZIP file.</p>
+
+							<p><a href="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/upload-paper.png">
+								<img src="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/upload-paper.png" style="max-width:100%;" width="500">
+							</a><br><sup>Figure 2: PaperValidator's paper upload form.</sup></p>
+
+							<p>After the upload, the system analyses the paper using validation algorithms partially based on crowd workers. The PaperValidator performs an analysis consisting of four different parts: (1) There is the method-assumption part, which validates methods and assumptions; (2) the Statchecker part, which implements the functionality as provided by the Statchecker tool as presented in the RelatedWork section; (3) a part that validates some basic statistical rules; and (4) a part that performs some basic layout inspection.</p>
+
+							<p>Part (1), as summarized in Figure 3, is the most central and relevant part in this work. For this method-assumption part, the text is first extracted from the uploaded PDF and further processed using regular expressions search for a predetermined set of methods, assumptions, and their synonyms. After having determined all the methods and assumptions in the text, a matching algorithm determines, which methods and assumptions fit together by using a predefined list containing the method-assumption allocation.</p>
+
+							<p>The next step is the creation of method-assumption snippets, which are later sent to Mturk for validation. The creation of such snippets is necessary because the copyrights of the papers often prohibit papers be distributed as a whole. The creation of a snippet works as follows: First, a method-assumption pair, which has been extracted previously, is annotated in a copy of the uploaded PDF file. The method is annotated in yellow, the assumption in green. In the next step, the PDF file is converted to a PNG image and cropped so that both the method and assumption are visible. In case they are on different pages, the pages are put together into one image, and the page break is indicated by a page break symbol.</p>
+
+							<p>The last step in part (1) of the analysis is the validation of the snippet using crowd-sourcing. For this, a question is generated on Mturk. The Mturk worker (Mturker) then decides whether the method-assumption pair is related, and if the author has checked the assumption before applying the method. Thereby, we do not only ask one Mturker, but several of them with the stopping rule that the final answer must win with at least three more votes than the second most voted answer. To increase the reliability of the answers, we also introduced two further measures. First, we let the Mturker report their thoughts during the decision-making process and write them down. This should encourage them to think more deeply and elaborately. Second, we let them report their confidence from one to seven on a slider and eliminate all answers with a confidence lower than five from further analysis. The threshold of five was determined empirically by a couple of initial test runs and is also confirmed by the work of Lessel et al., who also uses a seven-point confidence scale with a threshold of 5.</p>
+
+							<p><a href="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/analysis-overview.png">
+								<img src="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/analysis-overview.png" style="max-width:100%;" width="500">
+							</a><br><sup>Figure 3: The different steps of the PaperValidator’s method-assumption analysis.</sup></p>
+
+							<p>Part (2) of the analysis, the Statchecker part, first converts the PDF to text and performs a validation equivalent to the functionality of the Statchecker R package presented in the common statistical tests like f-tests, t-tests, Z-tests or chisquare tests reported in the APA format using text search with regular expression from the converted text. All the extracted tests are, in the next step, recalculated and compared with the reported p-values. If such p-values are not in compliance with the recalculated p-values, they are saved as an error in the database.</p>
+
+							<p>Part (3) deals with basic statistical rules as reported in. Here, the first step is once again the conversion of the PDF into text. Next, PaperValidator performs a text search using regular expressions to answer the following questions:</p>
+
+							<ul>
+								<li>Is the sample size stated in the text?</li>
+								<li>Is there any incorrect statistical terminology in the text?</li>
+								<li>Does the PDF contain any p-values? Are they in the correct range and precision?</li>
+								<li>Is there a mean without variance reported in the text?</li>
+								<li>Has the author performed a statistical test without stating effect size or power of the test?</li>
+							</ul>
+
+							<p>In part (4), a simple layout analysis is performed. For that, the PDF is converted into a PNG image, which is analyzed by PaperValidator considering the following questions:</p>
+
+							<ul>
+								<li>Does the paper have a certain distance between content and border so that it can be printed properly?</li>
+								<li>Are there any colors used in the paper, which are difficult to read when printed in gray scale?</li>
+							</ul>
+
+							<p>Notice that the analysis in part (4) is not directly related to statistics but indirectly; e.g. diagrams presented in unreadable colors makes it challenging for a reader to follow the reported explanations. Besides, part (4) is also a proof of concept, that the PaperValidator can be easily extended so that not only the contents but also the layout can be checked.</p>
+
+							<p>Having finished the paper analysis parts (1)-(4), the author, who has uploaded the PDF, will be notified by an email containing a hyperlink to the paper analysis result overview page (Figure 4). For each of the four analysis parts, the results are listed and depending on the result, a warning or an error is generated.</p>
+
+							<p><a href="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/paper-detail.png">
+								<img src="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/paper-detail.png" style="max-width:100%;" width="500">
+							</a><br><sup>Figure 4: The result overview page showing all the analysis results.</sup></p>
+
+							<p>Furthermore, the analysis results overview page also includes, a spell checker, which can be used besides spell checking, to verify the conversion process from PDF to text. If there are exceptional spelling mistakes listed, which are not present in the initial PDF file, there was an error in the conversion process and the analysis results are therefore not reliable.</p>
+
+							<p>Another source of information when an error happens during the PDF processing is the processing log, which also can be found on the result overview page. This log shows all the important events and reports all errors thrown by the tool. There is also a summary of all method-assumption snippets and their corresponding Mturk answers.</p>
+
+							<p>The result overview page also allows the download of the analyzed PDF in two versions; one is the blank version, which is equal to the one which was uploaded to the system, and the other is an annotated version in which all the findings are highlighted. The most dominant highlighting, thereby, is applied to methods with missing assumption.</p>
+
+				<h3>Functionality for a Conference Chair</h3>
+
+					<p>The main functionality for a conference chair is related to the creation and administration of a conference. PaperValidator provides for this purpose several interfaces such as a conference creation form, conference settings pages as well as a conference overview page. In the following paragraphs, each of these interfaces is explained in more detail.</p>
+
+					<p>First, the conference creation form (Figure 5), allows the chair to create a conference by choosing a name for the conference and selecting a method-assumption template, which later builds the base for the method-assumption validation process. It is worth mentioning that this template is only the base and it is freely adaptable later. Having created the conference, the creator gets an email with a hyperlink to the conference overview page.</p>
+
+					<p><a href="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/create-conference.png">
+						<img src="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/create-conference.png" style="max-width:100%;" width="500">
+					</a><br><sup>Figure 5: The conference creation form.</sup></p>
+
+					<p>This conference overview page (Figure 6), consists of three parts. On the top, there are three buttons relating to different conference settings concerning the method-assumption validation. The next part, in the middle, lists all the papers, which have been uploaded to the conference so far. Besides the processing status of the uploaded papers, the list also shows how many warnings and errors have been found for each paper. Moreover, by clicking on a paper, a conference chair can get to the paper results overview page and use all its functionality, as has already been presented in the Functionality for Authors Section. The bottom of the conference overview page provides some statistics about all the uploaded papers and the findings of its validation process. Moreover, you can see the Mtruk answer detail from the whole conference and you can download the found methods and method-assumption pairs in the CSV file by clicking the buttons at the bottom of the page.</p>
+
+					<p><a href="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/conference-overview.png">
+						<img src="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/conference-overview.png" style="max-width:100%;" width="500">
+					</a><br><sup>Figure 6: The conference overview page.</sup></p>
+
+					<p>The three method-assumption validation settings pages, which are at the top of the conference overview page, have the following meanings. The first relates to the interface for inserting and editing methods, assumptions and their synonyms (Figure 7); the second is for linking methods with their associated assumptions (Figure 8), and the last is for flagging the linked method and assumptions (Figure 9). With this flagging option, a conference chair can assign an importance to each of the method-assumption linking. So for example, if a chair flags ANOVA and its assumption of a normal distribution as required, every paper will show an error when ANOVA is used without checking for a normal distribution first. The flagging also directly influences the highlighting color on the paper overview page.</p>
+
+					<p><a href="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/settings-edit.png">
+						<img src="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/settings-edit.png" style="max-width:100%;" width="500">
+					</a><br><sup>Figure 7: The method and assumption editing page.</sup></p>
+
+					<p><a href="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/settings-link.png">
+						<img src="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/settings-link.png" style="max-width:100%;" width="500">
+					</a><br><sup>Figure 8: The method and assumption linking page.</sup></p>
+
+					<p><a href="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/settings-flag.png">
+						<img src="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/settings-flag.png" style="max-width:100%;" width="500">
+					</a><br><sup>Figure 9: The method and assumption flagging.</sup></p>
+
+				<h3>Functionality for Authors and Conference Chair</h3>
+
+					<p>Whenever an author or conference chair loses the email with the link to a publication or conference, there is the option of resending the link respectively sending the link to the my account page (Figure 11) by submitting the email address via the my account form (Figure 10). It is to notice that the link is sent maximally once a day to prevent spam.</p>
+
+					<p><a href="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/my-account-link.png">
+						<img src="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/my-account-link.png" style="max-width:100%;" width="500">
+					</a><br><sup>Figure 10: Get your account link via the my account form.</sup></p>
+
+					<p>The my account page (Figure 11) contains the uploaded PDFs as well as the created conferences from a particular email address. You can either get to the result overview page (Figure 4) or to the converence overview page by clicking on the according link.</p>
+
+					<p><a href="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/my-account.png">
+						<img src="https://raw.githubusercontent.com/manuelroesch/PaperValidator/master/public/images/help/my-account.png" style="max-width:100%;" width="500">
+					</a><br><sup>Figure 11: The my account overview page.</sup></p>
+
 		</div>
 	</div>
 
