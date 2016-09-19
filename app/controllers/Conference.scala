@@ -1,13 +1,13 @@
 package controllers
 
-import java.io.File
+import java.io.{File, PrintWriter}
 import javax.inject.Inject
 
 import helper.Commons
 import helper.email.MailTemplates
+import helper.pdfpreprocessing.PreprocessPDF
 import models._
 import play.Configuration
-import play.api.Logger
 import play.api.mvc.{Action, Controller}
 
 import scala.io.Source
@@ -136,6 +136,44 @@ class Conference @Inject() (configuration: Configuration, conferenceService: Con
       Ok("Ok")
     }.getOrElse {
       Ok("Error")
+    }
+  }
+
+  def getMethodsCSV(conferenceId: Int, secret: String) = Action {
+    val conference = conferenceService.findByIdAndSecret(conferenceId,secret)
+    if(conference.isEmpty) {
+      Unauthorized(views.html.error.unauthorized())
+    } else {
+      val paperMethodsCSV = paperMethodService.getByConference(conferenceId)
+      val csvFile = new File(PreprocessPDF.TMP_DIR + "/methods-" + conferenceId + "-" + secret + ".csv")
+      val pw = new PrintWriter(csvFile)
+      paperMethodsCSV.foreach(pm => {
+        pw.write("\""+pm.name+"\",\""+pm.method+","+pm.pos+"\"\r\n")
+      })
+      pw.close()
+      Ok.sendFile(csvFile).withHeaders(
+        "Content-Disposition" -> "attachment;filename=methods.csv"
+      )
+    }
+  }
+
+  def getPairsCSV(conferenceId: Int, secret: String) = Action {
+    val conference = conferenceService.findByIdAndSecret(conferenceId,secret)
+    if(conference.isEmpty) {
+      Unauthorized(views.html.error.unauthorized())
+    } else {
+      val paperPairsCSV = answerService.findByConferenceId(conferenceId)
+      val csvFile = new File(PreprocessPDF.TMP_DIR + "/pairs-" + conferenceId + "-" + secret + ".csv")
+      val pw = new PrintWriter(csvFile)
+      paperPairsCSV.foreach(pp => {
+        val parsedGroup = pp.groupName.substring(22).split("/")
+        val pair = "\""+pp.method.replaceAll("_",",")+","+parsedGroup(1)+"\",\""+parsedGroup(2)+"\""
+        pw.write("\""+parsedGroup(0)+"\","+pair+",\""+(pp.isValid>=0.5)+"\"\r\n")
+      })
+      pw.close()
+      Ok.sendFile(csvFile).withHeaders(
+        "Content-Disposition" -> "attachment;filename=pairs.csv"
+      )
     }
   }
 }

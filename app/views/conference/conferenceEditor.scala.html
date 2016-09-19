@@ -148,10 +148,20 @@
 			"<b>"+stats("m2ATotal")+" Mapping(s)</b> in "+stats("paperWithM2A")+" Paper(s)")
 		<br><br>
 		<a href="@{baseUrl + routes.Paper.generateMturkResults(id,secret).url}">
-			<button class="btn btn-primary">Show Mturk Results</button>
+			<button class="btn btn-primary btn-dl">Show Mturk Results</button>
+		</a><br>
+		<a href="@{baseUrl + routes.Conference.getMethodsCSV(id,secret).url}">
+			<button class="btn btn-primary btn-dl">Get Methods CSV</button>
+		</a><br>
+		<a href="@{baseUrl + routes.Conference.getPairsCSV(id,secret).url}">
+			<button class="btn btn-primary btn-dl">Get M-A Pairs CSV</button>
 		</a>
 	</div>
 	<style>
+		.btn-dl {
+			width:170px;
+			margin-top:10px;
+		}
 		.tabStart-true {
 			padding-left: 40px;
 		}

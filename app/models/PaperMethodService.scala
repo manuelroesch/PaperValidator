@@ -7,6 +7,7 @@ import anorm._
 import play.api.db.Database
 
 case class PaperMethod(id: Option[Long], paperId: Int, method: String, pos: String) extends Serializable
+case class PaperMethodCSV(name: String, method: String, pos: String) extends Serializable
 
 
 class PaperMethodService @Inject()(db:Database) {
@@ -18,6 +19,14 @@ class PaperMethodService @Inject()(db:Database) {
 			get[String]("pos") map {
 			case id ~ paper_id ~ method ~ pos =>
 				PaperMethod(id, paper_id, method, pos)
+		}
+
+	private val answerParserCSV: RowParser[PaperMethodCSV] =
+			get[String]("name") ~
+			get[String]("method") ~
+			get[String]("pos") map {
+			case name ~ method ~ pos =>
+				PaperMethodCSV(name, method, pos)
 		}
 
 	def findById(id: Long): Option[PaperMethod] =
@@ -68,5 +77,12 @@ class PaperMethodService @Inject()(db:Database) {
 				'id -> id
 			).executeUpdate()
 		}
+
+	def getByConference(conferenceId: Int) =
+		db.withConnection { implicit c =>
+		SQL("SELECT name,method,pos FROM papers,paper_methods WHERE papers.id = paper_methods.paper_id AND conference_id = {conference_id}").on(
+			'conference_id -> conferenceId
+		).as(answerParserCSV *)
+	}
 
 }

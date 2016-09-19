@@ -37,6 +37,8 @@ POST       /conference-created                      controllers.Conference.confe
 GET        /conference-editor/:id/:secret           controllers.Conference.conferenceEditor(id: Int, secret: String)
 GET        /flag-editor/:id/:secret                 controllers.Conference.flagEditor(id: Int, secret: String)
 POST       /save-flags                              controllers.Conference.saveFlags
+GET        /csv/methods/:id/:secret                 controllers.Conference.getMethodsCSV(id: Int, secret: String)
+GET        /csv/pairs/:id/:secret                   controllers.Conference.getPairsCSV(id: Int, secret: String)
 
 # StatTerms
 GET        /statterms/:conference_id/:secret                    controllers.StatTerms.showStatTerms(conference_id: Int, secret: String)

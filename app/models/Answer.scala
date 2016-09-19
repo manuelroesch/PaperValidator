@@ -20,6 +20,7 @@ case class Answer(id: Option[Long], questionId: Long, userId: Long, time: DateTi
 									accepted: Boolean) extends Serializable
 case class AnswerM2A(method: String, assumption: String, isRelated: Double, isCheckedBefore: Double,
 										 extraAnswer: Double, flag: Int) extends Serializable
+case class AnswerCSV(method: String, groupName: String, isValid: Double) extends Serializable
 case class AnswerShowPaper(snippetFilename:String,answerJson:String) extends Serializable
 
 class AnswerService @Inject()(db:Database) {
@@ -48,6 +49,14 @@ class AnswerService @Inject()(db:Database) {
 			get[Int]("flag") map {
 			case method ~ assumption ~ isRelated ~ isCheckedBefore ~ extraAnswer ~ flag =>
 				AnswerM2A(method, assumption, isRelated, isCheckedBefore, extraAnswer, flag)
+		}
+
+	private val answerParserCSV: RowParser[AnswerCSV] =
+		get[String]("method") ~
+			get[String]("group_name") ~
+			get[Double]("is_valid") map {
+			case method ~ groupName ~ isValid =>
+				AnswerCSV(method, groupName, isValid)
 		}
 
 	private val answerShowPaperParser: RowParser[AnswerShowPaper] =
@@ -115,6 +124,17 @@ class AnswerService @Inject()(db:Database) {
 						List[AnswerM2A]()
 					}
 				}
+		}
+	}
+
+	def findByConferenceId(conferenceId: Int): List[AnswerCSV] = {
+		db.withConnection { implicit c =>
+			SQL("SELECT method_index method,group_name, AVG(is_checked_before) is_valid " +
+				"FROM question q,answer a,permutations pe,papers pa " +
+				"WHERE q.id = a.question_id AND q.permutation = pe.id AND pe.paper_id = pa.id AND pa.conference_id = {conference_id} " +
+				"AND a.confidence >= "+Constants.LIKERT_VALUE_CLEANED_ANSWERS+" GROUP BY method_index, group_name").on(
+				'conference_id -> conferenceId
+			).as(answerParserCSV *)
 		}
 	}
 
